@@ -1,0 +1,16 @@
+../Core/Src/MAX31865.c:40:7:Max31865_delay	16	static
+../Core/Src/MAX31865.c:49:6:Max31865_readRegisterN	40	static
+../Core/Src/MAX31865.c:63:9:Max31865_readRegister8	24	static
+../Core/Src/MAX31865.c:70:10:Max31865_readRegister16	24	static
+../Core/Src/MAX31865.c:80:6:Max31865_writeRegister8	16	static
+../Core/Src/MAX31865.c:89:9:Max31865_readFault	16	static
+../Core/Src/MAX31865.c:94:6:Max31865_clearFault	24	static
+../Core/Src/MAX31865.c:102:6:Max31865_enableBias	24	static
+../Core/Src/MAX31865.c:112:6:Max31865_autoConvert	24	static
+../Core/Src/MAX31865.c:122:6:Max31865_setWires	24	static
+../Core/Src/MAX31865.c:132:6:Max31865_setFilter	24	static
+../Core/Src/MAX31865.c:142:10:Max31865_readRTD	24	static
+../Core/Src/MAX31865.c:158:7:Max31865_init	24	static
+../Core/Src/MAX31865.c:175:6:Max31865_readTempC	64	static
+../Core/Src/MAX31865.c:226:7:Max31865_readTempF	24	static
+../Core/Src/MAX31865.c:233:7:Max31865_Filter	32	static
