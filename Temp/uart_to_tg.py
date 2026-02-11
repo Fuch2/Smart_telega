@@ -43,7 +43,7 @@ def main():
             print(f"CHAT_ID={CHAT_ID}", flush=True)
 
         # (необязательно) тестовое сообщение "started"
-        # tg_send("uart_to_tg: started")
+        tg_send("uart_to_tg: started")
 
         while True:
             raw = ser.readline()
