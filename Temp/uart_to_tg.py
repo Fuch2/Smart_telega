@@ -10,9 +10,11 @@ BAUD = 115200
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
-SEND_EVERY_SEC = 2.0       # как часто отправлять пачку
-MAX_LINES_PER_MSG = 20     # сколько строк в одном сообщении
-MAX_CHARS = 3500           # запас до лимита Telegram (4096)
+SEND_EVERY_SEC = 2.0
+MAX_LINES_PER_MSG = 20
+MAX_CHARS = 3500
+
+DEBUG = True  # <-- DEBUG: можно выключить
 
 def tg_send(text: str) -> None:
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -21,12 +23,14 @@ def tg_send(text: str) -> None:
         "text": text,
         "disable_web_page_preview": "true",
     }, timeout=10)
+
+    if DEBUG:  # <-- DEBUG: увидишь ответ Telegram при отправке
+        print("TG send:", r.status_code, r.text[:300], flush=True)
+
     r.raise_for_status()
 
 def clean_ascii(line: bytes) -> str:
-    # оставляем печатные ASCII + CR/LF/Tab, остальное выкидываем
     filtered = bytes(b for b in line if b in (9, 10, 13) or 32 <= b <= 126)
-    # часто мешает STX 0x02 — он и так выкинется
     return filtered.decode("ascii", errors="ignore").strip()
 
 def main():
@@ -34,17 +38,31 @@ def main():
     last_send = time.time()
 
     with serial.Serial(PORT, BAUD, timeout=1) as ser:
-        # читаем построчно; если устройство шлёт \r\n — будет отлично
+        if DEBUG:  # <-- DEBUG: подтвердим, что порт открылся
+            print(f"UART opened: {PORT} @ {BAUD}", flush=True)
+            print(f"CHAT_ID={CHAT_ID}", flush=True)
+
+        # (необязательно) тестовое сообщение "started"
+        # tg_send("uart_to_tg: started")
+
         while True:
-            raw = ser.readline()  # bytes до '\n' (или по timeout)
+            raw = ser.readline()
+
+            if DEBUG:  # <-- DEBUG: видим, вообще есть ли байты с UART
+                if raw:
+                    print("UART raw:", raw, flush=True)
+
             if raw:
                 s = clean_ascii(raw)
+
+                if DEBUG:  # <-- DEBUG: что получилось после чистки
+                    print("UART text:", repr(s), flush=True)
+
                 if s:
                     buf.append(s)
 
             now = time.time()
             if buf and (now - last_send >= SEND_EVERY_SEC or len(buf) >= MAX_LINES_PER_MSG):
-                # собираем сообщение в пределах лимита
                 out_lines = []
                 total = 0
                 while buf and len(out_lines) < MAX_LINES_PER_MSG:
@@ -55,10 +73,17 @@ def main():
                     total += len(line) + 1
 
                 text = "\n".join(out_lines)
+
+                if DEBUG:  # <-- DEBUG: что именно собираемся отправить
+                    print(f"Sending {len(out_lines)} lines, {len(text)} chars", flush=True)
+
                 try:
                     tg_send(text)
+                    if DEBUG:
+                        print("TG send OK", flush=True)
                 except Exception as e:
-                    # если сеть упала — не теряем данные: вернём строки назад
+                    if DEBUG:  # <-- DEBUG: покажем причину, а не молча проглотим
+                        print("TG send ERROR:", repr(e), flush=True)
                     buf = out_lines + buf
                     time.sleep(2)
 
