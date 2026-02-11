@@ -7,8 +7,8 @@ import serial
 PORT = "/dev/ttyAMA0"
 BAUD = 115200
 
-BOT_TOKEN = os.environ["8481746086:AAGoC8OnB3OvUc1fClo0JGgeIVvXqYHM_yY"]
-CHAT_ID = os.environ["387125317"]
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+CHAT_ID = os.environ["CHAT_ID"]
 
 SEND_EVERY_SEC = 2.0       # как часто отправлять пачку
 MAX_LINES_PER_MSG = 20     # сколько строк в одном сообщении
