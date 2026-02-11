@@ -14,6 +14,12 @@ SEND_EVERY_SEC = 2.0       # как часто отправлять пачку
 MAX_LINES_PER_MSG = 20     # сколько строк в одном сообщении
 MAX_CHARS = 3500           # запас до лимита Telegram (4096)
 
+r = requests.get(
+    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+    params={"chat_id": CHAT_ID, "text": "uart_to_tg: started"}
+)
+print("sendMessage:", r.status_code, r.text)
+
 def tg_send(text: str) -> None:
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     r = requests.post(url, data={
