@@ -33,6 +33,14 @@ def clean_ascii(line: bytes) -> str:
     filtered = bytes(b for b in line if b in (9, 10, 13) or 32 <= b <= 126)
     return filtered.decode("ascii", errors="ignore").strip()
 
+def make_frame(cmd: str, data: str | None = None) -> bytes:
+    if data is None:
+        frame_str = f" {cmd}  "          # пробел + cmd + два пробела
+    else:
+        frame_str = f" {cmd} {data} "    # пробел + cmd + пробел + data + пробел
+    return b"\x02" + frame_str.encode("ascii") + b"\x0A"
+
+
 def main():
     buf = []
     last_send = time.time()
@@ -44,6 +52,12 @@ def main():
 
         # (необязательно) тестовое сообщение "started"
         #tg_send("uart_to_tg: started")
+
+        ser.reset_input_buffer()
+        ser.write(make_frame("start"))
+        ser.flush()
+        if DEBUG:
+            print("UART TX: start", flush=True)
 
         while True:
             raw = ser.readline()
