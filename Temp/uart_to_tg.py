@@ -3,6 +3,11 @@ import os
 import time
 import requests
 import serial
+import threading
+
+running = True
+uart_lock = threading.Lock()
+
 
 PORT = "/dev/ttyAMA0"
 BAUD = 115200
@@ -15,6 +20,80 @@ MAX_LINES_PER_MSG = 2
 MAX_CHARS = 3500
 
 DEBUG = True  # <-- DEBUG: можно выключить
+
+def tg_get_updates(offset: int | None = None, timeout: int = 30):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
+    params = {"timeout": timeout}
+    if offset is not None:
+        params["offset"] = offset
+    r = requests.get(url, params=params, timeout=timeout + 10)
+    r.raise_for_status()
+    return r.json()
+
+def uart_send_cmd(ser: serial.Serial, cmd: str, data: str | None = None):
+    frame = make_frame(cmd, data)
+    if DEBUG:
+        print("UART TX bytes:", frame, flush=True)
+    with uart_lock:
+        ser.write(frame)
+        ser.flush()
+
+
+def tg_command_loop(ser: serial.Serial):
+    global running
+    offset = None
+
+    while running:
+        try:
+            js = tg_get_updates(offset=offset, timeout=30)
+            if not js.get("ok"):
+                time.sleep(1)
+                continue
+
+            for upd in js.get("result", []):
+                offset = upd["update_id"] + 1
+
+                msg = upd.get("message") or upd.get("edited_message")
+                if not msg:
+                    continue
+
+                chat_id = msg["chat"]["id"]
+                text = (msg.get("text") or "").strip()
+
+                # Разрешаем управление только одному чату
+                if str(chat_id) != str(CHAT_ID):
+                    continue
+
+                if text in ("/start", "start"):
+                    uart_send_cmd(ser, "start")
+                    tg_send("OK: start отправлен в UART")
+                elif text in ("/stop", "stop"):
+                    uart_send_cmd(ser, "stop")
+                    tg_send("OK: stop отправлен в UART")
+                elif text.startswith("/send "):
+                    # /send <cmd> [data...]
+                    payload = text[len("/send "):].strip()
+                    if not payload:
+                        tg_send("Формат: /send <cmd> [data]")
+                        continue
+                    parts = payload.split(maxsplit=1)
+                    cmd = parts[0]
+                    data = parts[1] if len(parts) == 2 else None
+                    uart_send_cmd(ser, cmd, data)
+                    tg_send(f"OK: отправлено: {cmd}" + (f" {data}" if data else ""))
+                elif text in ("/help", "help"):
+                    tg_send(
+                        "Команды:\n"
+                        "/start — отправить start\n"
+                        "/stop — отправить stop\n"
+                        "/send <cmd> [data] — отправить произвольную команду"
+                    )
+
+        except Exception as e:
+            if DEBUG:
+                print("TG poll ERROR:", repr(e), flush=True)
+            time.sleep(2)
+
 
 def tg_send(text: str) -> None:
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -49,6 +128,9 @@ def main():
         if DEBUG:  # <-- DEBUG: подтвердим, что порт открылся
             print(f"UART opened: {PORT} @ {BAUD}", flush=True)
             print(f"CHAT_ID={CHAT_ID}", flush=True)
+
+        t = threading.Thread(target=tg_command_loop, args=(ser,), daemon=True)
+        t.start()
 
         # (необязательно) тестовое сообщение "started"
         #tg_send("uart_to_tg: started")
