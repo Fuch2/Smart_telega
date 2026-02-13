@@ -11,7 +11,7 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
 SEND_EVERY_SEC = 20.0
-MAX_LINES_PER_MSG = 20
+MAX_LINES_PER_MSG = 2
 MAX_CHARS = 3500
 
 DEBUG = True  # <-- DEBUG: можно выключить
