@@ -1,0 +1,3 @@
+# Hashes of file build rules.
+401a868c3711be8a1466581fa03b4501 src/presentation/qt/CMakeFiles/smart_cart_ui_autogen
+be0f9d5762281ff67080c5f9712c0f3d src/presentation/qt/smart_cart_ui_autogen/timestamp
