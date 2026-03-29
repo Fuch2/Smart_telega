@@ -14,7 +14,7 @@ int main() {
 
         // 👇 ВАЖНО: применяем миграции при старте
         db_ns::SqliteConnection conn(cfg.sqlitePath.empty() ? cfg.sqliteDbPath : cfg.sqlitePath);
-        conn.runMigrations("src/infrastructure/db/migrations");
+        conn.runMigrations("migrations");
 
         auto logger = log_ns::LoggerFactory::createFileLogger(cfg);
         logger->info("Startup complete, demo_mode={}", cfg.demoMode);

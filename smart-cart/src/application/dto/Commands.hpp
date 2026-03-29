@@ -14,4 +14,14 @@ struct ReplaceReelCommand {
     std::string barcode; // barcode катушки, которую нужно заменить на станке
 };
 
+struct RemoveReelCommand {
+    std::string slotId; // явное указание лотка для изъятия
+};
+
+struct ConfirmSlotActionCommand {
+    std::string slotId;
+};
+
+
+
 } // namespace smartcart::application::dto

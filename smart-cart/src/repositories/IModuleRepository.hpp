@@ -1,5 +1,5 @@
 #pragma once
-#include "../entities/ModuleEntity.hpp"
+#include "../domain/entities/ModuleEntity.hpp"
 #include <vector>
 #include <optional>
 #include <string>

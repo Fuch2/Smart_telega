@@ -347,15 +347,6 @@ nlohmann_json_DIR:PATH=/opt/homebrew/share/cmake/nlohmann_json
 pkgcfg_lib_PC_SQLite3_sqlite3:FILEPATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd
 
 //Value Computed by CMake
-smart_cart_ui_BINARY_DIR:STATIC=/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt
-
-//Value Computed by CMake
-smart_cart_ui_IS_TOP_LEVEL:STATIC=OFF
-
-//Value Computed by CMake
-smart_cart_ui_SOURCE_DIR:STATIC=/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt
-
-//Value Computed by CMake
 smartcart_BINARY_DIR:STATIC=/Users/fuch/Document/Smart_Telega/smart-cart/build
 
 //Value Computed by CMake

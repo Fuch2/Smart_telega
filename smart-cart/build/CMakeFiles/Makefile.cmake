@@ -358,18 +358,18 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/4.2.1/CMakeCXXCompiler.cmake"
   "CMakeFiles/4.2.1/CMakeCXXCompiler.cmake"
   "CMakeFiles/4.2.1/CMakeCXXCompiler.cmake"
+  ".qt/QtDeploySupport.cmake"
   ".qt/QtDeployTargets.cmake"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
-  "src/presentation/qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenInfo.json"
-  ".qt/QtDeploySupport.cmake"
-  "src/presentation/qt/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "build_qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenInfo.json"
+  "build_qt/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/smartcart_app.dir/DependInfo.cmake"
   "CMakeFiles/frame_codec_tests.dir/DependInfo.cmake"
-  "src/presentation/qt/CMakeFiles/smart_cart_ui.dir/DependInfo.cmake"
-  "src/presentation/qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/DependInfo.cmake"
-  "src/presentation/qt/CMakeFiles/smart_cart_ui_autogen.dir/DependInfo.cmake"
+  "build_qt/CMakeFiles/smart_cart_ui.dir/DependInfo.cmake"
+  "build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/DependInfo.cmake"
+  "build_qt/CMakeFiles/smart_cart_ui_autogen.dir/DependInfo.cmake"
   )

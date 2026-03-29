@@ -1,14 +1,6 @@
-cmake_minimum_required(VERSION 3.21)
-
-project(smart_cart_ui LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 add_executable(smart_cart_ui
     ${CMAKE_CURRENT_SOURCE_DIR}/main_qt.cpp
@@ -31,10 +23,15 @@ add_executable(smart_cart_ui
     ${CMAKE_CURRENT_SOURCE_DIR}/viewmodels/AdminViewModel.hpp
 
     ${CMAKE_SOURCE_DIR}/src/infrastructure/persistence/SqliteModuleRepository.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/persistence/SqliteModuleRepository.hpp
-    ${CMAKE_SOURCE_DIR}/src/domain/repositories/IModuleRepository.hpp
-    ${CMAKE_SOURCE_DIR}/src/domain/entities/ModuleEntity.hpp
 )
 
+target_include_directories(smart_cart_ui PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-target_link_libraries(smart_cart_ui PRIVATE Qt6::Widgets)
+target_link_libraries(smart_cart_ui PRIVATE
+    Qt6::Widgets
+    Qt6::Core
+    SQLite::SQLite3
+)

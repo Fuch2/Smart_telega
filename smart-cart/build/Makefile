@@ -162,7 +162,7 @@ smart_cart_ui: cmake_check_build_system
 
 # fast build rule for target.
 smart_cart_ui/fast:
-	$(MAKE) $(MAKESILENT) -f src/presentation/qt/CMakeFiles/smart_cart_ui.dir/build.make src/presentation/qt/CMakeFiles/smart_cart_ui.dir/build
+	$(MAKE) $(MAKESILENT) -f build_qt/CMakeFiles/smart_cart_ui.dir/build.make build_qt/CMakeFiles/smart_cart_ui.dir/build
 .PHONY : smart_cart_ui/fast
 
 #=============================================================================
@@ -175,7 +175,7 @@ smart_cart_ui_autogen_timestamp_deps: cmake_check_build_system
 
 # fast build rule for target.
 smart_cart_ui_autogen_timestamp_deps/fast:
-	$(MAKE) $(MAKESILENT) -f src/presentation/qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/build.make src/presentation/qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/build
+	$(MAKE) $(MAKESILENT) -f build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/build.make build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/build
 .PHONY : smart_cart_ui_autogen_timestamp_deps/fast
 
 #=============================================================================
@@ -188,7 +188,7 @@ smart_cart_ui_autogen: cmake_check_build_system
 
 # fast build rule for target.
 smart_cart_ui_autogen/fast:
-	$(MAKE) $(MAKESILENT) -f src/presentation/qt/CMakeFiles/smart_cart_ui_autogen.dir/build.make src/presentation/qt/CMakeFiles/smart_cart_ui_autogen.dir/build
+	$(MAKE) $(MAKESILENT) -f build_qt/CMakeFiles/smart_cart_ui_autogen.dir/build.make build_qt/CMakeFiles/smart_cart_ui_autogen.dir/build
 .PHONY : smart_cart_ui_autogen/fast
 
 apps/smartcart_app/main.o: apps/smartcart_app/main.cpp.o

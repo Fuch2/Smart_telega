@@ -1,0 +1,48 @@
+{
+  "tests": 6,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "FrameCodecTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "EncodeDecode_Roundtrip_GetFwVersion",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/frame_codec_test.cpp",
+          "line": 8
+        },
+        {
+          "name": "Decode_Fails_OnCrcError",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/frame_codec_test.cpp",
+          "line": 27
+        },
+        {
+          "name": "Decode_Fails_OnBadSof",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/frame_codec_test.cpp",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "name": "Stm32ParserTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "Parses_Frame_ByteByByte",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/stm32_stream_parser_test.cpp",
+          "line": 8
+        },
+        {
+          "name": "Detects_CrcError_And_Resyncs",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/stm32_stream_parser_test.cpp",
+          "line": 32
+        },
+        {
+          "name": "Rejects_TooLargePayloadLength",
+          "file": "\/Users\/fuch\/Document\/Smart_Telega\/smart-cart\/tests\/unit\/infrastructure\/stm32_stream_parser_test.cpp",
+          "line": 70
+        }
+      ]
+    }
+  ]
+}

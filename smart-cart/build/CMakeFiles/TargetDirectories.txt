@@ -3,9 +3,9 @@
 /Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/test.dir
 /Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/edit_cache.dir
 /Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/rebuild_cache.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/smart_cart_ui.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/test.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/edit_cache.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/rebuild_cache.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir
-/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/CMakeFiles/smart_cart_ui_autogen.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/test.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/edit_cache.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/rebuild_cache.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir
+/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir

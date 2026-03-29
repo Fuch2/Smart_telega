@@ -1,5 +1,5 @@
 #pragma once
-#include "../../domain/repositories/IModuleRepository.hpp"
+#include "../../repositories/IModuleRepository.hpp"
 #include <sqlite3.h>
 #include <string>
 

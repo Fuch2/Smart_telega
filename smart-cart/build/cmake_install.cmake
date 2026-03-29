@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/Users/fuch/Document/Smart_Telega/smart-cart/build/src/presentation/qt/cmake_install.cmake")
+  include("/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
