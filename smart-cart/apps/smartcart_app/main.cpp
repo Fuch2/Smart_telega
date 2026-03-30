@@ -10,11 +10,11 @@ int main() {
         namespace log_ns = smartcart::infrastructure::logging;
         namespace db_ns  = smartcart::infrastructure::db;
 
-        auto cfg = cfg_ns::ConfigLoader::loadFromFile("config/appsettings.json");
+        auto cfg = cfg_ns::ConfigLoader::loadFromFile(CONFIG_DIR "/appsettings.json");
 
         // 👇 ВАЖНО: применяем миграции при старте
         db_ns::SqliteConnection conn(cfg.sqlitePath.empty() ? cfg.sqliteDbPath : cfg.sqlitePath);
-        conn.runMigrations("migrations");
+        conn.runMigrations(MIGRATIONS_DIR);
 
         auto logger = log_ns::LoggerFactory::createFileLogger(cfg);
         logger->info("Startup complete, demo_mode={}", cfg.demoMode);

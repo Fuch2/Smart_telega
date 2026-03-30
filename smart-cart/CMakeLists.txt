@@ -27,7 +27,10 @@ add_custom_command(TARGET smartcart_app POST_BUILD
         $<TARGET_FILE_DIR:smartcart_app>/migrations
 )
 
-
+target_compile_definitions(smartcart_app PRIVATE
+    MIGRATIONS_DIR="$<TARGET_FILE_DIR:smartcart_app>/migrations"
+    CONFIG_DIR="$<TARGET_FILE_DIR:smartcart_app>/config"
+)
 
 target_include_directories(smartcart_app PRIVATE
     src
