@@ -14,6 +14,7 @@ FRAME_TYPE_RESP = 0x02
 
 CMD_GET_SWITCH_STATE = 0x04
 
+
 def crc16_ccitt_false(data: bytes) -> int:
     crc = 0xFFFF
     for b in data:
@@ -25,6 +26,7 @@ def crc16_ccitt_false(data: bytes) -> int:
                 crc <<= 1
             crc &= 0xFFFF
     return crc
+
 
 def build_frame(cmd_id: int, seq: int = 0, payload: bytes = b'') -> bytes:
     header = struct.pack('<BBBBH',
@@ -38,8 +40,23 @@ def build_frame(cmd_id: int, seq: int = 0, payload: bytes = b'') -> bytes:
     crc = crc16_ccitt_false(body)
     return bytes([SOF0, SOF1]) + body + struct.pack('<H', crc)
 
+
+def read_frame(ser, timeout: float = 1.0) -> bytes:
+    """Читает до тех пор пока данные перестают поступать или вышел таймаут."""
+    deadline = time.time() + timeout
+    buf = b''
+    while time.time() < deadline:
+        chunk = ser.read(ser.in_waiting or 1)
+        if chunk:
+            buf += chunk
+            if len(buf) >= 10:
+                break
+        else:
+            time.sleep(0.005)
+    return buf
+
+
 def parse_response(data: bytes):
-    # Ищем SOF
     idx = -1
     for i in range(len(data) - 1):
         if data[i] == SOF0 and data[i+1] == SOF1:
@@ -49,7 +66,7 @@ def parse_response(data: bytes):
         print("SOF не найден")
         return None
 
-    if len(data) - idx < 8:  # 6 header + 2 crc минимум
+    if len(data) - idx < 8:
         print("Фрейм слишком короткий")
         return None
 
@@ -62,8 +79,8 @@ def parse_response(data: bytes):
         print("Данных не хватает для полного фрейма")
         return None
 
-    body    = data[idx : payload_end]
-    rx_crc  = struct.unpack_from('<H', data, payload_end)[0]
+    body     = data[idx : payload_end]
+    rx_crc   = struct.unpack_from('<H', data, payload_end)[0]
     calc_crc = crc16_ccitt_false(body)
 
     if rx_crc != calc_crc:
@@ -73,16 +90,20 @@ def parse_response(data: bytes):
     payload = data[payload_start:payload_end]
     return {'ver': ver, 'type': ftype, 'seq': seq, 'cmd': cmd, 'payload': payload}
 
+
 def get_switch_state(ser):
     frame = build_frame(CMD_GET_SWITCH_STATE, seq=1)
     print(f"TX: {frame.hex(' ').upper()}")
     ser.write(frame)
-    time.sleep(0.1)
-    resp = ser.read(ser.in_waiting or 64)
+    resp = read_frame(ser)
     print(f"RX: {resp.hex(' ').upper()}")
 
     parsed = parse_response(resp)
     if parsed is None:
+        return
+
+    if parsed['type'] != FRAME_TYPE_RESP:
+        print(f"NACK получен для cmd=0x{parsed['cmd']:02X}")
         return
 
     p = parsed['payload']
@@ -93,6 +114,7 @@ def get_switch_state(ser):
         print(f"Активные каналы: {active if active else 'нет'}")
     else:
         print(f"Неожиданный payload: {p.hex()}")
+
 
 if __name__ == '__main__':
     with serial.Serial(PORT, BAUDRATE, timeout=1) as ser:

@@ -1,0 +1,6 @@
+../App/Src/cmd_runtime.c:8:6:cmd_runtime_init	8	static
+../App/Src/cmd_runtime.c:14:21:cmd_runtime_longop_mut	4	static
+../App/Src/cmd_runtime.c:19:27:cmd_runtime_longop_get	4	static
+../App/Src/cmd_runtime.c:24:6:cmd_runtime_trace_req	16	static
+../App/Src/cmd_runtime.c:32:6:cmd_runtime_trace_resp	16	static
+../App/Src/cmd_runtime.c:44:20:cmd_runtime_trace_get	4	static

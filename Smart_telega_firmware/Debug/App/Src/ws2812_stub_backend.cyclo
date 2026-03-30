@@ -1,0 +1,7 @@
+../App/Src/ws2812_stub_backend.c:19:6:ws2812_stub_backend_init	1
+../App/Src/ws2812_stub_backend.c:27:22:ws2812_stub_backend_show	6
+../App/Src/ws2812_stub_backend.c:61:10:ws2812_stub_backend_get_last_led_count	1
+../App/Src/ws2812_stub_backend.c:66:10:ws2812_stub_backend_get_last_frame_size	1
+../App/Src/ws2812_stub_backend.c:71:16:ws2812_stub_backend_get_last_frame_ptr	1
+../App/Src/ws2812_stub_backend.c:76:22:ws2812_stub_backend_get_last_status	1
+../App/Src/ws2812_stub_backend.c:81:6:ws2812_stub_backend_set_force_fail	1

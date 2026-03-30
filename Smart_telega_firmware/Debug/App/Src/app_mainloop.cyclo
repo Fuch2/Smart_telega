@@ -1,0 +1,7 @@
+../App/Src/app_mainloop.c:30:13:period_elapsed	1
+../App/Src/app_mainloop.c:42:13:send_ready_event_once	2
+../App/Src/app_mainloop.c:53:13:finalize_longop_if_due	4
+../App/Src/app_mainloop.c:69:6:app_mainloop_init	5
+../App/Src/app_mainloop.c:106:13:process_uart_rx	6
+../App/Src/app_mainloop.c:138:6:app_mainloop_step	4
+../App/Src/app_mainloop.c:169:6:app_mainloop_run_forever	2

@@ -1,0 +1,6 @@
+../Hw/Src/hw_uart_if.c:17:6:hw_uart_if_init	8	static
+../Hw/Src/hw_uart_if.c:25:6:HAL_UART_RxCpltCallback	24	static
+../Hw/Src/hw_uart_if.c:41:6:hw_uart_if_step	4	static
+../Hw/Src/hw_uart_if.c:47:6:hw_uart_if_rx_byte_ready	4	static
+../Hw/Src/hw_uart_if.c:53:9:hw_uart_if_rx_byte_take	16	static
+../Hw/Src/hw_uart_if.c:63:6:hw_uart_if_tx	16	static

@@ -1,0 +1,4 @@
+../App/Src/debug_hooks.c:16:6:debug_hooks_init	4	static
+../App/Src/debug_hooks.c:23:6:debug_hooks_heartbeat_tick	16	static
+../App/Src/debug_hooks.c:35:6:debug_hooks_get_heartbeat_level	4	static
+../App/Src/debug_hooks.c:47:6:debug_hooks_watchdog_kick	4	static

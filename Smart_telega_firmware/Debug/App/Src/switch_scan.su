@@ -1,0 +1,3 @@
+../App/Src/switch_scan.c:12:6:switch_scan_init	8	static
+../App/Src/switch_scan.c:17:10:switch_scan_get_raw_mask	16	static
+../App/Src/switch_scan.c:45:6:switch_scan_get_raw_channel	24	static

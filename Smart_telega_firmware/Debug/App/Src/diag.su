@@ -1,0 +1,14 @@
+../App/Src/diag.c:11:6:diag_init	8	static
+../App/Src/diag.c:16:6:diag_reset_all	8	static
+../App/Src/diag.c:22:6:diag_reset_counters	4	static
+../App/Src/diag.c:33:6:diag_inc_rx_frames_ok	4	static
+../App/Src/diag.c:34:6:diag_inc_rx_crc_errors	4	static
+../App/Src/diag.c:35:6:diag_inc_rx_length_errors	4	static
+../App/Src/diag.c:36:6:diag_inc_rx_unknown_cmd	4	static
+../App/Src/diag.c:37:6:diag_inc_tx_frames	4	static
+../App/Src/diag.c:38:6:diag_inc_ws2812_update_errors	4	static
+../App/Src/diag.c:39:6:diag_inc_switch_unstable_count	4	static
+../App/Src/diag.c:41:6:diag_trace_last_command	16	static
+../App/Src/diag.c:48:6:diag_fault_latch	16	static
+../App/Src/diag.c:55:6:diag_fault_clear	4	static
+../App/Src/diag.c:60:6:diag_get_snapshot	24	static

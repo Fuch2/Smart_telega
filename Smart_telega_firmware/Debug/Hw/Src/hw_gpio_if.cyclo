@@ -1,0 +1,2 @@
+../Hw/Src/hw_gpio_if.c:36:6:hw_gpio_if_read_logical	3
+../Hw/Src/hw_gpio_if.c:46:6:hw_gpio_if_init	1

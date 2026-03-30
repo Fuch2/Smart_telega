@@ -1,0 +1,13 @@
+../App/Src/led_model.c:15:13:build_physical_from_state	48	static
+../App/Src/led_model.c:48:6:led_model_init	8	static
+../App/Src/led_model.c:53:6:led_model_reset	8	static
+../App/Src/led_model.c:58:6:led_model_set_slot	16	static
+../App/Src/led_model.c:68:6:led_model_set_slots_bulk	24	static
+../App/Src/led_model.c:91:6:led_model_set_full_frame	24	static
+../App/Src/led_model.c:107:6:led_model_clear_staged	8	static
+../App/Src/led_model.c:112:6:led_model_build_physical_from_staged	16	static
+../App/Src/led_model.c:117:6:led_model_apply	16	static
+../App/Src/led_model.c:136:6:led_model_get_staged	16	static
+../App/Src/led_model.c:144:6:led_model_get_applied	16	static
+../App/Src/led_model.c:152:6:led_model_get_slot_staged	16	static
+../App/Src/led_model.c:165:6:led_model_get_slot_applied	16	static

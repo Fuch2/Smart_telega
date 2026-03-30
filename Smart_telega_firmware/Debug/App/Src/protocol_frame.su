@@ -1,0 +1,9 @@
+../App/Src/protocol_frame.c:17:17:rd_u16_le	16	static
+../App/Src/protocol_frame.c:22:13:wr_u16_le	16	static
+../App/Src/protocol_frame.c:28:19:protocol_frame_encode	40	static
+../App/Src/protocol_frame.c:71:19:protocol_frame_decode	40	static
+../App/Src/protocol_frame.c:129:6:protocol_stream_parser_init	16	static
+../App/Src/protocol_frame.c:136:6:protocol_stream_parser_reset	56	static
+../App/Src/protocol_frame.c:146:25:protocol_stream_parser_feed_byte	24	static
+../App/Src/protocol_frame.c:276:6:protocol_stream_parser_take_frame	16	static
+../App/Src/protocol_frame.c:287:35:protocol_stream_parser_get_counters	16	static

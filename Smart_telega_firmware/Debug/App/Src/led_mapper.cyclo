@@ -1,0 +1,3 @@
+../App/Src/led_mapper.c:11:6:led_mapper_logical_to_physical	5
+../App/Src/led_mapper.c:31:6:led_mapper_set_physical_grb	4
+../App/Src/led_mapper.c:60:6:led_mapper_clear_physical	3

@@ -1,0 +1,5 @@
+../App/Src/switch_debounce.c:20:13:elapsed_ge	1
+../App/Src/switch_debounce.c:25:6:switch_debounce_init	1
+../App/Src/switch_debounce.c:31:6:switch_debounce_reset	1
+../App/Src/switch_debounce.c:37:6:switch_debounce_process	12
+../App/Src/switch_debounce.c:93:6:switch_debounce_get_snapshot	2
