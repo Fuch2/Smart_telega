@@ -25,6 +25,11 @@ add_executable(smart_cart_ui
     ${CMAKE_SOURCE_DIR}/src/infrastructure/persistence/SqliteModuleRepository.cpp
 )
 
+# ↓ имя таргета исправлено: smartcart_qt → smart_cart_ui
+target_compile_definitions(smart_cart_ui PRIVATE
+    DB_PATH="$<TARGET_FILE_DIR:smart_cart_ui>/smartcart.db"
+)
+
 target_include_directories(smart_cart_ui PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}

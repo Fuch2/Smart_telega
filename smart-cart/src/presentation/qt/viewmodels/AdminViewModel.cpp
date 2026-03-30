@@ -1,65 +1,68 @@
 #include "AdminViewModel.hpp"
-
-#include "../../../repositories/IModuleRepository.hpp"
 #include "../../../infrastructure/persistence/SqliteModuleRepository.hpp"
-#include <QCoreApplication>
 
 AdminViewModel::AdminViewModel(QObject* parent) : QObject(parent) {
-    repo_ = std::make_unique<SqliteModuleRepository>("smart_cart.db");
+    repo_ = std::make_unique<SqliteModuleRepository>(DB_PATH);
 }
 
 int AdminViewModel::findIndexById(int id) const {
-    for (int i = 0; i < items_.size(); ++i) {
+    for (int i = 0; i < items_.size(); ++i)
         if (items_[i].id == id) return i;
-    }
     return -1;
 }
 
 bool AdminViewModel::serialExists(const QString& serial, int exceptId) const {
-    for (const auto& m : items_) {
-        if (m.serial.compare(serial, Qt::CaseInsensitive) == 0 && m.id != exceptId) {
-            return true;
-        }
-    }
-    return false;
+    return repo_->existsBySerial(serial.toStdString(), exceptId);
 }
 
-void AdminViewModel::loadDemo() {
-    auto all = repo_->getAll();
-    if (all.empty()) {
-        repo_->add({0, "SN-DEMO-001", 24, "fw-1.0.0", "ONLINE"});
-        repo_->add({0, "SN-DEMO-002", 24, "fw-1.0.1", "OFFLINE"});
-        repo_->add({0, "SN-DEMO-003", 24, "fw-1.1.0", "MAINT"});
-        all = repo_->getAll();
-    }
+static ModuleItem toItem(const ModuleEntity& m) {
+    return {m.id,
+            QString::fromStdString(m.serial),
+            m.slotCount,
+            QString::fromStdString(m.firmware),
+            QString::fromStdString(m.status)};
+}
 
+void AdminViewModel::reload() {
     items_.clear();
-    for (const auto& m : all) {
-        items_.push_back({m.id, QString::fromStdString(m.serial), m.slotCount,
-                          QString::fromStdString(m.firmware), QString::fromStdString(m.status)});
-    }
+    for (const auto& m : repo_->getAll())
+        items_.push_back(toItem(m));
     emit modulesReset();
 }
 
+void AdminViewModel::loadDemo() {
+    if (repo_->getAll().empty()) {
+        repo_->add({0, "SN-DEMO-001", 24, "fw-1.0.0", "ONLINE"});
+        repo_->add({0, "SN-DEMO-002", 24, "fw-1.0.1", "OFFLINE"});
+        repo_->add({0, "SN-DEMO-003", 24, "fw-1.1.0", "MAINT"});
+    }
+    reload();
+}
 
-
-void AdminViewModel::addModule(const QString& serial, int slotCount, const QString& firmware, const QString& status) {
+void AdminViewModel::addModule(const QString& serial, int slotCount,
+                                const QString& firmware, const QString& status) {
     if (serial.trimmed().isEmpty()) {
         emit errorOccurred("Serial не может быть пустым");
         return;
     }
-    if (serialExists(serial)) {
+    if (repo_->existsBySerial(serial.trimmed().toStdString())) {
         emit errorOccurred("Serial уже существует");
         return;
     }
-    items_.push_back({nextId_++, serial.trimmed(), slotCount, firmware.trimmed(), status.trimmed()});
-    emit modulesReset();
+
+    ModuleEntity rec{0,
+                     serial.trimmed().toStdString(),
+                     slotCount,
+                     firmware.trimmed().toStdString(),
+                     status.trimmed().toStdString()};
+    repo_->add(rec);
+    reload();
     emit infoOccurred("Модуль добавлен");
 }
 
-void AdminViewModel::updateModule(int id, const QString& serial, int slotCount, const QString& firmware, const QString& status) {
-    const int idx = findIndexById(id);
-    if (idx < 0) {
+void AdminViewModel::updateModule(int id, const QString& serial, int slotCount,
+                                   const QString& firmware, const QString& status) {
+    if (findIndexById(id) < 0) {
         emit errorOccurred("Модуль не найден");
         return;
     }
@@ -67,28 +70,27 @@ void AdminViewModel::updateModule(int id, const QString& serial, int slotCount, 
         emit errorOccurred("Serial не может быть пустым");
         return;
     }
-    if (serialExists(serial, id)) {
+    if (repo_->existsBySerial(serial.trimmed().toStdString(), id)) {
         emit errorOccurred("Serial уже существует");
         return;
     }
 
-    auto& m = items_[idx];
-    m.serial = serial.trimmed();
-    m.slotCount = slotCount;
-    m.firmware = firmware.trimmed();
-    m.status = status.trimmed();
-
-    emit modulesReset();
+    ModuleEntity rec{id,
+                     serial.trimmed().toStdString(),
+                     slotCount,
+                     firmware.trimmed().toStdString(),
+                     status.trimmed().toStdString()};
+    repo_->update(rec);
+    reload();
     emit infoOccurred("Модуль обновлён");
 }
 
 void AdminViewModel::removeModule(int id) {
-    const int idx = findIndexById(id);
-    if (idx < 0) {
+    if (findIndexById(id) < 0) {
         emit errorOccurred("Модуль не найден");
         return;
     }
-    items_.removeAt(idx);
-    emit modulesReset();
+    repo_->remove(id);
+    reload();
     emit infoOccurred("Модуль удалён");
 }

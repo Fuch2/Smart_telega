@@ -28,7 +28,6 @@ public slots:
     void loadDemo();
     void addModule(const QString& serial, int slotCount, const QString& firmware, const QString& status);
     void updateModule(int id, const QString& serial, int slotCount, const QString& firmware, const QString& status);
-
     void removeModule(int id);
 
 signals:
@@ -37,11 +36,12 @@ signals:
     void infoOccurred(const QString& message);
 
 private:
+    void reload();
+
     QVector<ModuleItem> items_;
-    int nextId_{1};
 
     int findIndexById(int id) const;
-    bool serialExists(const QString& serial, int exceptId = 0) const;
+    bool serialExists(const QString& serial, int exceptId = 0) const;  // ← оставить
 
     std::unique_ptr<IModuleRepository> repo_;
 
