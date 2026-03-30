@@ -1,8 +1,6 @@
 // ===== src/application/state/AppStateMachine.cpp =====
 // Исправлено:
-//   1. barcodeStr захватывается по значению (не по ссылке) — убран UB
-//   2. scanBarcode: логика Add vs Replace через явную проверку репозитория
-//      вынесена в два отдельных пути, без вложенных callback-в-callback
+//   - локальная переменная slots → slotList (конфликт с Qt-макросом #define slots)
 #include "application/state/AppStateMachine.hpp"
 
 #include <QMetaObject>
@@ -12,7 +10,6 @@ namespace smartcart::application {
 
 using namespace smartcart::domain;
 
-// ── Регистрация мета-типов (один раз при старте) ──────────────────────────────
 namespace {
 struct MetaTypeRegistrar {
     MetaTypeRegistrar() {
@@ -24,7 +21,6 @@ struct MetaTypeRegistrar {
 } g_registrar;
 } // namespace
 
-// ─────────────────────────────────────────────────────────────────────────────
 AppStateMachine::AppStateMachine(
     services::StartupService&     startupSvc,
     services::AddReelService&     addReelSvc,
@@ -38,14 +34,12 @@ AppStateMachine::AppStateMachine(
     , recoverySvc_(recoverySvc)
 {}
 
-// ─────────────────────────────────────────────────────────────────────────────
 void AppStateMachine::transition(AppState newState) {
     if (state_ == newState) return;
     state_ = newState;
     emit stateChanged(newState);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void AppStateMachine::startup() {
     if (state_ != AppState::Idle) return;
 
@@ -67,8 +61,9 @@ void AppStateMachine::startup() {
         return;
     }
 
-    const auto& slots = std::get<std::vector<Slot>>(startupResult);
-    for (const auto& slot : slots) {
+    // ИСПРАВЛЕНО: slots → slotList (конфликт с Qt-макросом #define slots)
+    const auto& slotList = std::get<std::vector<Slot>>(startupResult);
+    for (const auto& slot : slotList) {
         QColor color;
         switch (slot.state) {
             case SlotState::Occupied: color = QColor(30,  80,  200); break;
@@ -81,32 +76,21 @@ void AppStateMachine::startup() {
     transition(AppState::Ready);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void AppStateMachine::scanBarcode(const QString& barcode) {
     if (state_ != AppState::Ready) return;
 
     transition(AppState::Operating);
 
-    // ← захват по значению: barcodeStr живёт в лямбдах после выхода из функции
     const std::string barcodeStr = barcode.toStdString();
 
-    // Конвертер RgbColor → QColor (используется обоими сервисами)
     auto toQColor = [this](int slotIdx, services::RgbColor c) {
         emit slotHighlighted(slotIdx, QColor(c.r, c.g, c.b));
     };
 
-    // Общий completion handler
     auto onComplete = [this](int opId, OperationStatus status) {
         emit operationFinished(opId, status);
         transition(AppState::Ready);
     };
-
-    // ── Пробуем ReplaceReel ───────────────────────────────────────────────────
-    // ReplaceReelService::start() вернёт -1 + вызовет errorCallback
-    // если катушка не найдена → тогда запускаем AddReel.
-    //
-    // Важно: errorCallback вызывается СИНХРОННО внутри start(),
-    // до возврата из функции — поэтому вложение безопасно.
 
     bool replaceStarted = false;
 
@@ -117,14 +101,12 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
         (ErrorCode code, std::string /*msg*/) mutable
         {
             if (code != ErrorCode::ReelNotFound) {
-                // Настоящая ошибка — не пробуем AddReel
                 emit errorOccurred(code, QString::fromStdString(
                     std::string(toString(code))));
                 transition(AppState::Ready);
                 return;
             }
 
-            // ReelNotFound → запускаем AddReel
             addReelSvc_.setCompletionCallback(onComplete);
             addReelSvc_.setSlotHighlightCallback(toQColor);
             addReelSvc_.setErrorCallback(
@@ -139,7 +121,6 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
                 emit operationStarted(addOpId, OperationType::AddReel);
                 replaceStarted = true;
             }
-            // если addOpId < 0 — errorCallback уже вызван внутри start()
         }
     );
 
@@ -147,20 +128,15 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
     if (replaceOpId >= 0) {
         emit operationStarted(replaceOpId, OperationType::ReplaceReel);
     }
-    // если replaceOpId < 0 — errorCallback уже сработал выше
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void AppStateMachine::cancelCurrentOperation() {
     if (state_ != AppState::Operating) return;
-
     addReelSvc_.cancel();
     replaceReelSvc_.cancel();
-
     transition(AppState::Ready);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void AppStateMachine::recover() {
     if (state_ != AppState::Error) return;
 

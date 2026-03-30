@@ -1,9 +1,7 @@
 // ===== src/presentation/qt/viewmodels/WorkerViewModel.hpp =====
 // Исправлено:
-//   - SlotItem теперь использует SlotCellData из SlotGridWidget.hpp
-//     (разрыв цикла: WorkerViewModel больше не тянет SlotGridWidget)
-//   - slotsUpdated эмитирует QVector<SlotCellData>
-//   - убран лишний #include <unordered_map> из .hpp
+//   - slots() → slotItems()  (избегаем конфликта с Qt-макросом #define slots)
+//   - stateMachine() → stateMachineRef() (на всякий случай — slots был главной)
 #pragma once
 
 #include "application/state/AppStateMachine.hpp"
@@ -12,14 +10,13 @@
 #include "domain/entities/Slot.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
-#include "presentation/qt/widgets/SlotGridWidget.hpp"  // SlotCellData
+#include "presentation/qt/widgets/SlotGridWidget.hpp"
 
 #include <QObject>
 #include <QString>
 #include <QVector>
 #include <QColor>
 
-// SlotItem — псевдоним для обратной совместимости внутри presentation слоя
 using SlotItem = SlotCellData;
 
 class WorkerViewModel : public QObject {
@@ -33,10 +30,11 @@ public:
         QObject*                                             parent = nullptr
     );
 
-    const QVector<SlotCellData>& slots()      const noexcept { return slots_; }
+    // ИСПРАВЛЕНО: slots() → slotItems() — конфликт с Qt-макросом #define slots
+    const QVector<SlotCellData>& slotItems()  const noexcept { return slots_; }
     QString                      stateLabel() const;
 
-    smartcart::application::AppStateMachine& stateMachine() noexcept {
+    smartcart::application::AppStateMachine& stateMachineRef() noexcept {
         return stateMachine_;
     }
 
@@ -45,13 +43,13 @@ signals:
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
 
-public slots:
+public Q_SLOTS:
     void onBarcodeScanned(const QString& barcode);
     void onSlotPhysicalChange(int slotIndex, bool occupied);
     void cancelCurrentOperation();
     void reload();
 
-private slots:
+private Q_SLOTS:
     void onStateChanged(smartcart::application::AppState newState);
     void onSlotHighlighted(int slotIndex, QColor color);
     void onOperationFinished(int operationId,

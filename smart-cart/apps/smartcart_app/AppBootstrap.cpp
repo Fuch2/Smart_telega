@@ -13,6 +13,9 @@
 #include <QMetaObject>
 #include <stdexcept>
 
+#include "presentation/qt/viewmodels/AdminViewModel.hpp"
+#include "presentation/qt/viewmodels/WorkerViewModel.hpp"
+
 using namespace smartcart;
 using namespace smartcart::infrastructure;
 using namespace smartcart::application;
@@ -117,6 +120,8 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *reelRepo_, *opRepo_, *stateMachine_
     );
 }
+
+AppBootstrap::~AppBootstrap() = default;
 
 void AppBootstrap::buildSlotToLedMap() {
     if (!cfg_.slotToLedMap.empty()) {
