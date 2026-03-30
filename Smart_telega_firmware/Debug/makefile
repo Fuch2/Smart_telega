@@ -65,8 +65,8 @@ all: main-build
 main-build: Smart_telega_firmware.elf secondary-outputs
 
 # Tool invocations
-Smart_telega_firmware.elf Smart_telega_firmware.map: $(OBJS) $(USER_OBJS) /Users/fuch/STM32CubeIDE/workspace_1.13.2/Smart_telega_firmware/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Smart_telega_firmware.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/fuch/STM32CubeIDE/workspace_1.13.2/Smart_telega_firmware/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Smart_telega_firmware.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Smart_telega_firmware.elf Smart_telega_firmware.map: $(OBJS) $(USER_OBJS) /Users/fuch/Document/Smart_Telega/Smart_telega_firmware/STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Smart_telega_firmware.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/fuch/Document/Smart_Telega/Smart_telega_firmware/STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Smart_telega_firmware.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

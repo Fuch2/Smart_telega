@@ -2,6 +2,6 @@
 ../App/Src/app_mainloop.c:42:13:send_ready_event_once	8	static
 ../App/Src/app_mainloop.c:53:13:finalize_longop_if_due	24	static
 ../App/Src/app_mainloop.c:69:6:app_mainloop_init	24	static
-../App/Src/app_mainloop.c:106:13:process_uart_rx	440	static
-../App/Src/app_mainloop.c:138:6:app_mainloop_step	16	static
-../App/Src/app_mainloop.c:169:6:app_mainloop_run_forever	8	static
+../App/Src/app_mainloop.c:106:13:process_uart_rx	432	static
+../App/Src/app_mainloop.c:140:6:app_mainloop_step	16	static
+../App/Src/app_mainloop.c:171:6:app_mainloop_run_forever	8	static

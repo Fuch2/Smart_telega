@@ -1,4 +1,6 @@
 #include "cmd_runtime.h"
+#include "protocol_frame.h"
+
 
 #include <string.h>
 
@@ -34,12 +36,13 @@ void cmd_runtime_trace_resp(uint8_t frame_type, uint8_t result_code)
     g_trace.last_resp_frame_type = frame_type;
     g_trace.last_result_code = result_code;
 
-    if (frame_type == 0x02u) {
+    if (frame_type == PROTOCOL_FRAME_TYPE_RESP) {
         g_trace.total_resp++;
-    } else if (frame_type == 0x03u) {
+    } else if (frame_type == PROTOCOL_FRAME_TYPE_NACK) {
         g_trace.total_nack++;
     }
 }
+
 
 const cmd_trace_t* cmd_runtime_trace_get(void)
 {

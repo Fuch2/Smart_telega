@@ -17,16 +17,30 @@ extern "C" {
 /* Frame type values (protocol v1) */
 #define PROTOCOL_FRAME_TYPE_CMD        (0x01u)
 #define PROTOCOL_FRAME_TYPE_RESP       (0x02u)
-#define PROTOCOL_FRAME_TYPE_NACK       (0x03u)
+#define PROTOCOL_FRAME_TYPE_ACK        (0x03u)
+#define PROTOCOL_FRAME_TYPE_NACK       (0x04u)
+#define PROTOCOL_FRAME_TYPE_EVT        (0x05u)
 
 /* Command IDs used by dispatcher stage */
-#define PROTOCOL_CMD_NOP               (0x00u)
 #define PROTOCOL_CMD_PING              (0x01u)
-#define PROTOCOL_CMD_GET_FW_VERSION    (0x02u)
-#define PROTOCOL_CMD_GET_READY_STATE   (0x03u)
-#define PROTOCOL_CMD_GET_SWITCH_STATE  (0x04u)
-#define PROTOCOL_CMD_LED_TEST          (0x20u) /* long-op scaffold only at stage 2 */
+#define PROTOCOL_CMD_GET_READY_STATE   (0x02u)
+#define PROTOCOL_CMD_GET_FW_VERSION    (0x03u)
 
+#define PROTOCOL_CMD_GET_SWITCH_SNAPSHOT (0x10u)
+#define PROTOCOL_CMD_GET_SWITCH_DELTA    (0x11u)
+
+#define PROTOCOL_CMD_LED_SET_SLOT        (0x20u)
+#define PROTOCOL_CMD_LED_SET_BULK        (0x21u)
+#define PROTOCOL_CMD_LED_CLEAR_ALL       (0x22u)
+#define PROTOCOL_CMD_LED_APPLY           (0x23u)
+#define PROTOCOL_CMD_LED_TEST            (0x24u)
+#define PROTOCOL_CMD_LED_SET_MAP_VER     (0x25u)
+
+#define PROTOCOL_CMD_GET_DIAG            (0x30u)
+#define PROTOCOL_CMD_RESET_DIAG          (0x31u)
+
+#define PROTOCOL_CMD_SET_POLL_HINT       (0x40u)
+#define PROTOCOL_CMD_NOP                 (0x7Fu)
 #define PROTOCOL_MAX_PAYLOAD           (128u)
 
 /* Header fields from protocol */

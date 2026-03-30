@@ -66,11 +66,12 @@ void cmd_dispatcher_process_frame(const protocol_frame_t *req, cmd_dispatch_resu
     }
 
     switch (req->command_id) {
+    /* ── Команды с реальной реализацией ── */
     case PROTOCOL_CMD_NOP:
     case PROTOCOL_CMD_PING:
     case PROTOCOL_CMD_GET_FW_VERSION:
     case PROTOCOL_CMD_GET_READY_STATE:
-    case PROTOCOL_CMD_GET_SWITCH_STATE:
+    case PROTOCOL_CMD_GET_SWITCH_SNAPSHOT:          /* ✅ было GET_SWITCH_STATE */
         memset(&hres, 0, sizeof(hres));
 
         cmd_handlers_execute(req->command_id,
@@ -84,6 +85,22 @@ void cmd_dispatcher_process_frame(const protocol_frame_t *req, cmd_dispatch_resu
                     hres.resp_payload_len);
         break;
 
+    /* ── Заглушки: команды известны, но не реализованы ── */
+    case PROTOCOL_CMD_GET_SWITCH_DELTA:
+    case PROTOCOL_CMD_LED_SET_SLOT:
+    case PROTOCOL_CMD_LED_SET_BULK:
+    case PROTOCOL_CMD_LED_CLEAR_ALL:
+    case PROTOCOL_CMD_LED_APPLY:
+    case PROTOCOL_CMD_LED_TEST:
+    case PROTOCOL_CMD_LED_SET_MAP_VER:
+    case PROTOCOL_CMD_GET_DIAG:
+    case PROTOCOL_CMD_RESET_DIAG:
+    case PROTOCOL_CMD_SET_POLL_HINT:
+        build_reply(out, req, PROTOCOL_FRAME_TYPE_RESP,
+                    (uint8_t)CMD_RESULT_UNSUPPORTED, NULL, 0u);
+        break;
+
+    /* ── Неизвестная команда ── */
     default:
         diag_inc_rx_unknown_cmd();
         diag_fault_latch(DIAG_FAULT_UNKNOWN_CMD);
@@ -91,7 +108,8 @@ void cmd_dispatcher_process_frame(const protocol_frame_t *req, cmd_dispatch_resu
         build_reply(out, req, PROTOCOL_FRAME_TYPE_NACK,
                     (uint8_t)CMD_RESULT_UNKNOWN_COMMAND, NULL, 0u);
         break;
-    }
+}
+
 
     if (out->response_ready) {
         cmd_runtime_trace_resp(out->response_frame.frame_type, out->result_code);

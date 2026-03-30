@@ -81,8 +81,8 @@ static void handle_get_ready_state(const uint8_t *req_payload, uint16_t req_len,
     r->resp_payload_len = 1u;
 }
 
-static void handle_get_switch_state(const uint8_t *req_payload, uint16_t req_len,
-                                    cmd_handler_result_t *r)
+static void handle_get_switch_snapshot(const uint8_t *req_payload, uint16_t req_len,
+                                       cmd_handler_result_t *r)
 {
     switch_snapshot_t snap;
     (void)req_payload;
@@ -135,17 +135,26 @@ void cmd_handlers_execute(uint8_t command_id,
         handle_get_ready_state(req_payload, req_payload_len, out_result);
         break;
 
-    case PROTOCOL_CMD_GET_SWITCH_STATE:
-        handle_get_switch_state(req_payload, req_payload_len, out_result);
+    case PROTOCOL_CMD_GET_SWITCH_SNAPSHOT:
+        handle_get_switch_snapshot(req_payload, req_payload_len, out_result);
         break;
 
+    case PROTOCOL_CMD_GET_SWITCH_DELTA:
+    case PROTOCOL_CMD_LED_SET_SLOT:
+    case PROTOCOL_CMD_LED_SET_BULK:
+    case PROTOCOL_CMD_LED_CLEAR_ALL:
+    case PROTOCOL_CMD_LED_APPLY:
     case PROTOCOL_CMD_LED_TEST:
-        /* Long-op not implemented at stage 2, only scaffold exists */
+    case PROTOCOL_CMD_LED_SET_MAP_VER:
+    case PROTOCOL_CMD_GET_DIAG:
+    case PROTOCOL_CMD_RESET_DIAG:
+    case PROTOCOL_CMD_SET_POLL_HINT:
         result_set(out_result, CMD_RESULT_UNSUPPORTED);
         break;
 
     default:
         result_set(out_result, CMD_RESULT_UNKNOWN_COMMAND);
         break;
-    }
+}
+
 }
