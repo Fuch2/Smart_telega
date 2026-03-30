@@ -1,35 +1,27 @@
 #pragma once
-#include <optional>
-#include <string>
-#include <vector>
+#include "../../../application/ports/IOperationRepository.hpp"
+#include "../SqliteConnection.hpp"
 
-struct sqlite3;
-namespace smartcart::infrastructure::db::repositories {
+namespace smartcart::infrastructure::db {
 
-struct OperationRow {
-    int id{};
-    std::string opType;
-    std::string state;
-    std::string targetBarcode;
-    std::string payloadJson;
-    bool finished{false};
-};
-
-class OperationRepositorySqlite {
+class OperationRepositorySqlite final
+    : public application::ports::IOperationRepository {
 public:
-    explicit OperationRepositorySqlite(sqlite3* db);
+    explicit OperationRepositorySqlite(SqliteConnection& conn);
 
-    int create(const std::string& opType, const std::string& state,
-               const std::string& targetBarcode, const std::string& payloadJson);
+    int  add(const domain::Operation& op) override;
+    bool updateStatus(int id,
+                      domain::OperationStatus status,
+                      const std::string& finishedAt) override;
 
-    void updateState(int id, const std::string& state, const std::string& payloadJson);
-    void finish(int id, const std::string& finalState, const std::string& payloadJson);
-
-    std::optional<OperationRow> findById(int id);
-    std::vector<OperationRow> listUnfinished();
+    std::vector<domain::Operation>        getUnfinished() override;
+    std::optional<domain::Operation>      getById(int id) override;
 
 private:
-    sqlite3* db_{nullptr};
+    SqliteConnection& conn_;
+
+    static domain::Operation rowToOp(sqlite3_stmt* stmt);
+    void ensureSchema();
 };
 
-} // namespace smartcart::infrastructure::db::repositories
+} // namespace smartcart::infrastructure::db

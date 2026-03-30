@@ -12,7 +12,7 @@ class AdminViewModel;
 class AdminView final : public QWidget {
     Q_OBJECT
 public:
-    explicit AdminView(QWidget* parent = nullptr);
+    explicit AdminView(AdminViewModel* vm, QWidget* parent = nullptr);
     ~AdminView() override = default;
 
 private:

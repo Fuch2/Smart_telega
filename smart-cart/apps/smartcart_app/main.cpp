@@ -1,27 +1,22 @@
+// Headless smoke-test: открывает БД и применяет миграции без UI.
+// Используется в CI для проверки схемы.
 #include <iostream>
 #include "../../src/infrastructure/config/ConfigLoader.hpp"
-#include "../../src/infrastructure/logging/LoggerFactory.hpp"
 #include "../../src/infrastructure/db/SqliteConnection.hpp"
-
 
 int main() {
     try {
-        namespace cfg_ns = smartcart::infrastructure::config;
-        namespace log_ns = smartcart::infrastructure::logging;
-        namespace db_ns  = smartcart::infrastructure::db;
+        namespace cfg = smartcart::infrastructure::config;
+        namespace db  = smartcart::infrastructure::db;
 
-        auto cfg = cfg_ns::ConfigLoader::loadFromFile(CONFIG_DIR "/appsettings.json");
-
-        // 👇 ВАЖНО: применяем миграции при старте
-        db_ns::SqliteConnection conn(cfg.sqlitePath.empty() ? cfg.sqliteDbPath : cfg.sqlitePath);
+        auto config = cfg::ConfigLoader::loadFromFile(CONFIG_DIR "/appsettings.json");
+        db::SqliteConnection conn(config.sqlitePath);
         conn.runMigrations(MIGRATIONS_DIR);
 
-        auto logger = log_ns::LoggerFactory::createFileLogger(cfg);
-        logger->info("Startup complete, demo_mode={}", cfg.demoMode);
-
+        std::cout << "DB OK: " << config.sqlitePath << std::endl;
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "Fatal startup error: " << e.what() << std::endl;
+        std::cerr << "[FATAL] " << e.what() << std::endl;
         return 1;
     }
 }

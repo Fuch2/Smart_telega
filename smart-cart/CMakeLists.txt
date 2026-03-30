@@ -5,11 +5,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(SQLite3 REQUIRED)
-find_package(spdlog REQUIRED)
+find_package(SQLite3       REQUIRED)
+find_package(spdlog        REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core)
 
+# ── Общие пути ────────────────────────────────────────────────────────────────
+set(SMARTCART_MIGRATIONS_DIR "${CMAKE_SOURCE_DIR}/src/infrastructure/db/migrations")
+set(SMARTCART_CONFIG_DIR     "${CMAKE_SOURCE_DIR}/config")
+
+# ── smartcart_app: headless smoke-test (CI) ───────────────────────────────────
 add_executable(smartcart_app
     apps/smartcart_app/main.cpp
     src/infrastructure/config/ConfigLoader.cpp
@@ -18,18 +23,9 @@ add_executable(smartcart_app
     src/infrastructure/logging/SqliteEventLogger.cpp
 )
 
-add_custom_command(TARGET smartcart_app POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/config
-        $<TARGET_FILE_DIR:smartcart_app>/config
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/src/infrastructure/db/migrations
-        $<TARGET_FILE_DIR:smartcart_app>/migrations
-)
-
 target_compile_definitions(smartcart_app PRIVATE
-    MIGRATIONS_DIR="$<TARGET_FILE_DIR:smartcart_app>/migrations"
-    CONFIG_DIR="$<TARGET_FILE_DIR:smartcart_app>/config"
+    MIGRATIONS_DIR="${SMARTCART_MIGRATIONS_DIR}"
+    CONFIG_DIR="${SMARTCART_CONFIG_DIR}"
 )
 
 target_include_directories(smartcart_app PRIVATE
@@ -42,7 +38,16 @@ target_link_libraries(smartcart_app PRIVATE
     nlohmann_json::nlohmann_json
 )
 
-# ---------------- TESTS ----------------
+add_custom_command(TARGET smartcart_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/config
+        $<TARGET_FILE_DIR:smartcart_app>/config
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${SMARTCART_MIGRATIONS_DIR}
+        $<TARGET_FILE_DIR:smartcart_app>/migrations
+)
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
 enable_testing()
 find_package(GTest REQUIRED)
 
@@ -64,4 +69,5 @@ target_link_libraries(frame_codec_tests PRIVATE
 include(GoogleTest)
 gtest_discover_tests(frame_codec_tests)
 
+# ── Qt UI (smart_cart_ui) ─────────────────────────────────────────────────────
 add_subdirectory(src/presentation/qt build_qt)

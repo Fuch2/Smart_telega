@@ -1,28 +1,27 @@
 #pragma once
-#include <string>
-#include <vector>
+#include "../../../application/ports/IModuleRepository.hpp"
+#include "../SqliteConnection.hpp"
 
-struct sqlite3;
-namespace smartcart::infrastructure::db::repositories {
+namespace smartcart::infrastructure::db {
 
-struct ModuleRow {
-    int id{};
-    std::string moduleSerial;
-    std::string moduleType;
-    std::string profileName;
-};
-
-class ModuleRepositorySqlite {
+class ModuleRepositorySqlite final
+    : public application::ports::IModuleRepository {
 public:
-    explicit ModuleRepositorySqlite(sqlite3* db);
+    explicit ModuleRepositorySqlite(SqliteConnection& conn);
 
-    int upsert(const std::string& moduleSerial, const std::string& moduleType, const std::string& profileName);
-    void upsertSlots(int moduleId, const std::vector<std::string>& slots);
-    std::vector<std::string> listFreeSlots(int moduleId) const;
-    std::vector<std::string> listAllSlots(int moduleId) const;
+    std::vector<domain::ModuleInfo> getAll() override;
+    std::optional<domain::ModuleInfo> getById(int id) override;
+    bool existsBySerial(const std::string& serial, int exceptId = 0) override;
+
+    int  add(const domain::ModuleInfo& m) override;
+    bool update(const domain::ModuleInfo& m) override;
+    bool remove(int id) override;
 
 private:
-    sqlite3* db_{nullptr};
+    SqliteConnection& conn_;
+
+    static domain::ModuleInfo rowToInfo(sqlite3_stmt* stmt);
+    void ensureSchema();
 };
 
-} // namespace smartcart::infrastructure::db::repositories
+} // namespace smartcart::infrastructure::db

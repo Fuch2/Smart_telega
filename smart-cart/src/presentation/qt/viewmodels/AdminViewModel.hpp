@@ -2,32 +2,38 @@
 #include <QObject>
 #include <QVector>
 #include <QString>
-
-#include "../../../repositories/IModuleRepository.hpp"
-#include "../../../infrastructure/persistence/SqliteModuleRepository.hpp"
-
 #include <memory>
 
+#include "../../../application/ports/IModuleRepository.hpp"
 
+namespace smartcart::domain { struct ModuleInfo; }
+
+// ── Плоская Qt-модель для таблицы ──────────────────────────────────────────
+// Отражает domain::ModuleInfo, но с Qt-типами для удобства биндинга
 struct ModuleItem {
-    int id{0};
+    int     id{0};
     QString serial;
-    int slotCount{24};
+    int     slotCount{24};
     QString firmware;
-    QString status;   // ONLINE / OFFLINE / MAINT
+    QString status;   // "ONLINE" / "OFFLINE" / "MAINT"
 };
 
 class AdminViewModel final : public QObject {
     Q_OBJECT
 public:
-    explicit AdminViewModel(QObject* parent = nullptr);
+    // Зависимость приходит снаружи — ViewModel не знает о SQLite
+    explicit AdminViewModel(
+        smartcart::application::ports::IModuleRepository& repo,
+        QObject* parent = nullptr);
 
     const QVector<ModuleItem>& items() const { return items_; }
 
 public slots:
-    void loadDemo();
-    void addModule(const QString& serial, int slotCount, const QString& firmware, const QString& status);
-    void updateModule(int id, const QString& serial, int slotCount, const QString& firmware, const QString& status);
+    void load();
+    void addModule(const QString& serial, int slotCount,
+                   const QString& firmware, const QString& status);
+    void updateModule(int id, const QString& serial, int slotCount,
+                      const QString& firmware, const QString& status);
     void removeModule(int id);
 
 signals:
@@ -37,12 +43,8 @@ signals:
 
 private:
     void reload();
+    int  findIndexById(int id) const;
 
+    smartcart::application::ports::IModuleRepository& repo_;
     QVector<ModuleItem> items_;
-
-    int findIndexById(int id) const;
-    bool serialExists(const QString& serial, int exceptId = 0) const;  // ← оставить
-
-    std::unique_ptr<IModuleRepository> repo_;
-
 };

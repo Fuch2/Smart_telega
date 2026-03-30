@@ -16,10 +16,11 @@
 #include <QBrush>
 #include <QColor>
 
-AdminView::AdminView(QWidget* parent) : QWidget(parent) {
+AdminView::AdminView(AdminViewModel* vm, QWidget* parent)
+    : QWidget(parent), vm_(vm) {
     buildUi();
     bindVm();
-    vm_->loadDemo();
+    vm_->load();  // вместо loadDemo()
 }
 
 void AdminView::buildUi() {
@@ -74,9 +75,10 @@ void AdminView::buildUi() {
 }
 
 void AdminView::bindVm() {
-    vm_ = new AdminViewModel(this);
+    // vm_ уже установлен в конструкторе — НЕ пересоздаём
 
-    connect(vm_, &AdminViewModel::modulesReset, this, &AdminView::refreshTable);
+    connect(vm_, &AdminViewModel::modulesReset,
+            this, &AdminView::refreshTable);
 
     connect(vm_, &AdminViewModel::errorOccurred, this, [this](const QString& m) {
         msgLabel_->setText("Ошибка: " + m);
@@ -94,13 +96,13 @@ void AdminView::bindVm() {
 
     connect(addBtn_, &QPushButton::clicked, this, [this]() {
         const QString serial = serialEdit_->text().trimmed();
-        const int slotCount = slotsSpin_->value();
-        const QString fw = fwEdit_->text().trimmed();
-        const QString st = statusCombo_->currentText();
+        const int     slots  = slotsSpin_->value();
+        const QString fw     = fwEdit_->text().trimmed();
+        const QString st     = statusCombo_->currentText();
 
-        vm_->addModule(serial, slotCount, fw, st);
+        vm_->addModule(serial, slots, fw, st);
 
-        // Автовыбор добавленной строки по serial (достаточно для demo)
+        // Автовыбор добавленной строки по serial
         const auto& items = vm_->items();
         for (int i = items.size() - 1; i >= 0; --i) {
             if (items[i].serial.compare(serial, Qt::CaseInsensitive) == 0) {
@@ -116,7 +118,6 @@ void AdminView::bindVm() {
             msgLabel_->setStyleSheet("color:#ff6b6b;");
             return;
         }
-
         vm_->updateModule(
             selectedId_,
             serialEdit_->text().trimmed(),
@@ -124,8 +125,6 @@ void AdminView::bindVm() {
             fwEdit_->text().trimmed(),
             statusCombo_->currentText()
         );
-
-        // Сохраняем выделение текущей записи
         selectRowById(selectedId_);
     });
 
@@ -135,18 +134,18 @@ void AdminView::bindVm() {
             msgLabel_->setStyleSheet("color:#ff6b6b;");
             return;
         }
-
         vm_->removeModule(selectedId_);
         selectedId_ = 0;
-        resetForm(); // <-- полировка после удаления
+        resetForm();
     });
 
     connect(reloadBtn_, &QPushButton::clicked, this, [this]() {
-        vm_->loadDemo();
+        vm_->load();          // loadDemo() не существует — используем load()
         selectedId_ = 0;
         resetForm();
     });
 }
+
 
 void AdminView::refreshTable() {
     const auto& items = vm_->items();

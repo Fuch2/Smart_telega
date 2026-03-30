@@ -2,99 +2,147 @@
 #include <sqlite3.h>
 #include <stdexcept>
 
-namespace smartcart::infrastructure::db::repositories {
-namespace {
-OperationRow readRow(sqlite3_stmt* st) {
-    OperationRow r;
-    r.id = sqlite3_column_int(st, 0);
-    r.opType = reinterpret_cast<const char*>(sqlite3_column_text(st, 1));
-    r.state = reinterpret_cast<const char*>(sqlite3_column_text(st, 2));
-    r.targetBarcode = sqlite3_column_text(st, 3) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 3)) : "";
-    r.payloadJson = sqlite3_column_text(st, 4) ? reinterpret_cast<const char*>(sqlite3_column_text(st, 4)) : "";
-    r.finished = sqlite3_column_type(st, 5) != SQLITE_NULL;
-    return r;
-}
+namespace smartcart::infrastructure::db {
+
+using namespace smartcart::domain;
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+static OperationType opTypeFromString(std::string_view s) {
+    if (s == "ADD_REEL")     return OperationType::AddReel;
+    if (s == "REMOVE_REEL")  return OperationType::RemoveReel;
+    if (s == "REPLACE_REEL") return OperationType::ReplaceReel;
+    return OperationType::AddReel;
 }
 
-OperationRepositorySqlite::OperationRepositorySqlite(sqlite3* db) : db_(db) {
-    if (!db_) throw std::runtime_error("OperationRepositorySqlite: null db");
+static OperationStatus opStatusFromString(std::string_view s) {
+    if (s == "IN_PROGRESS") return OperationStatus::InProgress;
+    if (s == "COMPLETED")   return OperationStatus::Completed;
+    if (s == "CANCELLED")   return OperationStatus::Cancelled;
+    if (s == "FAILED")      return OperationStatus::Failed;
+    return OperationStatus::Failed;
 }
 
-int OperationRepositorySqlite::create(const std::string& opType, const std::string& state,
-                                      const std::string& targetBarcode, const std::string& payloadJson) {
+// col: id, type, status, module_id, slot_index, barcode, started_at, finished_at
+Operation OperationRepositorySqlite::rowToOp(sqlite3_stmt* stmt) {
+    Operation op;
+    op.id         = sqlite3_column_int(stmt, 0);
+    op.type       = opTypeFromString(
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+    op.status     = opStatusFromString(
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+    op.moduleId   = sqlite3_column_int(stmt, 3);
+    op.slotIndex  = sqlite3_column_int(stmt, 4);
+    op.barcode    = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+    op.startedAt  = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+    if (sqlite3_column_type(stmt, 7) != SQLITE_NULL)
+        op.finishedAt = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+    return op;
+}
+
+// ── Ctor ─────────────────────────────────────────────────────────────────────
+
+OperationRepositorySqlite::OperationRepositorySqlite(SqliteConnection& conn)
+    : conn_(conn) {
+    ensureSchema();
+}
+
+void OperationRepositorySqlite::ensureSchema() {
+    // Таблица создаётся миграцией; здесь — страховка для тестов без миграций
+    conn_.execute(
+        "CREATE TABLE IF NOT EXISTS operations ("
+        "  id          INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  type        TEXT    NOT NULL,"
+        "  status      TEXT    NOT NULL DEFAULT 'IN_PROGRESS',"
+        "  module_id   INTEGER NOT NULL,"
+        "  slot_index  INTEGER NOT NULL,"
+        "  barcode     TEXT    NOT NULL DEFAULT '',"
+        "  started_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+        "  finished_at DATETIME"
+        ");"
+    );
+}
+
+// ── IOperationRepository ─────────────────────────────────────────────────────
+
+int OperationRepositorySqlite::add(const Operation& op) {
     const char* sql =
-        "INSERT INTO operations(op_type, state, target_barcode, payload_json) VALUES(?,?,?,?);";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, opType.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 2, state.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 3, targetBarcode.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 4, payloadJson.c_str(), -1, SQLITE_TRANSIENT);
+        "INSERT INTO operations(type, status, module_id, slot_index, barcode) "
+        "VALUES(?, ?, ?, ?, ?);";
 
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("OperationRepositorySqlite::create failed");
-    }
-    sqlite3_finalize(st);
-    return static_cast<int>(sqlite3_last_insert_rowid(db_));
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+
+    const std::string typeStr{toString(op.type)};
+    const std::string statusStr{toString(op.status)};
+    sqlite3_bind_text(stmt, 1, typeStr.c_str(),   -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, statusStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int (stmt, 3, op.moduleId);
+    sqlite3_bind_int (stmt, 4, op.slotIndex);
+    sqlite3_bind_text(stmt, 5, op.barcode.c_str(), -1, SQLITE_TRANSIENT);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE)
+        throw std::runtime_error("OperationRepositorySqlite::add failed");
+    return static_cast<int>(sqlite3_last_insert_rowid(conn_.handle()));
 }
 
-void OperationRepositorySqlite::updateState(int id, const std::string& state, const std::string& payloadJson) {
+bool OperationRepositorySqlite::updateStatus(int id,
+                                              OperationStatus status,
+                                              const std::string& finishedAt) {
     const char* sql =
-        "UPDATE operations SET state=?, payload_json=?, updated_at=CURRENT_TIMESTAMP WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, state.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 2, payloadJson.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(st, 3, id);
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("OperationRepositorySqlite::updateState failed");
-    }
-    sqlite3_finalize(st);
+        "UPDATE operations "
+        "SET status=?, finished_at=NULLIF(?,'')"
+        " WHERE id=?;";   // ← пробел перед WHERE
+
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+
+    const std::string statusStr{toString(status)};
+    sqlite3_bind_text(stmt, 1, statusStr.c_str(),  -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, finishedAt.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int (stmt, 3, id);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
 }
 
-void OperationRepositorySqlite::finish(int id, const std::string& finalState, const std::string& payloadJson) {
-    const char* sql =
-        "UPDATE operations SET state=?, payload_json=?, updated_at=CURRENT_TIMESTAMP, "
-        "finished_at=CURRENT_TIMESTAMP WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, finalState.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 2, payloadJson.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(st, 3, id);
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("OperationRepositorySqlite::finish failed");
-    }
-    sqlite3_finalize(st);
-}
 
-std::optional<OperationRow> OperationRepositorySqlite::findById(int id) {
+std::vector<Operation> OperationRepositorySqlite::getUnfinished() {
     const char* sql =
-        "SELECT id, op_type, state, target_barcode, payload_json, finished_at FROM operations WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_int(st, 1, id);
-    if (sqlite3_step(st) == SQLITE_ROW) {
-        auto row = readRow(st);
-        sqlite3_finalize(st);
-        return row;
-    }
-    sqlite3_finalize(st);
-    return std::nullopt;
-}
+        "SELECT id, type, status, module_id, slot_index, barcode, "
+        "       started_at, finished_at "
+        "FROM operations "
+        "WHERE status = 'IN_PROGRESS' "
+        "ORDER BY id ASC;";
 
-std::vector<OperationRow> OperationRepositorySqlite::listUnfinished() {
-    const char* sql =
-        "SELECT id, op_type, state, target_barcode, payload_json, finished_at "
-        "FROM operations WHERE finished_at IS NULL ORDER BY id ASC;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    std::vector<OperationRow> out;
-    while (sqlite3_step(st) == SQLITE_ROW) out.push_back(readRow(st));
-    sqlite3_finalize(st);
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+
+    std::vector<Operation> out;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+        out.push_back(rowToOp(stmt));
+    sqlite3_finalize(stmt);
     return out;
 }
 
-} // namespace smartcart::infrastructure::db::repositories
+std::optional<Operation> OperationRepositorySqlite::getById(int id) {
+    const char* sql =
+        "SELECT id, type, status, module_id, slot_index, barcode, "
+        "       started_at, finished_at "
+        "FROM operations WHERE id=?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+
+    std::optional<Operation> out;
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+        out = rowToOp(stmt);
+    sqlite3_finalize(stmt);
+    return out;
+}
+
+} // namespace smartcart::infrastructure::db

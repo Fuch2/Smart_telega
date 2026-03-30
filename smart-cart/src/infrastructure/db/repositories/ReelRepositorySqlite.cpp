@@ -2,120 +2,147 @@
 #include <sqlite3.h>
 #include <stdexcept>
 
-namespace smartcart::infrastructure::db::repositories {
+namespace smartcart::infrastructure::db {
 
-namespace {
-ReelRow readRow(sqlite3_stmt* st) {
-    ReelRow r;
-    r.id = sqlite3_column_int(st, 0);
-    r.barcode = reinterpret_cast<const char*>(sqlite3_column_text(st, 1));
-    r.slotId = reinterpret_cast<const char*>(sqlite3_column_text(st, 2));
-    r.status = reinterpret_cast<const char*>(sqlite3_column_text(st, 3));
+using namespace smartcart::domain;
+
+// col: id, barcode, module_id, slot_index, placed_at, removed_at
+ReelRecord ReelRepositorySqlite::rowToRecord(sqlite3_stmt* stmt) {
+    ReelRecord r;
+    r.id         = sqlite3_column_int(stmt, 0);
+    r.barcode    = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    r.moduleId   = sqlite3_column_int(stmt, 2);
+    r.slotIndex  = sqlite3_column_int(stmt, 3);
+    r.placedAt   = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+    if (sqlite3_column_type(stmt, 5) != SQLITE_NULL)
+        r.removedAt = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
     return r;
 }
+
+// ── Ctor ─────────────────────────────────────────────────────────────────────
+
+ReelRepositorySqlite::ReelRepositorySqlite(SqliteConnection& conn)
+    : conn_(conn) {
+    ensureSchema();
 }
 
-ReelRepositorySqlite::ReelRepositorySqlite(sqlite3* db) : db_(db) {
-    if (!db_) throw std::runtime_error("ReelRepositorySqlite: null db");
+void ReelRepositorySqlite::ensureSchema() {
+    conn_.execute(
+        "CREATE TABLE IF NOT EXISTS reels ("
+        "  id          INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  barcode     TEXT    NOT NULL,"
+        "  module_id   INTEGER NOT NULL,"
+        "  slot_index  INTEGER NOT NULL,"
+        "  placed_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+        "  removed_at  DATETIME"
+        ");"
+    );
 }
 
-int ReelRepositorySqlite::create(const std::string& barcode, const std::string& slotId, const std::string& status) {
-    const char* sql = "INSERT INTO reels(barcode, slot_id, status) VALUES(?,?,?);";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, barcode.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 2, slotId.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(st, 3, status.c_str(), -1, SQLITE_TRANSIENT);
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("ReelRepositorySqlite::create failed");
-    }
-    sqlite3_finalize(st);
-    return static_cast<int>(sqlite3_last_insert_rowid(db_));
-}
+// ── Shared SQL ────────────────────────────────────────────────────────────────
 
-std::optional<ReelRow> ReelRepositorySqlite::findById(int id) {
-    const char* sql = "SELECT id, barcode, slot_id, status FROM reels WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_int(st, 1, id);
-    if (sqlite3_step(st) == SQLITE_ROW) {
-        auto row = readRow(st);
-        sqlite3_finalize(st);
-        return row;
-    }
-    sqlite3_finalize(st);
-    return std::nullopt;
-}
+static const char* kSelectCols =
+    "SELECT id, barcode, module_id, slot_index, placed_at, removed_at "
+    "FROM reels";
 
-std::optional<ReelRow> ReelRepositorySqlite::findActiveByBarcode(const std::string& barcode) {
-    const char* sql =
-        "SELECT id, barcode, slot_id, status FROM reels "
-        "WHERE barcode=? AND status IN ('IN_CART','RESERVED') "
-        "ORDER BY id DESC LIMIT 1;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, barcode.c_str(), -1, SQLITE_TRANSIENT);
-    if (sqlite3_step(st) == SQLITE_ROW) {
-        auto row = readRow(st);
-        sqlite3_finalize(st);
-        return row;
-    }
-    sqlite3_finalize(st);
-    return std::nullopt;
-}
+// ── IReelRepository ──────────────────────────────────────────────────────────
 
-std::optional<ReelRow> ReelRepositorySqlite::findBySlot(const std::string& slotId) {
-    const char* sql =
-        "SELECT id, barcode, slot_id, status FROM reels "
-        "WHERE slot_id=? AND status='IN_CART' ORDER BY id DESC LIMIT 1;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, slotId.c_str(), -1, SQLITE_TRANSIENT);
-    if (sqlite3_step(st) == SQLITE_ROW) {
-        auto row = readRow(st);
-        sqlite3_finalize(st);
-        return row;
-    }
-    sqlite3_finalize(st);
-    return std::nullopt;
-}
+std::vector<ReelRecord> ReelRepositorySqlite::getAll() {
+    const std::string sql = std::string(kSelectCols) + " ORDER BY id;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr);
 
-std::vector<ReelRow> ReelRepositorySqlite::listByBarcode(const std::string& barcode) {
-    const char* sql = "SELECT id, barcode, slot_id, status FROM reels WHERE barcode=? ORDER BY id DESC;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, barcode.c_str(), -1, SQLITE_TRANSIENT);
-    std::vector<ReelRow> out;
-    while (sqlite3_step(st) == SQLITE_ROW) out.push_back(readRow(st));
-    sqlite3_finalize(st);
+    std::vector<ReelRecord> out;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+        out.push_back(rowToRecord(stmt));
+    sqlite3_finalize(stmt);
     return out;
 }
 
-void ReelRepositorySqlite::updateStatus(int id, const std::string& status) {
-    const char* sql = "UPDATE reels SET status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, status.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(st, 2, id);
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("ReelRepositorySqlite::updateStatus failed");
-    }
-    sqlite3_finalize(st);
+std::vector<ReelRecord> ReelRepositorySqlite::getByModule(int moduleId) {
+    const std::string sql =
+        std::string(kSelectCols) + " WHERE module_id=? ORDER BY slot_index;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, moduleId);
+
+    std::vector<ReelRecord> out;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+        out.push_back(rowToRecord(stmt));
+    sqlite3_finalize(stmt);
+    return out;
 }
 
-void ReelRepositorySqlite::moveToSlot(int id, const std::string& slotId) {
-    const char* sql = "UPDATE reels SET slot_id=?, updated_at=CURRENT_TIMESTAMP WHERE id=?;";
-    sqlite3_stmt* st = nullptr;
-    sqlite3_prepare_v2(db_, sql, -1, &st, nullptr);
-    sqlite3_bind_text(st, 1, slotId.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(st, 2, id);
-    if (sqlite3_step(st) != SQLITE_DONE) {
-        sqlite3_finalize(st);
-        throw std::runtime_error("ReelRepositorySqlite::moveToSlot failed");
-    }
-    sqlite3_finalize(st);
+std::optional<ReelRecord> ReelRepositorySqlite::getBySlot(int moduleId,
+                                                            int slotIndex) {
+    const std::string sql =
+        std::string(kSelectCols) +
+        " WHERE module_id=? AND slot_index=? AND removed_at IS NULL"
+        " ORDER BY id DESC LIMIT 1;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, moduleId);
+    sqlite3_bind_int(stmt, 2, slotIndex);
+
+    std::optional<ReelRecord> out;
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+        out = rowToRecord(stmt);
+    sqlite3_finalize(stmt);
+    return out;
 }
 
-} // namespace smartcart::infrastructure::db::repositories
+std::vector<ReelRecord> ReelRepositorySqlite::getActive() {
+    const std::string sql =
+        std::string(kSelectCols) +
+        " WHERE removed_at IS NULL ORDER BY module_id, slot_index;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr);
+
+    std::vector<ReelRecord> out;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+        out.push_back(rowToRecord(stmt));
+    sqlite3_finalize(stmt);
+    return out;
+}
+
+int ReelRepositorySqlite::add(const ReelRecord& r) {
+    const char* sql =
+        "INSERT INTO reels(barcode, module_id, slot_index) VALUES(?,?,?);";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, r.barcode.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int (stmt, 2, r.moduleId);
+    sqlite3_bind_int (stmt, 3, r.slotIndex);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE)
+        throw std::runtime_error("ReelRepositorySqlite::add failed");
+    return static_cast<int>(sqlite3_last_insert_rowid(conn_.handle()));
+}
+
+bool ReelRepositorySqlite::markRemoved(int id, const std::string& removedAt) {
+    const char* sql =
+        "UPDATE reels SET removed_at=? WHERE id=? AND removed_at IS NULL;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, removedAt.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int (stmt, 2, id);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+}
+
+bool ReelRepositorySqlite::remove(int id) {
+    const char* sql = "DELETE FROM reels WHERE id=?;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+}
+
+} // namespace smartcart::infrastructure::db

@@ -1,32 +1,29 @@
 #pragma once
-#include <optional>
-#include <string>
-#include <vector>
+#include "../../../application/ports/IReelRepository.hpp"
+#include "../SqliteConnection.hpp"
 
-struct sqlite3;
-namespace smartcart::infrastructure::db::repositories {
+namespace smartcart::infrastructure::db {
 
-struct ReelRow {
-    int id{};
-    std::string barcode;
-    std::string slotId;
-    std::string status;
-};
-
-class ReelRepositorySqlite {
+class ReelRepositorySqlite final
+    : public application::ports::IReelRepository {
 public:
-    explicit ReelRepositorySqlite(sqlite3* db);
+    explicit ReelRepositorySqlite(SqliteConnection& conn);
 
-    int create(const std::string& barcode, const std::string& slotId, const std::string& status);
-    std::optional<ReelRow> findById(int id);
-    std::optional<ReelRow> findActiveByBarcode(const std::string& barcode);
-    std::optional<ReelRow> findBySlot(const std::string& slotId);
-    std::vector<ReelRow> listByBarcode(const std::string& barcode);
-    void updateStatus(int id, const std::string& status);
-    void moveToSlot(int id, const std::string& slotId);
+    std::vector<domain::ReelRecord>        getAll() override;
+    std::vector<domain::ReelRecord>        getByModule(int moduleId) override;
+    std::optional<domain::ReelRecord>      getBySlot(int moduleId,
+                                                      int slotIndex) override;
+    std::vector<domain::ReelRecord>        getActive() override;
+
+    int  add(const domain::ReelRecord& r) override;
+    bool markRemoved(int id, const std::string& removedAt) override;
+    bool remove(int id) override;
 
 private:
-    sqlite3* db_{nullptr};
+    SqliteConnection& conn_;
+
+    static domain::ReelRecord rowToRecord(sqlite3_stmt* stmt);
+    void ensureSchema();
 };
 
-} // namespace smartcart::infrastructure::db::repositories
+} // namespace smartcart::infrastructure::db

@@ -1,8 +1,42 @@
 #include "AdminViewModel.hpp"
-#include "../../../infrastructure/persistence/SqliteModuleRepository.hpp"
+#include "../../../domain/entities/ModuleInfo.hpp"
 
-AdminViewModel::AdminViewModel(QObject* parent) : QObject(parent) {
-    repo_ = std::make_unique<SqliteModuleRepository>(DB_PATH);
+using namespace smartcart::domain;
+using namespace smartcart::application::ports;
+
+// ── Конвертация domain → Qt ──────────────────────────────────────────────────
+static ModuleItem toItem(const ModuleInfo& m) {
+    return {
+        m.id,
+        QString::fromStdString(m.serial),
+        m.slotCount,
+        QString::fromStdString(m.firmware),
+        QString::fromStdString(std::string{toString(m.status)})
+    };
+}
+
+// ── Конвертация Qt → domain ──────────────────────────────────────────────────
+static ModuleInfo toDomain(int id, const QString& serial, int slotCount,
+                            const QString& firmware, const QString& status) {
+    ModuleInfo m;
+    m.id        = id;
+    m.serial    = serial.trimmed().toStdString();
+    m.slotCount = slotCount;
+    m.firmware  = firmware.trimmed().toStdString();
+    m.status    = moduleStatusFromString(status.toStdString());
+    return m;
+}
+
+// ── Ctor ─────────────────────────────────────────────────────────────────────
+AdminViewModel::AdminViewModel(IModuleRepository& repo, QObject* parent)
+    : QObject(parent), repo_(repo) {}
+
+// ── Private ──────────────────────────────────────────────────────────────────
+void AdminViewModel::reload() {
+    items_.clear();
+    for (const auto& m : repo_.getAll())
+        items_.push_back(toItem(m));
+    emit modulesReset();
 }
 
 int AdminViewModel::findIndexById(int id) const {
@@ -11,31 +45,8 @@ int AdminViewModel::findIndexById(int id) const {
     return -1;
 }
 
-bool AdminViewModel::serialExists(const QString& serial, int exceptId) const {
-    return repo_->existsBySerial(serial.toStdString(), exceptId);
-}
-
-static ModuleItem toItem(const ModuleEntity& m) {
-    return {m.id,
-            QString::fromStdString(m.serial),
-            m.slotCount,
-            QString::fromStdString(m.firmware),
-            QString::fromStdString(m.status)};
-}
-
-void AdminViewModel::reload() {
-    items_.clear();
-    for (const auto& m : repo_->getAll())
-        items_.push_back(toItem(m));
-    emit modulesReset();
-}
-
-void AdminViewModel::loadDemo() {
-    if (repo_->getAll().empty()) {
-        repo_->add({0, "SN-DEMO-001", 24, "fw-1.0.0", "ONLINE"});
-        repo_->add({0, "SN-DEMO-002", 24, "fw-1.0.1", "OFFLINE"});
-        repo_->add({0, "SN-DEMO-003", 24, "fw-1.1.0", "MAINT"});
-    }
+// ── Public slots ─────────────────────────────────────────────────────────────
+void AdminViewModel::load() {
     reload();
 }
 
@@ -45,17 +56,11 @@ void AdminViewModel::addModule(const QString& serial, int slotCount,
         emit errorOccurred("Serial не может быть пустым");
         return;
     }
-    if (repo_->existsBySerial(serial.trimmed().toStdString())) {
+    if (repo_.existsBySerial(serial.trimmed().toStdString())) {
         emit errorOccurred("Serial уже существует");
         return;
     }
-
-    ModuleEntity rec{0,
-                     serial.trimmed().toStdString(),
-                     slotCount,
-                     firmware.trimmed().toStdString(),
-                     status.trimmed().toStdString()};
-    repo_->add(rec);
+    repo_.add(toDomain(0, serial, slotCount, firmware, status));
     reload();
     emit infoOccurred("Модуль добавлен");
 }
@@ -70,17 +75,11 @@ void AdminViewModel::updateModule(int id, const QString& serial, int slotCount,
         emit errorOccurred("Serial не может быть пустым");
         return;
     }
-    if (repo_->existsBySerial(serial.trimmed().toStdString(), id)) {
+    if (repo_.existsBySerial(serial.trimmed().toStdString(), id)) {
         emit errorOccurred("Serial уже существует");
         return;
     }
-
-    ModuleEntity rec{id,
-                     serial.trimmed().toStdString(),
-                     slotCount,
-                     firmware.trimmed().toStdString(),
-                     status.trimmed().toStdString()};
-    repo_->update(rec);
+    repo_.update(toDomain(id, serial, slotCount, firmware, status));
     reload();
     emit infoOccurred("Модуль обновлён");
 }
@@ -90,7 +89,7 @@ void AdminViewModel::removeModule(int id) {
         emit errorOccurred("Модуль не найден");
         return;
     }
-    repo_->remove(id);
+    repo_.remove(id);
     reload();
     emit infoOccurred("Модуль удалён");
 }
