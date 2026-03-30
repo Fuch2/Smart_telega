@@ -1,16 +1,18 @@
 #include "WorkerViewModel.hpp"
-#include <QTimer>
+#include <QMetaObject>
 #include <QString>
-
-#include "../../../infrastructure/persistence/SqliteModuleRepository.hpp"
-#include <QCoreApplication>
 
 WorkerViewModel::WorkerViewModel(QObject* parent) : QObject(parent) {
     occupied_.fill(false);
+}
 
-    timer_ = new QTimer(this);
-    timer_->setInterval(900); // ~1 Hz
-    connect(timer_, &QTimer::timeout, this, &WorkerViewModel::onTick);
+void WorkerViewModel::setStm32Link(application::ports::IStm32Link* link) {
+    stm32_ = link;
+    stm32_->setEventCallback([this](const smartcart::infrastructure::hw::stm32::Frame& frame) {
+        QMetaObject::invokeMethod(this, [this, frame]() {
+            onStm32Event(frame);
+        }, Qt::QueuedConnection);
+    });
 }
 
 void WorkerViewModel::start() {
@@ -19,57 +21,41 @@ void WorkerViewModel::start() {
     emit uartStatusChanged("OK");
     emit scannerStatusChanged("READY");
 
-    // начальная картинка
     target_ = 7;
     emit targetSlotChanged(target_);
+
     emit slotOccupiedChanged(3, true);
     emit slotOccupiedChanged(11, true);
     emit slotOccupiedChanged(18, true);
-    occupied_[2] = true;
+    occupied_[2]  = true;
     occupied_[10] = true;
     occupied_[17] = true;
-
-    timer_->start();
 }
 
 void WorkerViewModel::stop() {
-    timer_->stop();
+    if (stm32_) stm32_->close();
 }
 
-int WorkerViewModel::wrap1to24(int v) {
-    while (v < 1) v += 24;
-    while (v > 24) v -= 24;
-    return v;
-}
+void WorkerViewModel::onStm32Event(const smartcart::infrastructure::hw::stm32::Frame& frame) {
+    using namespace smartcart::infrastructure::hw::stm32;
 
-void WorkerViewModel::onTick() {
-    ++tick_;
+    if (frame.frameType != FrameType::Evt) return;
 
-    // 1) мигание scanner статуса
-    emit scannerStatusChanged((tick_ % 2 == 0) ? "READY" : "BUSY");
+    const auto cmd = static_cast<CommandId>(frame.commandId);
 
-    // 2) target двигаем по кругу
-    target_ = wrap1to24(target_ + 1);
-    emit targetSlotChanged(target_);
-
-    // 3) раз в 2 тика переключаем занятость одного слота
-    if (tick_ % 2 == 0) {
-        int slot = wrap1to24((tick_ / 2) % 24 + 1);
-        bool newVal = !occupied_[slot - 1];
-        occupied_[slot - 1] = newVal;
-        emit slotOccupiedChanged(slot, newVal);
+    if (cmd == CommandId::EvtSwitchChanged) {
+        // payload[0] = номер слота (1..24), payload[1] = 0x01 занят / 0x00 свободен
+        if (frame.payload.size() < 2) return;
+        const int  slot     = frame.payload[0];
+        const bool occupied = frame.payload[1] != 0x00;
+        if (slot < 1 || slot > 24) return;
+        occupied_[slot - 1] = occupied;
+        emit slotOccupiedChanged(slot, occupied);
     }
-
-    // 4) иногда “деградация” UART/RFID для демонстрации
-    if (tick_ % 10 == 0) {
-        emit uartStatusChanged("WARN");
-    } else if (tick_ % 10 == 2) {
+    else if (cmd == CommandId::EvtReady) {
         emit uartStatusChanged("OK");
     }
-
-    if (tick_ % 14 == 0) {
-        emit rfidStatusChanged("RETRY");
-    } else if (tick_ % 14 == 3) {
-        emit rfidStatusChanged("OK");
+    else if (cmd == CommandId::EvtFault) {
+        emit uartStatusChanged("FAULT");
     }
 }
