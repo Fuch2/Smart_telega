@@ -38,3 +38,29 @@ add_executable(smart_cart_ui
     ${CMAKE_SOURCE_DIR}/src/infrastructure/hw/stm32/UartStm32Link.cpp
     ${CMAKE_SOURCE_DIR}/src/infrastructure/hw/stm32/FrameCodec.cpp
 )
+# ── Qt6 автоматическая обработка MOC/UIC/RCC ──────────────────────────────
+set_target_properties(smart_cart_ui PROPERTIES
+    AUTOMOC ON
+    AUTOUIC ON
+    AUTORCC ON
+)
+
+target_include_directories(smart_cart_ui PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/apps
+)
+
+target_compile_definitions(smart_cart_ui PRIVATE
+    MIGRATIONS_DIR="${SMARTCART_MIGRATIONS_DIR}"
+    CONFIG_DIR="${SMARTCART_CONFIG_DIR}"
+)
+
+target_link_libraries(smart_cart_ui PRIVATE
+    Qt6::Widgets
+    Qt6::Core
+    SQLite::SQLite3
+    spdlog::spdlog
+    nlohmann_json::nlohmann_json
+)
+
