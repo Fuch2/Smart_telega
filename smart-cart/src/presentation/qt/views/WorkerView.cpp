@@ -21,7 +21,7 @@ WorkerView::WorkerView(WorkerViewModel& viewModel, QWidget* parent)
     setupUi();
     connectSignals();
 
-    slotGrid_->updateSlots(viewModel_.slots());
+    slotGrid_->updateSlots(viewModel_.slotItems());
     stateLabel_->setText(viewModel_.stateLabel());
 }
 
@@ -129,7 +129,7 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onCancelClicked);
 
     // Управление кнопками по состоянию автомата
-    connect(&viewModel_.stateMachine(),
+    connect(&viewModel_.stateMachineRef(),  
             &smartcart::application::AppStateMachine::stateChanged,
             this, [this](smartcart::application::AppState state) {
                 const bool operating =
