@@ -8,16 +8,16 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/MainWindow.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/main_qt.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/AdminView.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/WorkerView.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o" "gcc" "build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

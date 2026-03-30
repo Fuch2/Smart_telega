@@ -1,5 +1,5 @@
-if(EXISTS "/Users/fuch/Document/Smart_Telega/smart-cart/build/frame_codec_tests[1]_tests.cmake")
-  include("/Users/fuch/Document/Smart_Telega/smart-cart/build/frame_codec_tests[1]_tests.cmake")
+if(EXISTS "/home/fuch/Documents/Smart_telega/smart-cart/build/frame_codec_tests[1]_tests.cmake")
+  include("/home/fuch/Documents/Smart_telega/smart-cart/build/frame_codec_tests[1]_tests.cmake")
 else()
   add_test(frame_codec_tests_NOT_BUILT frame_codec_tests_NOT_BUILT)
 endif()

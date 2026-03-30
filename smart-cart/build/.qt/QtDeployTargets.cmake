@@ -1,6 +1,0 @@
-set(__QT_DEPLOY_TARGET_smart_cart_ui_FILE /Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui)
-set(__QT_DEPLOY_TARGET_smart_cart_ui_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_smartcart_app_FILE /Users/fuch/Document/Smart_Telega/smart-cart/build/smartcart_app)
-set(__QT_DEPLOY_TARGET_smartcart_app_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_frame_codec_tests_FILE /Users/fuch/Document/Smart_Telega/smart-cart/build/frame_codec_tests)
-set(__QT_DEPLOY_TARGET_frame_codec_tests_TYPE EXECUTABLE)

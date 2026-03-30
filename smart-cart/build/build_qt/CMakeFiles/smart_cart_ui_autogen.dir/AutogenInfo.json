@@ -1,72 +1,78 @@
 {
-	"BUILD_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen",
-	"CMAKE_BINARY_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart/build",
-	"CMAKE_CURRENT_BINARY_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt",
-	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt",
-	"CMAKE_EXECUTABLE" : "/opt/homebrew/bin/cmake",
+	"BUILD_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen",
+	"CMAKE_BINARY_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
 	"CMAKE_LIST_FILES" : 
 	[
-		"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/CMakeLists.txt"
+		"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/CMakeLists.txt"
 	],
-	"CMAKE_SOURCE_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart",
-	"CROSS_CONFIG" : false,
-	"DEP_FILE" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen/deps",
+	"CMAKE_SOURCE_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart",
+	"DEP_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/deps",
 	"DEP_FILE_RULE_NAME" : "smart_cart_ui_autogen/timestamp",
 	"HEADERS" : 
 	[
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.hpp",
 			"MU",
 			"2DX2LI4CNZ/moc_SqliteModuleRepository.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/MainWindow.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.hpp",
 			"MU",
 			"EWIEGA46WW/moc_MainWindow.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.hpp",
 			"MU",
 			"RVZ4ISEY7V/moc_AdminViewModel.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.hpp",
 			"MU",
 			"RVZ4ISEY7V/moc_WorkerViewModel.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/AdminView.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.hpp",
 			"MU",
 			"DWW7M6GQBY/moc_AdminView.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/WorkerView.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.hpp",
 			"MU",
 			"DWW7M6GQBY/moc_WorkerView.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.hpp",
 			"MU",
 			"IMAN36LHMA/moc_SlotGridWidget.cpp",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.hpp",
 			"MU",
 			"IMAN36LHMA/moc_StatusPanelWidget.cpp",
 			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
-	"INCLUDE_DIR" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen/include",
-	"MOC_COMPILATION_FILE" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp",
-	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_NO_DEBUG", "QT_WIDGETS_LIB" ],
+	"INCLUDE_DIR" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"DB_PATH=\"/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smartcart.db\"",
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NO_DEBUG",
+		"QT_WIDGETS_LIB"
+	],
 	"MOC_DEPEND_FILTERS" : 
 	[
 		[
@@ -76,96 +82,95 @@
 	],
 	"MOC_INCLUDES" : 
 	[
-		"/Users/fuch/Document/Smart_Telega/smart-cart/src",
-		"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt",
-		"/opt/homebrew/lib/QtWidgets.framework/Headers",
-		"/opt/homebrew/lib/QtWidgets.framework",
-		"/opt/homebrew/lib/QtCore.framework/Headers",
-		"/opt/homebrew/lib/QtCore.framework",
-		"/opt/homebrew/share/qt/mkspecs/macx-clang",
-		"/opt/homebrew/include",
-		"/opt/homebrew/lib/QtGui.framework/Headers",
-		"/opt/homebrew/lib/QtGui.framework",
-		"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
-		"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1",
-		"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include",
-		"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"
+		"/home/fuch/Documents/Smart_telega/smart-cart/src",
+		"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt",
+		"/usr/include/aarch64-linux-gnu/qt6/QtWidgets",
+		"/usr/include/aarch64-linux-gnu/qt6",
+		"/usr/include/aarch64-linux-gnu/qt6/QtCore",
+		"/usr/lib/aarch64-linux-gnu/qt6/mkspecs/linux-g++",
+		"/usr/include/aarch64-linux-gnu/qt6/QtGui",
+		"/usr/include",
+		"/usr/include/c++/13",
+		"/usr/include/aarch64-linux-gnu/c++/13",
+		"/usr/include/c++/13/backward",
+		"/usr/lib/gcc/aarch64-linux-gnu/13/include",
+		"/usr/local/include",
+		"/usr/include/aarch64-linux-gnu"
 	],
 	"MOC_MACRO_NAMES" : 
 	[
 		"Q_OBJECT",
 		"Q_GADGET",
-		"Q_NAMESPACE",
-		"Q_NAMESPACE_EXPORT",
 		"Q_GADGET_EXPORT",
-		"Q_ENUM_NS"
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT"
 	],
 	"MOC_OPTIONS" : [],
 	"MOC_PATH_PREFIX" : false,
 	"MOC_PREDEFS_CMD" : 
 	[
-		"/usr/bin/c++",
+		"/usr/bin/g++",
 		"-std=c++20",
-		"-w",
 		"-dM",
 		"-E",
-		"/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp"
+		"-c",
+		"/usr/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp"
 	],
-	"MOC_PREDEFS_FILE" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/smart_cart_ui_autogen/moc_predefs.h",
+	"MOC_PREDEFS_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/moc_predefs.h",
 	"MOC_RELAXED_MODE" : false,
 	"MOC_SKIP" : [],
 	"MULTI_CONFIG" : false,
-	"PARALLEL" : 8,
-	"PARSE_CACHE_FILE" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/ParseCache.txt",
-	"QT_MOC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/moc",
-	"QT_UIC_EXECUTABLE" : "/opt/homebrew/share/qt/libexec/uic",
+	"PARALLEL" : 1,
+	"PARSE_CACHE_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/lib/qt6/libexec/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/lib/qt6/libexec/uic",
 	"QT_VERSION_MAJOR" : 6,
-	"QT_VERSION_MINOR" : 9,
-	"SETTINGS_FILE" : "/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenUsed.txt",
+	"QT_VERSION_MINOR" : 4,
+	"SETTINGS_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/MainWindow.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/main_qt.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/AdminView.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/views/WorkerView.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp",
 			"MU",
 			null
 		]
@@ -174,6 +179,5 @@
 	"UIC_SEARCH_PATHS" : [],
 	"UIC_SKIP" : [],
 	"UIC_UI_FILES" : [],
-	"USE_BETTER_GRAPH" : true,
 	"VERBOSITY" : 0
 }

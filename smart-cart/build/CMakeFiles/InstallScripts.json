@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/fuch/Document/Smart_Telega/smart-cart/build/cmake_install.cmake",
-		"/Users/fuch/Document/Smart_Telega/smart-cart/build/build_qt/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

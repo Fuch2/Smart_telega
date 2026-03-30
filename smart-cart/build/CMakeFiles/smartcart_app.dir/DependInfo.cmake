@@ -8,11 +8,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/fuch/Document/Smart_Telega/smart-cart/apps/smartcart_app/main.cpp" "CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o.d"
-  "/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp" "CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o.d"
+  "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o" "gcc" "CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.
