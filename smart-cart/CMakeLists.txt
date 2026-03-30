@@ -1,10 +1,4 @@
 # ===== CMakeLists.txt =====
-# Исправлено:
-#   - добавлен application слой в smartcart_infra
-#   - убран CMakeLists_fixed.txt (сломан)
-#   - config.json вместо appsettings.json
-#   - warnings и sanitizers через cmake/
-#   - корректные зависимости для всех таргетов
 cmake_minimum_required(VERSION 3.22)
 project(smartcart LANGUAGES CXX)
 
@@ -12,20 +6,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ── Вспомогательные модули ────────────────────────────────────────────────────
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
 include(cmake/dependencies.cmake)
 
-# ── Пути ──────────────────────────────────────────────────────────────────────
 set(SMARTCART_MIGRATIONS_DIR
     "${CMAKE_SOURCE_DIR}/src/infrastructure/db/migrations")
 set(SMARTCART_CONFIG_DIR
     "${CMAKE_SOURCE_DIR}/config")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# smartcart_infra — вся инфраструктура + application слой
-# OBJECT-библиотека: компилируется один раз, переиспользуется всеми таргетами
+# smartcart_infra — инфраструктура + application services (БЕЗ Qt)
 # ══════════════════════════════════════════════════════════════════════════════
 add_library(smartcart_infra OBJECT
 
@@ -58,14 +49,11 @@ add_library(smartcart_infra OBJECT
     src/infrastructure/logging/SqliteEventLogger.cpp
     src/infrastructure/logging/SpdlogFileLogger.cpp
 
-    # ── application: services ─────────────────────────────────────────────────
+    # ── application: services (чистый C++, без Qt) ────────────────────────────
     src/application/services/StartupService.cpp
     src/application/services/AddReelService.cpp
     src/application/services/ReplaceReelService.cpp
     src/application/services/RecoveryService.cpp
-
-    # ── application: state machine ────────────────────────────────────────────
-    src/application/state/AppStateMachine.cpp
 )
 
 target_include_directories(smartcart_infra PUBLIC
@@ -81,7 +69,34 @@ target_link_libraries(smartcart_infra PUBLIC
 smartcart_set_warnings(smartcart_infra)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# smartcart_app — headless CLI smoke-test (CI)
+# smartcart_app_qt — AppStateMachine + AppBootstrap (требует Qt6)
+# Отдельная OBJECT-библиотека чтобы не тащить Qt в тесты
+# ══════════════════════════════════════════════════════════════════════════════
+add_library(smartcart_app_qt OBJECT
+    src/application/state/AppStateMachine.cpp
+    apps/smartcart_app/AppBootstrap.cpp
+)
+
+target_include_directories(smartcart_app_qt PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/apps
+)
+
+target_link_libraries(smartcart_app_qt PUBLIC
+    smartcart_infra
+    Qt6::Core
+    Qt6::Widgets
+)
+
+# MOC для AppStateMachine (QObject)
+set_target_properties(smartcart_app_qt PROPERTIES
+    AUTOMOC ON
+)
+
+smartcart_set_warnings(smartcart_app_qt)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# smartcart_app — headless CLI smoke-test (CI, без Qt)
 # ══════════════════════════════════════════════════════════════════════════════
 add_executable(smartcart_app
     apps/smartcart_app/main.cpp
@@ -133,7 +148,7 @@ target_link_libraries(frame_codec_tests PRIVATE
 smartcart_set_warnings(frame_codec_tests)
 smartcart_enable_sanitizers(frame_codec_tests)
 
-# ── Integration tests ─────────────────────────────────────────────────────────
+# ── Integration tests (без Qt — только smartcart_infra) ───────────────────────
 add_executable(integration_tests
     tests/integration/startup_flow_test.cpp
     tests/integration/add_reel_flow_test.cpp
@@ -163,5 +178,5 @@ include(GoogleTest)
 gtest_discover_tests(frame_codec_tests)
 gtest_discover_tests(integration_tests)
 
-# ── Qt UI ─────────────────────────────────────────────────────────────────────
+# ── Qt UI (presentation слой + main_qt.cpp) ───────────────────────────────────
 add_subdirectory(src/presentation/qt build_qt)
