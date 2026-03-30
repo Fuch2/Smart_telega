@@ -45,11 +45,12 @@ set_target_properties(smart_cart_ui PROPERTIES
     AUTORCC ON
 )
 
-target_include_directories(smart_cart_ui PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(smart_cart_ui BEFORE PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/apps
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
 
 target_compile_definitions(smart_cart_ui PRIVATE
     MIGRATIONS_DIR="${SMARTCART_MIGRATIONS_DIR}"

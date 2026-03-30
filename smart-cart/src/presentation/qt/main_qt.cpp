@@ -1,7 +1,8 @@
 #include <QApplication>
 #include <iostream>
 
-#include "../../apps/smartcart_app/AppBootstrap.hpp"
+#include "smartcart_app/AppBootstrap.hpp"
+
 #include "MainWindow.hpp"
 
 int main(int argc, char* argv[]) {
