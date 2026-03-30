@@ -122,4 +122,4 @@ if __name__ == '__main__':
         ser.reset_input_buffer()
         while True:
             get_switch_state(ser)
-            time.sleep(0.05)  # 20 Hz опрос
+            time.sleep(0.05)  # 20 Hz опросw
