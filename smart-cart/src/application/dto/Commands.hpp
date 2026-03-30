@@ -1,3 +1,5 @@
+// ===== src/application/dto/Commands.hpp =====
+// Исправлено: убран encoding-мусор в комментариях
 #pragma once
 
 #include <optional>
@@ -6,22 +8,22 @@
 namespace smartcart::application::dto {
 
 struct AddReelCommand {
-    std::string barcode;
-    std::optional<std::string> preferredSlotId; // MVP: обычно пусто
+    std::string        barcode;
+    std::optional<int> preferredSlotIndex; // MVP: обычно пусто
 };
 
 struct ReplaceReelCommand {
-    std::string barcode; // barcode катушки, которую нужно заменить на станке
+    std::string barcode; // штрихкод новой катушки
 };
 
 struct RemoveReelCommand {
-    std::string slotId; // явное указание лотка для изъятия
+    int moduleId  = 0;
+    int slotIndex = 0;
 };
 
 struct ConfirmSlotActionCommand {
-    std::string slotId;
+    int moduleId  = 0;
+    int slotIndex = 0;
 };
-
-
 
 } // namespace smartcart::application::dto

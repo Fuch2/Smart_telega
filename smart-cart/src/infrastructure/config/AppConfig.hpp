@@ -1,3 +1,5 @@
+// ===== src/infrastructure/config/AppConfig.hpp =====
+// Исправлено: убрано несуществующее поле logFilePath — используется logFile
 #pragma once
 
 #include <cstdint>
@@ -7,11 +9,8 @@
 namespace smartcart::infrastructure::config {
 
 struct AppConfig {
-    std::string logFile;
-    std::string sqlitePath;
-
-    std::string logFilePath;
-    std::string sqliteDbPath;
+    std::string logFile;            // путь к лог-файлу
+    std::string sqlitePath;         // путь к БД
 
     bool demoMode{true};
 
@@ -19,11 +18,9 @@ struct AppConfig {
     std::uint32_t debounceMs{50};
     std::uint32_t stableConfirmMs{1000};
 
-    // baseline config files
     std::string ledMappingPath{"config/led_mapping.default.json"};
     std::string moduleProfilePath{"config/module_profiles/tray24.json"};
 
-    // fallback map из appsettings (может быть пустым, если используется ledMappingPath)
     std::vector<int> slotToLedMap;
 };
 

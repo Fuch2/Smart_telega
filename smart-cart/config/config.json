@@ -1,0 +1,18 @@
+// ===== config/config.json =====
+// Исправлено: переименован из appsettings.json → config.json
+// (ConfigLoader ищет именно этот файл)
+{
+  "log_file": "./smartcart.log",
+  "sqlite_path": "./smartcart.db",
+  "stm32_poll_ms": 500,
+  "debounce_ms": 50,
+  "stable_confirm_ms": 1000,
+  "demo_mode": true,
+  "led_mapping_path": "config/led_mapping.default.json",
+  "module_profile_path": "config/module_profiles/tray24.json",
+  "slot_to_led_map": [
+    0, 2, 4, 6, 8, 10, 12, 14,
+    16, 18, 20, 22, 24, 26, 28, 30,
+    32, 34, 36, 38, 40, 42, 44, 46
+  ]
+}

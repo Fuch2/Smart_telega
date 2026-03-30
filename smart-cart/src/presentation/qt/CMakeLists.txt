@@ -1,13 +1,22 @@
-# Переменные из родителя доступны автоматически через add_subdirectory
-# SMARTCART_MIGRATIONS_DIR и SMARTCART_CONFIG_DIR уже определены в корне
+# ===== src/presentation/qt/CMakeLists.txt =====
+# Исправлено:
+#   - используем smartcart_infra вместо дублирования .cpp
+#   - добавлен AppBootstrap
+#   - добавлены SpdlogFileLogger, scanner, rfid провайдеры
 
 add_executable(smart_cart_ui
     # ── точка входа ──────────────────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/main_qt.cpp
 
-    # ── presentation ─────────────────────────────────────────────────────────
+    # ── bootstrap ────────────────────────────────────────────────────────────
+    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.cpp
+    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.hpp
+
+    # ── presentation: main window ─────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.hpp
+
+    # ── presentation: views ───────────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkerView.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkerView.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/AdminView.cpp
@@ -16,39 +25,24 @@ add_executable(smart_cart_ui
     ${CMAKE_CURRENT_SOURCE_DIR}/views/DiagnosticsView.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/ErrorDialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/ErrorDialog.hpp
+
+    # ── presentation: widgets ─────────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/widgets/StatusPanelWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/widgets/StatusPanelWidget.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/widgets/SlotGridWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/widgets/SlotGridWidget.hpp
+
+    # ── presentation: viewmodels ──────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/viewmodels/WorkerViewModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/viewmodels/WorkerViewModel.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/viewmodels/AdminViewModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/viewmodels/AdminViewModel.hpp
+
+    # ── presentation: presenters ──────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/presenters/AdminPresenter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/presenters/AdminPresenter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/presenters/WorkerPresenter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/presenters/WorkerPresenter.hpp
-
-    # ── bootstrap ─────────────────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.cpp
-    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.hpp
-
-    # ── infrastructure: config ────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/config/ConfigLoader.cpp
-
-    # ── infrastructure: db ────────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/db/SqliteConnection.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp
-
-    # ── infrastructure: logging ───────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/logging/LoggerFactory.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/logging/SqliteEventLogger.cpp
-
-    # ── infrastructure: stm32 ─────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/hw/stm32/UartStm32Link.cpp
-    ${CMAKE_SOURCE_DIR}/src/infrastructure/hw/stm32/FrameCodec.cpp
 )
 
 set_target_properties(smart_cart_ui PROPERTIES
@@ -68,18 +62,20 @@ target_compile_definitions(smart_cart_ui PRIVATE
     CONFIG_DIR="${SMARTCART_CONFIG_DIR}"
 )
 
+# smartcart_infra уже тянет SQLite3, spdlog, nlohmann_json
 target_link_libraries(smart_cart_ui PRIVATE
+    smartcart_infra
     Qt6::Widgets
     Qt6::Core
-    SQLite::SQLite3
-    spdlog::spdlog
-    nlohmann_json::nlohmann_json
 )
 
+# AUTOMOC не видит include-пути из target_include_directories автоматически —
+# явно указываем, где искать Q_OBJECT заголовки
 set_property(TARGET smart_cart_ui PROPERTY
     AUTOMOC_INCLUDE_DIRS
         "${CMAKE_SOURCE_DIR}/src"
         "${CMAKE_SOURCE_DIR}/apps"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 add_custom_command(TARGET smart_cart_ui POST_BUILD

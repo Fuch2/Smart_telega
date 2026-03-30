@@ -22,7 +22,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Debug
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -318,6 +318,12 @@ Qt6Widgets_DIR:PATH=/opt/homebrew/lib/cmake/Qt6Widgets
 
 //The directory containing a CMake configuration file for Qt6.
 Qt6_DIR:PATH=/opt/homebrew/lib/cmake/Qt6
+
+//Enable AddressSanitizer + UBSan for tests
+SMARTCART_SANITIZE:BOOL=ON
+
+//No help, variable specified on the command line.
+SMARTCART_WERROR:UNINITIALIZED=OFF
 
 //Path to a file.
 SQLite3_INCLUDE_DIR:PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include

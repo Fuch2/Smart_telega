@@ -4,9 +4,9 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/fuch/Document/Smart_Telega/smart-cart -I/Users/fuch/Document/Smart_Telega/smart-cart/src -isystem /opt/homebrew/include
+CXX_INCLUDES = -I/Users/fuch/Document/Smart_Telega/smart-cart/src -isystem /opt/homebrew/include
 
-CXX_FLAGSarm64 = -std=c++20 -arch arm64
+CXX_FLAGSarm64 = -g -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Woverloaded-virtual -Wnull-dereference -Wdouble-promotion -Wformat=2 -fsanitize=address,undefined -fno-omit-frame-pointer -g
 
-CXX_FLAGS = -std=c++20 -arch arm64
+CXX_FLAGS = -g -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Woverloaded-virtual -Wnull-dereference -Wdouble-promotion -Wformat=2 -fsanitize=address,undefined -fno-omit-frame-pointer -g
 

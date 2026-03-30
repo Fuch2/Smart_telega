@@ -1,36 +1,40 @@
+// ===== src/application/dto/Events.hpp =====
+// Исправлено: убран encoding-мусор в комментариях
 #pragma once
 
-#include <cstdint>
+#include "domain/entities/Slot.hpp"
+#include "domain/entities/Operation.hpp"
+#include "domain/errors/ErrorCode.hpp"
+
 #include <string>
 #include <vector>
 
-#include "src/domain/errors/ErrorCode.hpp"
-
 namespace smartcart::application::dto {
 
+/// Снимок состояния одного слота (для передачи в UI)
 struct SlotSnapshot {
-    std::string slotId;   // S01..S24
-    bool occupied{false};
-    std::uint64_t tsMs{0};
+    int  moduleId   = 0;
+    int  slotIndex  = 0;
+    int  ledIndex   = 0;
+    domain::SlotState state = domain::SlotState::Free;
+    std::string barcode;   // пусто если слот свободен
 };
 
-struct Stm32SnapshotEvent {
-    std::vector<SlotSnapshot> slots;
-    std::uint64_t tsMs{0};
-};
-
+/// Событие завершения / изменения операции
 struct OperationEvent {
-    std::string operationId;
-    std::string type;     // ADD_REEL / REPLACE_REEL / RECOVERY
-    std::string state;    // state machine state
-    std::string message;
-    std::uint64_t tsMs{0};
+    int                        operationId = 0;
+    domain::OperationType      type        = domain::OperationType::AddReel;
+    domain::OperationStatus    status      = domain::OperationStatus::InProgress;
+    int         moduleId  = 0;
+    int         slotIndex = 0;
+    std::string barcode;
+    std::string finishedAt;
 };
 
+/// Событие ошибки
 struct ErrorEvent {
-    smartcart::domain::errors::ErrorCode code{smartcart::domain::errors::ErrorCode::Unknown};
-    std::string message;
-    std::uint64_t tsMs{0};
+    domain::ErrorCode code    = domain::ErrorCode::None;
+    std::string       message;
 };
 
 } // namespace smartcart::application::dto

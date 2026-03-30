@@ -1,0 +1,34 @@
+// ===== config/led_mapping.default.json =====
+// Исправлено: был пустым файлом
+// Формат: slot_index (1-based) → led_index
+{
+  "mapping_version": 1,
+  "description": "Default linear LED mapping: slot N → LED (N-1)*2",
+  "slot_count": 24,
+  "entries": [
+    {"slot": 1,  "led": 0},
+    {"slot": 2,  "led": 2},
+    {"slot": 3,  "led": 4},
+    {"slot": 4,  "led": 6},
+    {"slot": 5,  "led": 8},
+    {"slot": 6,  "led": 10},
+    {"slot": 7,  "led": 12},
+    {"slot": 8,  "led": 14},
+    {"slot": 9,  "led": 16},
+    {"slot": 10, "led": 18},
+    {"slot": 11, "led": 20},
+    {"slot": 12, "led": 22},
+    {"slot": 13, "led": 24},
+    {"slot": 14, "led": 26},
+    {"slot": 15, "led": 28},
+    {"slot": 16, "led": 30},
+    {"slot": 17, "led": 32},
+    {"slot": 18, "led": 34},
+    {"slot": 19, "led": 36},
+    {"slot": 20, "led": 38},
+    {"slot": 21, "led": 40},
+    {"slot": 22, "led": 42},
+    {"slot": 23, "led": 44},
+    {"slot": 24, "led": 46}
+  ]
+}

@@ -1,75 +1,143 @@
+// ===== apps/smartcart_app/AppBootstrap.cpp =====
+// Исправлено:
+//   - убраны кириллица-мусор в строках ошибок
+//   - добавлен #include <QMetaObject>
+//   - mainWindow_ создаётся без parent → Qt не удалит его раньше AppBootstrap
 #include "AppBootstrap.hpp"
 
-#include "../../src/infrastructure/config/ConfigLoader.hpp"
-#include "../../src/infrastructure/db/SqliteConnection.hpp"
-#include "../../src/infrastructure/db/repositories/ModuleRepositorySqlite.hpp"
-#include "../../src/infrastructure/db/repositories/ReelRepositorySqlite.hpp"
-#include "../../src/infrastructure/db/repositories/OperationRepositorySqlite.hpp"
+#include "infrastructure/config/ConfigLoader.hpp"
+#include "presentation/qt/MainWindow.hpp"
+#include "presentation/qt/viewmodels/AdminViewModel.hpp"
+#include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
-#include "../../src/presentation/qt/MainWindow.hpp"
-#include "../../src/presentation/qt/viewmodels/AdminViewModel.hpp"
-
+#include <QMetaObject>
 #include <stdexcept>
 
+using namespace smartcart;
+using namespace smartcart::infrastructure;
+using namespace smartcart::application;
+using namespace smartcart::application::services;
 
-namespace smartcart::application {
+AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
+                           const std::filesystem::path& migrationsDir)
+{
+    // ── 1. Config ─────────────────────────────────────────────────────────────
+    cfg_ = config::ConfigLoader::loadFromFile(configPath.string());
 
-// ── Pimpl: владеет всеми инфраструктурными объектами ─────────────────────────
-struct AppBootstrap::Impl {
-    infrastructure::config::AppConfig cfg;
+    // ── 2. DB ─────────────────────────────────────────────────────────────────
+    conn_ = std::make_unique<db::SqliteConnection>(cfg_.sqlitePath);
+    conn_->runMigrations(migrationsDir);
 
-    // Порядок важен: conn_ должен жить дольше репозиториев
-    std::unique_ptr<infrastructure::db::SqliteConnection>           conn;
-    std::unique_ptr<infrastructure::db::ModuleRepositorySqlite>     moduleRepo;
-    std::unique_ptr<infrastructure::db::ReelRepositorySqlite>       reelRepo;
-    std::unique_ptr<infrastructure::db::OperationRepositorySqlite>  opRepo;
+    moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
+    reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
+    opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
 
-    // ViewModel-ы живут здесь, но Qt-parent выставляется при передаче в View
-    std::unique_ptr<AdminViewModel> adminVm;
-};
+    // ── 3. LED map ────────────────────────────────────────────────────────────
+    buildSlotToLedMap();
 
-// ── Ctor / Dtor ───────────────────────────────────────────────────────────────
+    // ── 4. STM32 link ─────────────────────────────────────────────────────────
+    if (cfg_.demoMode) {
+        // Mock: всегда отвечает Ack; snapshot — все слоты пусты
+        stm32Link_ = std::make_unique<hw::stm32::MockStm32Link>(
+            [](const hw::stm32::Frame& cmd) -> std::optional<hw::stm32::Frame> {
+                hw::stm32::Frame resp;
+                resp.seq   = cmd.seq;
+                resp.cmdId = cmd.cmdId;
 
-AppBootstrap::AppBootstrap(const std::string& configPath)
-    : impl_(std::make_unique<Impl>()) {
+                if (cmd.cmdId == hw::stm32::CommandId::GetSwitchSnapshot) {
+                    resp.type    = hw::stm32::FrameType::Resp;
+                    resp.payload = {0x00, 0x00, 0x00}; // 24 бита = все пусты
+                } else if (cmd.cmdId == hw::stm32::CommandId::GetReadyState) {
+                    resp.type    = hw::stm32::FrameType::Resp;
+                    resp.payload = {0x01};              // ready
+                } else {
+                    resp.type = hw::stm32::FrameType::Ack;
+                }
+                return resp;
+            }
+        );
+        stm32Link_->open();
+    } else {
+        auto uart = std::make_unique<hw::stm32::UartStm32Link>(
+            "/dev/ttyUSB0", 115200, 500
+        );
+        if (!uart->open())
+            throw std::runtime_error(
+                "AppBootstrap: failed to open UART /dev/ttyUSB0");
+        stm32Link_ = std::move(uart);
+    }
 
-    // 1. Конфиг
-    impl_->cfg = infrastructure::config::ConfigLoader::loadFromFile(configPath);
+    // ── 5. Services ───────────────────────────────────────────────────────────
+    StartupConfig startupCfg;
+    startupCfg.moduleId       = 1;
+    startupCfg.slotCount      = 24;
+    startupCfg.readyTimeoutMs = 5000;
+    startupCfg.slotToLedMap   = slotToLedMap_;
 
-    // 2. БД + миграции
-    impl_->conn = std::make_unique<infrastructure::db::SqliteConnection>(
-        impl_->cfg.sqlitePath);
-    impl_->conn->runMigrations(MIGRATIONS_DIR);
-
-    // 3. Репозитории — получают SqliteConnection по ссылке
-    impl_->moduleRepo = std::make_unique<infrastructure::db::ModuleRepositorySqlite>(
-        *impl_->conn);
-    impl_->reelRepo   = std::make_unique<infrastructure::db::ReelRepositorySqlite>(
-        *impl_->conn);
-    impl_->opRepo     = std::make_unique<infrastructure::db::OperationRepositorySqlite>(
-        *impl_->conn);
-
-    // 4. ViewModel-ы — получают репозитории по ссылке
-    //    parent = nullptr: Qt-parent выставит MainWindow при addWidget()
-    impl_->adminVm = std::make_unique<AdminViewModel>(
-        *impl_->moduleRepo, nullptr);
-}
-
-AppBootstrap::~AppBootstrap() = default;
-
-// ── createMainWindow ──────────────────────────────────────────────────────────
-
-MainWindow* AppBootstrap::createMainWindow() {
-    // MainWindow получает готовые ViewModel-ы — не знает о БД и конфиге
-    auto* window = new MainWindow(
-        impl_->adminVm.get()
-        // сюда добавим workerVm в Приоритете 3
+    startupSvc_ = std::make_unique<StartupService>(
+        *stm32Link_, *reelRepo_, *moduleRepo_, startupCfg
     );
-    return window;
+
+    AddReelConfig addCfg;
+    addCfg.moduleId        = 1;
+    addCfg.slotCount       = 24;
+    addCfg.stableConfirmMs = cfg_.stableConfirmMs;
+    addCfg.slotToLedMap    = slotToLedMap_;
+
+    addReelSvc_ = std::make_unique<AddReelService>(
+        *stm32Link_, *reelRepo_, *opRepo_, addCfg
+    );
+
+    ReplaceReelConfig replaceCfg;
+    replaceCfg.moduleId        = 1;
+    replaceCfg.stableConfirmMs = cfg_.stableConfirmMs;
+    replaceCfg.slotToLedMap    = slotToLedMap_;
+
+    replaceReelSvc_ = std::make_unique<ReplaceReelService>(
+        *stm32Link_, *reelRepo_, *opRepo_, replaceCfg
+    );
+
+    RecoveryConfig recoveryCfg;
+    recoveryCfg.moduleId     = 1;
+    recoveryCfg.slotCount    = 24;
+    recoveryCfg.slotToLedMap = slotToLedMap_;
+
+    recoverySvc_ = std::make_unique<RecoveryService>(
+        *opRepo_, *reelRepo_, *stm32Link_, recoveryCfg
+    );
+
+    // ── 6. State machine ──────────────────────────────────────────────────────
+    stateMachine_ = std::make_unique<AppStateMachine>(
+        *startupSvc_, *addReelSvc_, *replaceReelSvc_, *recoverySvc_
+    );
+
+    // ── 7. ViewModels ─────────────────────────────────────────────────────────
+    adminVm_  = std::make_unique<AdminViewModel>(*moduleRepo_);
+    workerVm_ = std::make_unique<WorkerViewModel>(
+        *reelRepo_, *opRepo_, *stateMachine_
+    );
 }
 
-const std::string& AppBootstrap::dbPath() const {
-    return impl_->cfg.sqlitePath;
+void AppBootstrap::buildSlotToLedMap() {
+    if (!cfg_.slotToLedMap.empty()) {
+        slotToLedMap_ = cfg_.slotToLedMap;
+        return;
+    }
+    // Дефолт: слот N → LED (N-1)*2
+    slotToLedMap_.resize(24);
+    for (int i = 0; i < 24; ++i)
+        slotToLedMap_[i] = i * 2;
 }
 
-} // namespace smartcart::application
+void AppBootstrap::launch() {
+    // mainWindow_ без parent — Qt не удалит его раньше AppBootstrap
+    mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get());
+    mainWindow_->show();
+
+    // Запустить инициализацию после показа окна (через event loop)
+    QMetaObject::invokeMethod(
+        stateMachine_.get(),
+        "startup",
+        Qt::QueuedConnection
+    );
+}

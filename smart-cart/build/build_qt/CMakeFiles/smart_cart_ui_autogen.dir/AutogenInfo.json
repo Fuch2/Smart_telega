@@ -21,60 +21,6 @@
 			null
 		],
 		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/config/ConfigLoader.hpp",
-			"MU",
-			"BBGJCQVSUU/moc_ConfigLoader.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/SqliteConnection.hpp",
-			"MU",
-			"ZPOZBAITNI/moc_SqliteConnection.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.hpp",
-			"MU",
-			"G5YLVRXBRR/moc_ModuleRepositorySqlite.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.hpp",
-			"MU",
-			"G5YLVRXBRR/moc_OperationRepositorySqlite.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.hpp",
-			"MU",
-			"G5YLVRXBRR/moc_ReelRepositorySqlite.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.hpp",
-			"MU",
-			"V5GZRJ77U2/moc_FrameCodec.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.hpp",
-			"MU",
-			"V5GZRJ77U2/moc_UartStm32Link.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/LoggerFactory.hpp",
-			"MU",
-			"EFDCZZO75B/moc_LoggerFactory.cpp",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.hpp",
-			"MU",
-			"EFDCZZO75B/moc_SqliteEventLogger.cpp",
-			null
-		],
-		[
 			"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt/MainWindow.hpp",
 			"MU",
 			"EWIEGA46WW/moc_MainWindow.cpp",
@@ -151,7 +97,6 @@
 		"MIGRATIONS_DIR=\"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/migrations\"",
 		"QT_CORE_LIB",
 		"QT_GUI_LIB",
-		"QT_NO_DEBUG",
 		"QT_WIDGETS_LIB",
 		"SPDLOG_COMPILED_LIB",
 		"SPDLOG_FMT_EXTERNAL",
@@ -169,12 +114,12 @@
 		"/Users/fuch/Document/Smart_Telega/smart-cart/src",
 		"/Users/fuch/Document/Smart_Telega/smart-cart/apps",
 		"/Users/fuch/Document/Smart_Telega/smart-cart/src/presentation/qt",
+		"/opt/homebrew/include",
 		"/opt/homebrew/lib/QtWidgets.framework/Headers",
 		"/opt/homebrew/lib/QtWidgets.framework",
 		"/opt/homebrew/lib/QtCore.framework/Headers",
 		"/opt/homebrew/lib/QtCore.framework",
 		"/opt/homebrew/share/qt/mkspecs/macx-clang",
-		"/opt/homebrew/include",
 		"/opt/homebrew/lib/QtGui.framework/Headers",
 		"/opt/homebrew/lib/QtGui.framework",
 		"/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
@@ -217,51 +162,6 @@
 	[
 		[
 			"/Users/fuch/Document/Smart_Telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp",
 			"MU",
 			null
 		],

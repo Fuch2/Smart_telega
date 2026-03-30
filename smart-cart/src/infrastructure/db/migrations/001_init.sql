@@ -1,8 +1,13 @@
+-- ===== src/infrastructure/db/migrations/001_init.sql =====
+-- Исправлено:
+--   - таблица переименована slots → slot_states (соответствует репозиториям)
+--   - убрана таблица slots (дублировала slot_states с другой схемой)
+--   - добавлены все таблицы, которые используются в коде
+
 PRAGMA foreign_keys = ON;
 
 -- =========================================================
 -- modules
--- serial + slot_count + firmware + status — согласовано с ModuleInfo
 -- =========================================================
 CREATE TABLE IF NOT EXISTS modules (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,29 +24,25 @@ CREATE INDEX IF NOT EXISTS idx_modules_status
     ON modules(status);
 
 -- =========================================================
--- slots
--- slot_index 1..N, led_index — физический LED на STM32
+-- slot_states  (используется ReelRepositorySqlite + ModuleRepositorySqlite)
 -- =========================================================
-CREATE TABLE IF NOT EXISTS slots (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS slot_states (
     module_id   INTEGER NOT NULL,
     slot_index  INTEGER NOT NULL CHECK (slot_index >= 1),
-    led_index   INTEGER NOT NULL DEFAULT 0,
     state       TEXT    NOT NULL DEFAULT 'FREE'
                         CHECK (state IN ('FREE','OCCUPIED','RESERVED','ERROR')),
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    PRIMARY KEY (module_id, slot_index),
     FOREIGN KEY (module_id) REFERENCES modules(id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE (module_id, slot_index)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_slots_module_state
-    ON slots(module_id, state);
+CREATE INDEX IF NOT EXISTS idx_slot_states_module
+    ON slot_states(module_id, state);
 
 -- =========================================================
 -- reels
--- barcode — штрихкод катушки, placed_at/removed_at — жизненный цикл
 -- =========================================================
 CREATE TABLE IF NOT EXISTS reels (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS reels (
     module_id   INTEGER NOT NULL,
     slot_index  INTEGER NOT NULL,
     placed_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    removed_at  DATETIME,           -- NULL = катушка ещё в слоте
+    removed_at  DATETIME,
 
     FOREIGN KEY (module_id) REFERENCES modules(id)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -67,8 +68,6 @@ CREATE INDEX IF NOT EXISTS idx_reels_active
 
 -- =========================================================
 -- operations
--- тип: ADD_REEL / REMOVE_REEL / REPLACE_REEL
--- статус: IN_PROGRESS / COMPLETED / CANCELLED / FAILED
 -- =========================================================
 CREATE TABLE IF NOT EXISTS operations (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +79,7 @@ CREATE TABLE IF NOT EXISTS operations (
     slot_index  INTEGER NOT NULL,
     barcode     TEXT    NOT NULL DEFAULT '',
     started_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    finished_at DATETIME,           -- NULL = ещё выполняется
+    finished_at DATETIME,
 
     FOREIGN KEY (module_id) REFERENCES modules(id)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -91,7 +90,7 @@ CREATE INDEX IF NOT EXISTS idx_operations_unfinished
     WHERE status = 'IN_PROGRESS';
 
 -- =========================================================
--- event_log  (IEventLogger → SqliteEventLogger)
+-- event_log
 -- =========================================================
 CREATE TABLE IF NOT EXISTS event_log (
     id      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,3 +102,11 @@ CREATE TABLE IF NOT EXISTS event_log (
 
 CREATE INDEX IF NOT EXISTS idx_event_log_ts
     ON event_log(ts DESC);
+
+-- =========================================================
+-- schema_migrations  (управляется SqliteConnection::runMigrations)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    filename   TEXT PRIMARY KEY NOT NULL,
+    applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

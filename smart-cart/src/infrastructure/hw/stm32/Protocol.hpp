@@ -1,3 +1,4 @@
+// ===== src/infrastructure/hw/stm32/Protocol.hpp =====
 #pragma once
 
 #include <cstdint>
@@ -5,10 +6,10 @@
 
 namespace smartcart::infrastructure::hw::stm32 {
 
-constexpr uint8_t kSof1 = 0xAA;
-constexpr uint8_t kSof2 = 0x55;
-constexpr uint8_t kProtocolVersionV1 = 0x01;
-constexpr uint16_t kMaxPayloadV1 = 128;
+constexpr uint8_t    kSof1               = 0xAA;
+constexpr uint8_t    kSof2               = 0x55;
+constexpr uint8_t    kProtocolVersionV1  = 0x01;
+constexpr uint16_t   kMaxPayloadV1       = 128;
 
 enum class FrameType : uint8_t {
     Cmd  = 0x01,
@@ -60,11 +61,11 @@ enum class StatusCode : uint8_t {
 };
 
 struct Frame {
-    uint8_t protocolVersion {kProtocolVersionV1};
-    FrameType frameType {FrameType::Cmd};
-    uint8_t seq {0};
-    uint8_t commandId {0};
-    std::vector<uint8_t> payload {};
+    uint8_t              protocolVersion {kProtocolVersionV1};
+    FrameType            type            {FrameType::Cmd};
+    uint8_t              seq             {0};
+    CommandId            cmdId           {CommandId::Nop};
+    std::vector<uint8_t> payload         {};
 };
 
 } // namespace smartcart::infrastructure::hw::stm32

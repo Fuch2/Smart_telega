@@ -1,57 +1,174 @@
+// ===== src/presentation/qt/views/WorkerView.cpp =====
+// Исправлено:
+//   - include paths относительные
+//   - все строки через QString::fromUtf8
+//   - onOperationStateChanged: убрано хрупкое сравнение строк
 #include "WorkerView.hpp"
-#include "../widgets/StatusPanelWidget.hpp"
-#include "../widgets/SlotGridWidget.hpp"
-#include "../viewmodels/WorkerViewModel.hpp"
-#include "../../../infrastructure/hw/stm32/UartStm32Link.hpp"
 
+#include <QFont>
+#include <QFrame>
+#include <QSizePolicy>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 
-WorkerView::WorkerView(QWidget* parent) : QWidget(parent) {
-    buildUi();
-    bindViewModel();
-    vm_->start();
+WorkerView::WorkerView(WorkerViewModel& viewModel, QWidget* parent)
+    : QWidget(parent)
+    , viewModel_(viewModel)
+{
+    setupUi();
+    connectSignals();
+
+    slotGrid_->updateSlots(viewModel_.slots());
+    stateLabel_->setText(viewModel_.stateLabel());
 }
 
-void WorkerView::buildUi() {
-    auto* root  = new QVBoxLayout(this);
-    auto* title = new QLabel(QString::fromUtf8("WorkerView: рабочий контур"), this);
-    status_ = new StatusPanelWidget(this);
-    grid_   = new SlotGridWidget(this);
+void WorkerView::setupUi() {
+    auto* rootLayout = new QVBoxLayout(this);
+    rootLayout->setContentsMargins(12, 12, 12, 12);
+    rootLayout->setSpacing(10);
 
-    root->addWidget(title);
-    root->addWidget(status_);
-    root->addWidget(grid_, 1);
-}
+    // ── Статус-панель ──────────────────────────────────────────────────────────
+    auto* statusFrame = new QFrame(this);
+    statusFrame->setFrameShape(QFrame::StyledPanel);
+    statusFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
 
-void WorkerView::bindViewModel() {
-    vm_ = new WorkerViewModel(this);
+    auto* statusLayout = new QVBoxLayout(statusFrame);
+    statusLayout->setContentsMargins(12, 8, 12, 8);
 
-    // --- реальный UART ---
-    auto* uart = new smartcart::infrastructure::hw::stm32::UartStm32Link(
-        "/dev/ttyAMA0",   // ← замени на свой порт
-        115200,
-        500
+    stateLabel_ = new QLabel(QString::fromUtf8("Инициализация..."), statusFrame);
+    stateLabel_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    stateLabel_->setStyleSheet("color: #CDD6F4;");
+
+    messageLabel_ = new QLabel(QString::fromUtf8("Подождите..."), statusFrame);
+    messageLabel_->setFont(QFont("Segoe UI", 10));
+    messageLabel_->setStyleSheet("color: #A6ADC8;");
+
+    errorLabel_ = new QLabel("", statusFrame);
+    errorLabel_->setFont(QFont("Segoe UI", 10));
+    errorLabel_->setStyleSheet("color: #F38BA8;");
+    errorLabel_->setVisible(false);
+
+    statusLayout->addWidget(stateLabel_);
+    statusLayout->addWidget(messageLabel_);
+    statusLayout->addWidget(errorLabel_);
+    rootLayout->addWidget(statusFrame);
+
+    // ── Сетка слотов ───────────────────────────────────────────────────────────
+    slotGrid_ = new SlotGridWidget(this);
+    rootLayout->addWidget(slotGrid_, /*stretch=*/1);
+
+    // ── Панель ввода штрихкода ─────────────────────────────────────────────────
+    auto* inputFrame = new QFrame(this);
+    inputFrame->setFrameShape(QFrame::StyledPanel);
+    inputFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
+
+    auto* inputLayout = new QHBoxLayout(inputFrame);
+    inputLayout->setContentsMargins(12, 8, 12, 8);
+    inputLayout->setSpacing(8);
+
+    auto* barcodeLabel = new QLabel(QString::fromUtf8("Штрихкод:"), inputFrame);
+    barcodeLabel->setStyleSheet("color: #CDD6F4;");
+    barcodeLabel->setFont(QFont("Segoe UI", 10));
+
+    barcodeEdit_ = new QLineEdit(inputFrame);
+    barcodeEdit_->setPlaceholderText(
+        QString::fromUtf8("Отсканируйте или введите вручную..."));
+    barcodeEdit_->setFont(QFont("Segoe UI", 11));
+    barcodeEdit_->setMinimumWidth(280);
+    barcodeEdit_->setStyleSheet(
+        "QLineEdit { background: #313244; color: #CDD6F4; "
+        "border: 1px solid #585B70; border-radius: 4px; padding: 4px 8px; }"
+        "QLineEdit:focus { border-color: #89B4FA; }"
     );
-    if (uart->open()) {
-        vm_->setStm32Link(uart);
-    }
-    // ---------------------
 
-    connect(vm_, &WorkerViewModel::rfidStatusChanged,
-            status_, &StatusPanelWidget::setRfidStatus);
-    connect(vm_, &WorkerViewModel::uartStatusChanged,
-            status_, &StatusPanelWidget::setUartStatus);
-    connect(vm_, &WorkerViewModel::scannerStatusChanged,
-            status_, &StatusPanelWidget::setScannerStatus);
-    connect(vm_, &WorkerViewModel::moduleSerialChanged,
-            status_, &StatusPanelWidget::setModuleSerial);
+    scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
+    scanButton_->setFont(QFont("Segoe UI", 10));
+    scanButton_->setStyleSheet(
+        "QPushButton { background: #89B4FA; color: #1E1E2E; "
+        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
+        "QPushButton:hover { background: #B4BEFE; }"
+        "QPushButton:pressed { background: #74C7EC; }"
+    );
 
-    connect(vm_, &WorkerViewModel::slotOccupiedChanged,
-            grid_, &SlotGridWidget::setSlotOccupied);
-    connect(vm_, &WorkerViewModel::targetSlotChanged,
-            grid_, &SlotGridWidget::setTargetSlot);
+    cancelButton_ = new QPushButton(QString::fromUtf8("Отмена"), inputFrame);
+    cancelButton_->setFont(QFont("Segoe UI", 10));
+    cancelButton_->setEnabled(false);
+    cancelButton_->setStyleSheet(
+        "QPushButton { background: #F38BA8; color: #1E1E2E; "
+        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
+        "QPushButton:hover { background: #EBA0AC; }"
+        "QPushButton:disabled { background: #45475A; color: #585B70; }"
+    );
 
-    connect(grid_, &SlotGridWidget::slotClicked,
-            grid_, &SlotGridWidget::setTargetSlot);
+    inputLayout->addWidget(barcodeLabel);
+    inputLayout->addWidget(barcodeEdit_, /*stretch=*/1);
+    inputLayout->addWidget(scanButton_);
+    inputLayout->addWidget(cancelButton_);
+    rootLayout->addWidget(inputFrame);
+
+    setLayout(rootLayout);
+    setStyleSheet("WorkerView { background: #181825; }");
+}
+
+void WorkerView::connectSignals() {
+    connect(&viewModel_, &WorkerViewModel::slotsUpdated,
+            this, &WorkerView::onSlotsUpdated);
+    connect(&viewModel_, &WorkerViewModel::operationStateChanged,
+            this, &WorkerView::onOperationStateChanged);
+    connect(&viewModel_, &WorkerViewModel::errorOccurred,
+            this, &WorkerView::onErrorOccurred);
+
+    connect(scanButton_,  &QPushButton::clicked,
+            this, &WorkerView::onBarcodeSubmitted);
+    connect(barcodeEdit_, &QLineEdit::returnPressed,
+            this, &WorkerView::onBarcodeSubmitted);
+    connect(cancelButton_, &QPushButton::clicked,
+            this, &WorkerView::onCancelClicked);
+
+    // Управление кнопками по состоянию автомата
+    connect(&viewModel_.stateMachine(),
+            &smartcart::application::AppStateMachine::stateChanged,
+            this, [this](smartcart::application::AppState state) {
+                const bool operating =
+                    (state == smartcart::application::AppState::Operating);
+                cancelButton_->setEnabled(operating);
+                scanButton_->setEnabled(!operating);
+                barcodeEdit_->setEnabled(!operating);
+                // Скрываем ошибку при переходе в рабочее состояние
+                if (state == smartcart::application::AppState::Ready ||
+                    state == smartcart::application::AppState::Operating)
+                {
+                    errorLabel_->setVisible(false);
+                    errorLabel_->clear();
+                }
+            });
+}
+
+void WorkerView::onSlotsUpdated(QVector<SlotCellData> slots) {
+    slotGrid_->updateSlots(slots);
+}
+
+void WorkerView::onOperationStateChanged(const QString& state,
+                                         const QString& message) {
+    stateLabel_->setText(state);
+    messageLabel_->setText(message);
+}
+
+void WorkerView::onErrorOccurred(const QString& message) {
+    errorLabel_->setText("⚠ " + message);
+    errorLabel_->setVisible(true);
+}
+
+void WorkerView::onBarcodeSubmitted() {
+    const QString barcode = barcodeEdit_->text().trimmed();
+    if (barcode.isEmpty()) return;
+    barcodeEdit_->clear();
+    viewModel_.onBarcodeScanned(barcode);
+}
+
+void WorkerView::onCancelClicked() {
+    viewModel_.cancelCurrentOperation();
 }

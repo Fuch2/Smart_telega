@@ -1,4 +1,5 @@
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o: \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/share/asan_ignorelist.txt \
   /Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp \
   /Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.hpp \
   /Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/hw/stm32/Protocol.hpp \

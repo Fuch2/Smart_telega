@@ -1,38 +1,70 @@
+// ===== apps/smartcart_app/AppBootstrap.hpp =====
+// Исправлено:
+//   - убраны неиспользуемые includes (LoggerFactory, SqliteEventLogger)
+//   - добавлен include <QMetaObject> для invokeMethod
 #pragma once
+
+#include "infrastructure/config/AppConfig.hpp"
+#include "infrastructure/db/SqliteConnection.hpp"
+#include "infrastructure/db/repositories/ModuleRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/OperationRepositorySqlite.hpp"
+#include "infrastructure/hw/stm32/UartStm32Link.hpp"
+#include "infrastructure/hw/stm32/MockStm32Link.hpp"
+#include "application/services/StartupService.hpp"
+#include "application/services/AddReelService.hpp"
+#include "application/services/ReplaceReelService.hpp"
+#include "application/services/RecoveryService.hpp"
+#include "application/state/AppStateMachine.hpp"
+
+#include <filesystem>
 #include <memory>
-#include <string>
+#include <vector>
 
-// Forward declarations — MainWindow не знает о деталях инфраструктуры
-namespace smartcart::infrastructure::config { struct AppConfig; }
-namespace smartcart::infrastructure::db     { class SqliteConnection; }
-namespace smartcart::infrastructure::db     { class ModuleRepositorySqlite; }
-namespace smartcart::infrastructure::db     { class ReelRepositorySqlite; }
-namespace smartcart::infrastructure::db     { class OperationRepositorySqlite; }
-class AdminViewModel;
+// Forward declarations Qt
 class MainWindow;
+class AdminViewModel;
+class WorkerViewModel;
 
-namespace smartcart::application {
-
-// AppBootstrap — единственное место, где создаются все зависимости.
-// Владеет временем жизни инфраструктурных объектов.
-// MainWindow получает уже готовые ViewModel-ы.
 class AppBootstrap {
 public:
-    explicit AppBootstrap(const std::string& configPath);
-    ~AppBootstrap();
+    AppBootstrap(const std::filesystem::path& configPath,
+                 const std::filesystem::path& migrationsDir);
 
-    // Создаёт MainWindow с подключёнными зависимостями.
-    // Вызывается один раз из main().
-    // Возвращает голый указатель — владение передаётся Qt (parent = nullptr,
-    // но QApplication::exec() держит event loop, окно само себя удалит).
-    MainWindow* createMainWindow();
-
-    // Путь к БД — для диагностики и тестов
-    const std::string& dbPath() const;
+    /// Создаёт MainWindow и показывает его. Вызывать после QApplication.
+    void launch();
 
 private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
-};
+    // ── Config ────────────────────────────────────────────────────────────────
+    smartcart::infrastructure::config::AppConfig cfg_;
 
-} // namespace smartcart::application
+    // ── DB ────────────────────────────────────────────────────────────────────
+    std::unique_ptr<smartcart::infrastructure::db::SqliteConnection>          conn_;
+    std::unique_ptr<smartcart::infrastructure::db::ModuleRepositorySqlite>    moduleRepo_;
+    std::unique_ptr<smartcart::infrastructure::db::ReelRepositorySqlite>      reelRepo_;
+    std::unique_ptr<smartcart::infrastructure::db::OperationRepositorySqlite> opRepo_;
+
+    // ── HW ────────────────────────────────────────────────────────────────────
+    std::unique_ptr<smartcart::application::ports::IStm32Link>                stm32Link_;
+
+    // ── Services ──────────────────────────────────────────────────────────────
+    std::unique_ptr<smartcart::application::services::StartupService>         startupSvc_;
+    std::unique_ptr<smartcart::application::services::AddReelService>         addReelSvc_;
+    std::unique_ptr<smartcart::application::services::ReplaceReelService>     replaceReelSvc_;
+    std::unique_ptr<smartcart::application::services::RecoveryService>        recoverySvc_;
+
+    // ── State machine ─────────────────────────────────────────────────────────
+    std::unique_ptr<smartcart::application::AppStateMachine>                  stateMachine_;
+
+    // ── Presentation ──────────────────────────────────────────────────────────
+    // ViewModels хранятся здесь — MainWindow не владеет ими.
+    // MainWindow* — raw ptr, owned by Qt parent (nullptr → Qt не удаляет,
+    // но AppBootstrap живёт всё время работы приложения).
+    std::unique_ptr<AdminViewModel>  adminVm_;
+    std::unique_ptr<WorkerViewModel> workerVm_;
+    MainWindow*                      mainWindow_ = nullptr;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    std::vector<int> slotToLedMap_;
+    void buildSlotToLedMap();
+};

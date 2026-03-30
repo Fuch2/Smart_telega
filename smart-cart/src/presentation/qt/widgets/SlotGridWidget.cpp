@@ -1,49 +1,118 @@
+// ===== src/presentation/qt/widgets/SlotGridWidget.cpp =====
+// Исправлено:
+//   - include path относительный
+//   - updateSlots принимает QVector<SlotCellData>
 #include "SlotGridWidget.hpp"
-#include <QGridLayout>
-#include <QPushButton>
 
-SlotGridWidget::SlotGridWidget(QWidget* parent) : QWidget(parent) {
-    auto* grid = new QGridLayout(this);
-    grid->setSpacing(8);
+#include <QToolTip>
+#include <QSizePolicy>
+#include <QFont>
 
-    slots_.reserve(24);
-    for (int i = 0; i < 24; ++i) {
-        const int slot = i + 1;
-        auto* b = new QPushButton(QString("S%1").arg(slot, 2, 10, QChar('0')), this);
-        b->setMinimumSize(90, 64);
-        b->setProperty("occupied", false);
-        connect(b, &QPushButton::clicked, this, [this, slot]() { emit slotClicked(slot); });
-        slots_.push_back(b);
+using namespace smartcart::domain;
 
-        const int row = i / 6;
-        const int col = i % 6;
-        grid->addWidget(b, row, col);
+SlotGridWidget::SlotGridWidget(QWidget* parent)
+    : QWidget(parent)
+{
+    layout_ = new QGridLayout(this);
+    layout_->setSpacing(6);
+    layout_->setContentsMargins(8, 8, 8, 8);
+
+    cells_.resize(kSlots);
+
+    for (int i = 0; i < kSlots; ++i) {
+        const int row     = i / kCols;
+        const int col     = i % kCols;
+        const int slotIdx = i + 1;
+
+        QPushButton* cell = createCell(slotIdx);
+        cells_[i] = cell;
+        layout_->addWidget(cell, row, col);
     }
 
-    for (int i = 1; i <= 24; ++i) repaintSlot(i);
+    setLayout(layout_);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void SlotGridWidget::setSlotOccupied(int slotIndex, bool occupied) {
-    if (slotIndex < 1 || slotIndex > 24) return;
-    slots_[slotIndex - 1]->setProperty("occupied", occupied);
-    repaintSlot(slotIndex);
+QPushButton* SlotGridWidget::createCell(int slotIndex) {
+    auto* btn = new QPushButton(
+        QString::fromUtf8("Слот\n%1").arg(slotIndex), this);
+    btn->setFixedSize(90, 70);
+    btn->setCheckable(false);
+    btn->setFont(QFont("Segoe UI", 9));
+
+    applyStyle(btn, SlotState::Free, false, colorForState(SlotState::Free));
+
+    connect(btn, &QPushButton::clicked, this, [this, slotIndex]() {
+        emit slotClicked(slotIndex);
+    });
+
+    return btn;
 }
 
-void SlotGridWidget::setTargetSlot(int slotIndex) {
-    if (slotIndex < 0 || slotIndex > 24) return;
-    target_ = slotIndex;
-    for (int i = 1; i <= 24; ++i) repaintSlot(i);
+void SlotGridWidget::updateSlots(const QVector<SlotCellData>& items) {
+    for (const auto& item : items) {
+        if (item.slotIndex < 1 || item.slotIndex > kSlots) continue;
+        updateSlot(item.slotIndex, item.state,
+                   item.highlighted, item.color, item.barcode);
+    }
 }
 
-void SlotGridWidget::repaintSlot(int idx1) {
-    auto* b = slots_[idx1 - 1];
-    const bool occupied = b->property("occupied").toBool();
-    const bool target = (idx1 == target_);
+void SlotGridWidget::updateSlot(int slotIndex,
+                                SlotState state,
+                                bool highlighted,
+                                QColor color,
+                                const QString& barcode)
+{
+    if (slotIndex < 1 || slotIndex > kSlots) return;
 
-    QString style = "font-weight:700; border-radius:8px; border:2px solid #445;";
-    if (target) style += "background:#F39C12; color:white;";       // target
-    else if (occupied) style += "background:#2ECC71; color:#102A12;"; // occupied
-    else style += "background:#E74C3C; color:white;";              // free
+    QPushButton* cell = cells_[slotIndex - 1];
+    if (!cell) return;
 
-    b->setStyleSheet(style);
+    const QColor effectiveColor = color.isValid() ? color : colorForState(state);
+    applyStyle(cell, state, highlighted, effectiveColor);
+
+    if (!barcode.isEmpty()) {
+        cell->setToolTip(
+            QString::fromUtf8("Слот %1\n%2").arg(slotIndex).arg(barcode));
+    } else {
+        cell->setToolTip(
+            QString::fromUtf8("Слот %1 — свободен").arg(slotIndex));
+    }
+}
+
+void SlotGridWidget::applyStyle(QPushButton* cell,
+                                SlotState state,
+                                bool highlighted,
+                                QColor color)
+{
+    Q_UNUSED(state)
+
+    const QString border = highlighted
+        ? "border: 3px solid #FFFFFF;"
+        : "border: 1px solid #555555;";
+
+    const QString bg = QString("background-color: rgb(%1,%2,%3);")
+        .arg(color.red())
+        .arg(color.green())
+        .arg(color.blue());
+
+    const int luminance =
+        (color.red() * 299 + color.green() * 587 + color.blue() * 114) / 1000;
+    const QString textColor =
+        (luminance < 128) ? "color: #FFFFFF;" : "color: #000000;";
+
+    cell->setStyleSheet(QString(
+        "QPushButton { %1 %2 %3 border-radius: 6px; padding: 4px; }"
+        "QPushButton:hover { border-color: #AAAAAA; }"
+    ).arg(bg, border, textColor));
+}
+
+QColor SlotGridWidget::colorForState(SlotState state) {
+    switch (state) {
+        case SlotState::Free:     return QColor(80,  80,  80);
+        case SlotState::Occupied: return QColor(30,  80,  200);
+        case SlotState::Reserved: return QColor(200, 160,   0);
+        case SlotState::Error:    return QColor(200,  30,  30);
+    }
+    return QColor(80, 80, 80);
 }

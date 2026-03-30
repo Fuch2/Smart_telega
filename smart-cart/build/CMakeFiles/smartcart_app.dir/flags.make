@@ -4,9 +4,9 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DCONFIG_DIR=\"/Users/fuch/Document/Smart_Telega/smart-cart/config\" -DFMT_SHARED -DMIGRATIONS_DIR=\"/Users/fuch/Document/Smart_Telega/smart-cart/src/infrastructure/db/migrations\" -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB
 
-CXX_INCLUDES = -I/Users/fuch/Document/Smart_Telega/smart-cart/src -isystem /opt/homebrew/include
+CXX_INCLUDES = -I/Users/fuch/Document/Smart_Telega/smart-cart/src -I/Users/fuch/Document/Smart_Telega/smart-cart/apps -isystem /opt/homebrew/include
 
-CXX_FLAGSarm64 = -std=c++20 -arch arm64
+CXX_FLAGSarm64 = -g -std=c++20 -arch arm64
 
-CXX_FLAGS = -std=c++20 -arch arm64
+CXX_FLAGS = -g -std=c++20 -arch arm64
 
