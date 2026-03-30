@@ -307,8 +307,7 @@ smart_cart_ui_EXTERNAL_OBJECTS = \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/StartupService.cpp.o" \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/AddReelService.cpp.o" \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/ReplaceReelService.cpp.o" \
-"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o" \
-"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.o"
+"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o"
 
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o
@@ -345,7 +344,6 @@ build_qt/smart_cart_ui: CMakeFiles/smartcart_infra.dir/src/application/services/
 build_qt/smart_cart_ui: CMakeFiles/smartcart_infra.dir/src/application/services/AddReelService.cpp.o
 build_qt/smart_cart_ui: CMakeFiles/smartcart_infra.dir/src/application/services/ReplaceReelService.cpp.o
 build_qt/smart_cart_ui: CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o
-build_qt/smart_cart_ui: CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.o
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/build.make
 build_qt/smart_cart_ui: /opt/homebrew/lib/QtWidgets.framework/Versions/A/QtWidgets
 build_qt/smart_cart_ui: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd

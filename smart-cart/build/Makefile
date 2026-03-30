@@ -140,6 +140,19 @@ smartcart_infra/fast:
 .PHONY : smartcart_infra/fast
 
 #=============================================================================
+# Target rules for targets named smartcart_app_qt
+
+# Build rule for target.
+smartcart_app_qt: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 smartcart_app_qt
+.PHONY : smartcart_app_qt
+
+# fast build rule for target.
+smartcart_app_qt/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/build
+.PHONY : smartcart_app_qt/fast
+
+#=============================================================================
 # Target rules for targets named smartcart_app
 
 # Build rule for target.
@@ -177,6 +190,32 @@ integration_tests: cmake_check_build_system
 integration_tests/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/integration_tests.dir/build.make CMakeFiles/integration_tests.dir/build
 .PHONY : integration_tests/fast
+
+#=============================================================================
+# Target rules for targets named smartcart_app_qt_autogen_timestamp_deps
+
+# Build rule for target.
+smartcart_app_qt_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 smartcart_app_qt_autogen_timestamp_deps
+.PHONY : smartcart_app_qt_autogen_timestamp_deps
+
+# fast build rule for target.
+smartcart_app_qt_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt_autogen_timestamp_deps.dir/build.make CMakeFiles/smartcart_app_qt_autogen_timestamp_deps.dir/build
+.PHONY : smartcart_app_qt_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named smartcart_app_qt_autogen
+
+# Build rule for target.
+smartcart_app_qt_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 smartcart_app_qt_autogen
+.PHONY : smartcart_app_qt_autogen
+
+# fast build rule for target.
+smartcart_app_qt_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt_autogen.dir/build.make CMakeFiles/smartcart_app_qt_autogen.dir/build
+.PHONY : smartcart_app_qt_autogen/fast
 
 #=============================================================================
 # Target rules for targets named smart_cart_ui
@@ -217,6 +256,30 @@ smart_cart_ui_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f build_qt/CMakeFiles/smart_cart_ui_autogen.dir/build.make build_qt/CMakeFiles/smart_cart_ui_autogen.dir/build
 .PHONY : smart_cart_ui_autogen/fast
 
+apps/smartcart_app/AppBootstrap.o: apps/smartcart_app/AppBootstrap.cpp.o
+.PHONY : apps/smartcart_app/AppBootstrap.o
+
+# target to build an object file
+apps/smartcart_app/AppBootstrap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/apps/smartcart_app/AppBootstrap.cpp.o
+.PHONY : apps/smartcart_app/AppBootstrap.cpp.o
+
+apps/smartcart_app/AppBootstrap.i: apps/smartcart_app/AppBootstrap.cpp.i
+.PHONY : apps/smartcart_app/AppBootstrap.i
+
+# target to preprocess a source file
+apps/smartcart_app/AppBootstrap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/apps/smartcart_app/AppBootstrap.cpp.i
+.PHONY : apps/smartcart_app/AppBootstrap.cpp.i
+
+apps/smartcart_app/AppBootstrap.s: apps/smartcart_app/AppBootstrap.cpp.s
+.PHONY : apps/smartcart_app/AppBootstrap.s
+
+# target to generate assembly for a file
+apps/smartcart_app/AppBootstrap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/apps/smartcart_app/AppBootstrap.cpp.s
+.PHONY : apps/smartcart_app/AppBootstrap.cpp.s
+
 apps/smartcart_app/main.o: apps/smartcart_app/main.cpp.o
 .PHONY : apps/smartcart_app/main.o
 
@@ -240,6 +303,30 @@ apps/smartcart_app/main.s: apps/smartcart_app/main.cpp.s
 apps/smartcart_app/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app.dir/build.make CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.s
 .PHONY : apps/smartcart_app/main.cpp.s
+
+smartcart_app_qt_autogen/mocs_compilation.o: smartcart_app_qt_autogen/mocs_compilation.cpp.o
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.o
+
+# target to build an object file
+smartcart_app_qt_autogen/mocs_compilation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/smartcart_app_qt_autogen/mocs_compilation.cpp.o
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.cpp.o
+
+smartcart_app_qt_autogen/mocs_compilation.i: smartcart_app_qt_autogen/mocs_compilation.cpp.i
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.i
+
+# target to preprocess a source file
+smartcart_app_qt_autogen/mocs_compilation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/smartcart_app_qt_autogen/mocs_compilation.cpp.i
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.cpp.i
+
+smartcart_app_qt_autogen/mocs_compilation.s: smartcart_app_qt_autogen/mocs_compilation.cpp.s
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.s
+
+# target to generate assembly for a file
+smartcart_app_qt_autogen/mocs_compilation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/smartcart_app_qt_autogen/mocs_compilation.cpp.s
+.PHONY : smartcart_app_qt_autogen/mocs_compilation.cpp.s
 
 src/application/services/AddReelService.o: src/application/services/AddReelService.cpp.o
 .PHONY : src/application/services/AddReelService.o
@@ -342,7 +429,7 @@ src/application/state/AppStateMachine.o: src/application/state/AppStateMachine.c
 
 # target to build an object file
 src/application/state/AppStateMachine.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_infra.dir/build.make CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/src/application/state/AppStateMachine.cpp.o
 .PHONY : src/application/state/AppStateMachine.cpp.o
 
 src/application/state/AppStateMachine.i: src/application/state/AppStateMachine.cpp.i
@@ -350,7 +437,7 @@ src/application/state/AppStateMachine.i: src/application/state/AppStateMachine.c
 
 # target to preprocess a source file
 src/application/state/AppStateMachine.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_infra.dir/build.make CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/src/application/state/AppStateMachine.cpp.i
 .PHONY : src/application/state/AppStateMachine.cpp.i
 
 src/application/state/AppStateMachine.s: src/application/state/AppStateMachine.cpp.s
@@ -358,7 +445,7 @@ src/application/state/AppStateMachine.s: src/application/state/AppStateMachine.c
 
 # target to generate assembly for a file
 src/application/state/AppStateMachine.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_infra.dir/build.make CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/smartcart_app_qt.dir/build.make CMakeFiles/smartcart_app_qt.dir/src/application/state/AppStateMachine.cpp.s
 .PHONY : src/application/state/AppStateMachine.cpp.s
 
 src/infrastructure/config/ConfigLoader.o: src/infrastructure/config/ConfigLoader.cpp.o
@@ -927,14 +1014,23 @@ help:
 	@echo "... test"
 	@echo "... smart_cart_ui_autogen"
 	@echo "... smart_cart_ui_autogen_timestamp_deps"
+	@echo "... smartcart_app_qt_autogen"
+	@echo "... smartcart_app_qt_autogen_timestamp_deps"
 	@echo "... frame_codec_tests"
 	@echo "... integration_tests"
 	@echo "... smart_cart_ui"
 	@echo "... smartcart_app"
+	@echo "... smartcart_app_qt"
 	@echo "... smartcart_infra"
+	@echo "... apps/smartcart_app/AppBootstrap.o"
+	@echo "... apps/smartcart_app/AppBootstrap.i"
+	@echo "... apps/smartcart_app/AppBootstrap.s"
 	@echo "... apps/smartcart_app/main.o"
 	@echo "... apps/smartcart_app/main.i"
 	@echo "... apps/smartcart_app/main.s"
+	@echo "... smartcart_app_qt_autogen/mocs_compilation.o"
+	@echo "... smartcart_app_qt_autogen/mocs_compilation.i"
+	@echo "... smartcart_app_qt_autogen/mocs_compilation.s"
 	@echo "... src/application/services/AddReelService.o"
 	@echo "... src/application/services/AddReelService.i"
 	@echo "... src/application/services/AddReelService.s"

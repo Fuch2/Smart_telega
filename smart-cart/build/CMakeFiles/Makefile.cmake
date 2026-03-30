@@ -295,6 +295,7 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
+  "CMakeFiles/smartcart_app_qt_autogen.dir/AutogenInfo.json"
   ".qt/QtDeploySupport.cmake"
   ".qt/QtDeployTargets.cmake"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
@@ -305,9 +306,12 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/smartcart_infra.dir/DependInfo.cmake"
+  "CMakeFiles/smartcart_app_qt.dir/DependInfo.cmake"
   "CMakeFiles/smartcart_app.dir/DependInfo.cmake"
   "CMakeFiles/frame_codec_tests.dir/DependInfo.cmake"
   "CMakeFiles/integration_tests.dir/DependInfo.cmake"
+  "CMakeFiles/smartcart_app_qt_autogen_timestamp_deps.dir/DependInfo.cmake"
+  "CMakeFiles/smartcart_app_qt_autogen.dir/DependInfo.cmake"
   "build_qt/CMakeFiles/smart_cart_ui.dir/DependInfo.cmake"
   "build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/DependInfo.cmake"
   "build_qt/CMakeFiles/smart_cart_ui_autogen.dir/DependInfo.cmake"

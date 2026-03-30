@@ -112,8 +112,7 @@ smartcart_app_EXTERNAL_OBJECTS = \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/StartupService.cpp.o" \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/AddReelService.cpp.o" \
 "/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/ReplaceReelService.cpp.o" \
-"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o" \
-"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.o"
+"/Users/fuch/Document/Smart_Telega/smart-cart/build/CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o"
 
 smartcart_app: CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o
 smartcart_app: CMakeFiles/smartcart_infra.dir/src/infrastructure/config/ConfigLoader.cpp.o
@@ -137,7 +136,6 @@ smartcart_app: CMakeFiles/smartcart_infra.dir/src/application/services/StartupSe
 smartcart_app: CMakeFiles/smartcart_infra.dir/src/application/services/AddReelService.cpp.o
 smartcart_app: CMakeFiles/smartcart_infra.dir/src/application/services/ReplaceReelService.cpp.o
 smartcart_app: CMakeFiles/smartcart_infra.dir/src/application/services/RecoveryService.cpp.o
-smartcart_app: CMakeFiles/smartcart_infra.dir/src/application/state/AppStateMachine.cpp.o
 smartcart_app: CMakeFiles/smartcart_app.dir/build.make
 smartcart_app: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd
 smartcart_app: /opt/homebrew/lib/libspdlog.1.17.0.dylib
