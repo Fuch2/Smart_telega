@@ -120,4 +120,6 @@ if __name__ == '__main__':
     with serial.Serial(PORT, BAUDRATE, timeout=1) as ser:
         time.sleep(0.2)
         ser.reset_input_buffer()
-        get_switch_state(ser)
+        while True:
+            get_switch_state(ser)
+            time.sleep(0.05)  # 20 Hz опрос
