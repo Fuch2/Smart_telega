@@ -33,7 +33,7 @@ struct qt_meta_stringdata_AdminViewModel_t {
     char stringdata3[14];
     char stringdata4[8];
     char stringdata5[13];
-    char stringdata6[9];
+    char stringdata6[5];
     char stringdata7[10];
     char stringdata8[7];
     char stringdata9[10];
@@ -53,15 +53,15 @@ Q_CONSTINIT static const qt_meta_stringdata_AdminViewModel_t qt_meta_stringdata_
         QT_MOC_LITERAL(29, 13),  // "errorOccurred"
         QT_MOC_LITERAL(43, 7),  // "message"
         QT_MOC_LITERAL(51, 12),  // "infoOccurred"
-        QT_MOC_LITERAL(64, 8),  // "loadDemo"
-        QT_MOC_LITERAL(73, 9),  // "addModule"
-        QT_MOC_LITERAL(83, 6),  // "serial"
-        QT_MOC_LITERAL(90, 9),  // "slotCount"
-        QT_MOC_LITERAL(100, 8),  // "firmware"
-        QT_MOC_LITERAL(109, 6),  // "status"
-        QT_MOC_LITERAL(116, 12),  // "updateModule"
-        QT_MOC_LITERAL(129, 2),  // "id"
-        QT_MOC_LITERAL(132, 12)   // "removeModule"
+        QT_MOC_LITERAL(64, 4),  // "load"
+        QT_MOC_LITERAL(69, 9),  // "addModule"
+        QT_MOC_LITERAL(79, 6),  // "serial"
+        QT_MOC_LITERAL(86, 9),  // "slotCount"
+        QT_MOC_LITERAL(96, 8),  // "firmware"
+        QT_MOC_LITERAL(105, 6),  // "status"
+        QT_MOC_LITERAL(112, 12),  // "updateModule"
+        QT_MOC_LITERAL(125, 2),  // "id"
+        QT_MOC_LITERAL(128, 12)   // "removeModule"
     },
     "AdminViewModel",
     "modulesReset",
@@ -69,7 +69,7 @@ Q_CONSTINIT static const qt_meta_stringdata_AdminViewModel_t qt_meta_stringdata_
     "errorOccurred",
     "message",
     "infoOccurred",
-    "loadDemo",
+    "load",
     "addModule",
     "serial",
     "slotCount",
@@ -137,7 +137,7 @@ Q_CONSTINIT const QMetaObject AdminViewModel::staticMetaObject = { {
         // method 'infoOccurred'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<const QString &, std::false_type>,
-        // method 'loadDemo'
+        // method 'load'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'addModule'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
@@ -168,7 +168,7 @@ void AdminViewModel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         case 0: _t->modulesReset(); break;
         case 1: _t->errorOccurred((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 2: _t->infoOccurred((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 3: _t->loadDemo(); break;
+        case 3: _t->load(); break;
         case 4: _t->addModule((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[3])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[4]))); break;
         case 5: _t->updateModule((*reinterpret_cast< std::add_pointer_t<int>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[3])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[4])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[5]))); break;
         case 6: _t->removeModule((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;

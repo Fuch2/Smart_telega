@@ -73,71 +73,71 @@ CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o: CMakeFiles/smartcart
 CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp
 CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o: CMakeFiles/smartcart_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o -MF CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o.d -o CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o -MF CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o.d -o CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp
 
 CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp > CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp > CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.i
 
 CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp -o CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/main.cpp -o CMakeFiles/smartcart_app.dir/apps/smartcart_app/main.cpp.s
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o: CMakeFiles/smartcart_app.dir/flags.make
 CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp
 CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o: CMakeFiles/smartcart_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.i
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/config/ConfigLoader.cpp.s
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o: CMakeFiles/smartcart_app.dir/flags.make
 CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp
 CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o: CMakeFiles/smartcart_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.i
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/db/SqliteConnection.cpp.s
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o: CMakeFiles/smartcart_app.dir/flags.make
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o: CMakeFiles/smartcart_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.i
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/LoggerFactory.cpp.s
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o: CMakeFiles/smartcart_app.dir/flags.make
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o: CMakeFiles/smartcart_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o -MF CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o.d -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp > CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.i
 
 CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp -o CMakeFiles/smartcart_app.dir/src/infrastructure/logging/SqliteEventLogger.cpp.s
 
 # Object files for target smartcart_app
 smartcart_app_OBJECTS = \

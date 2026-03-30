@@ -390,6 +390,19 @@ build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o: \
  /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/WorkerViewModel.hpp \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/QObject \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qobject.h \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../../../infrastructure/hw/stm32/UartStm32Link.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/application/ports/IStm32Link.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/Protocol.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../../../infrastructure/hw/stm32/FrameCodec.hpp \
+ /usr/include/c++/13/condition_variable \
+ /usr/include/c++/13/bits/unique_lock.h /usr/include/c++/13/stop_token \
+ /usr/include/c++/13/bits/std_thread.h /usr/include/c++/13/semaphore \
+ /usr/include/c++/13/bits/semaphore_base.h \
+ /usr/include/c++/13/bits/atomic_timed_wait.h \
+ /usr/include/c++/13/bits/this_thread_sleep.h \
+ /usr/include/aarch64-linux-gnu/sys/time.h /usr/include/semaphore.h \
+ /usr/include/aarch64-linux-gnu/bits/semaphore.h \
+ /usr/include/c++/13/mutex /usr/include/c++/13/thread \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/QVBoxLayout \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qboxlayout.h \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qlayout.h \

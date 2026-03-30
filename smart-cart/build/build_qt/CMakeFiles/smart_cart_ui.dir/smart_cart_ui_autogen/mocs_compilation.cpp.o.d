@@ -395,10 +395,8 @@ build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qvector.h \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/QString \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qstring.h \
- /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/../../../repositories/IModuleRepository.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/../../../repositories/../domain/entities/ModuleEntity.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/../../../infrastructure/persistence/SqliteModuleRepository.hpp \
- /usr/include/sqlite3.h \
+ /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/../../../application/ports/IModuleRepository.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/../../../application/ports/../../domain/entities/ModuleInfo.hpp \
  /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/moc_WorkerViewModel.cpp \
  /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/../../../../src/presentation/qt/viewmodels/WorkerViewModel.hpp \
  /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/DWW7M6GQBY/moc_AdminView.cpp \

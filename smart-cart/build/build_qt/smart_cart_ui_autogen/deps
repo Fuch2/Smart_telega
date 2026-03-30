@@ -1,8 +1,27 @@
 smart_cart_ui_autogen/timestamp: \
+	/home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.hpp \
 	/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/moc_predefs.h \
-	/home/fuch/Documents/Smart_telega/smart-cart/src/domain/entities/ModuleEntity.hpp \
-	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp \
-	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/application/ports/IModuleRepository.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/domain/entities/ModuleInfo.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.hpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp \
+	/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.hpp \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/CMakeLists.txt \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.hpp \
@@ -19,7 +38,6 @@ smart_cart_ui_autogen/timestamp: \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.hpp \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp \
 	/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.hpp \
-	/home/fuch/Documents/Smart_telega/smart-cart/src/repositories/IModuleRepository.hpp \
 	/usr/include/aarch64-linux-gnu/asm/bitsperlong.h \
 	/usr/include/aarch64-linux-gnu/asm/errno.h \
 	/usr/include/aarch64-linux-gnu/asm/unistd.h \
@@ -418,7 +436,6 @@ smart_cart_ui_autogen/timestamp: \
 	/usr/include/locale.h \
 	/usr/include/pthread.h \
 	/usr/include/sched.h \
-	/usr/include/sqlite3.h \
 	/usr/include/stdc-predef.h \
 	/usr/include/stdint.h \
 	/usr/include/stdio.h \

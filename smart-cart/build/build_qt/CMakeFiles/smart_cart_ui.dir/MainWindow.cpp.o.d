@@ -389,6 +389,15 @@ build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o: \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/QWidget \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qwidget.h \
  /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.hpp \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/QObject \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/qobject.h \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/QVector \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/qvector.h \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/QString \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/qstring.h \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/../../../application/ports/IModuleRepository.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/../../../application/ports/../../domain/entities/ModuleInfo.hpp \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/QVBoxLayout \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qboxlayout.h \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qlayout.h \

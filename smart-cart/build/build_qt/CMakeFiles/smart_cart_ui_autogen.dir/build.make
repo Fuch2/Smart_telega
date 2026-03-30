@@ -72,7 +72,7 @@ build_qt/smart_cart_ui_autogen/timestamp: /usr/lib/qt6/libexec/moc
 build_qt/smart_cart_ui_autogen/timestamp: /usr/lib/qt6/libexec/uic
 build_qt/smart_cart_ui_autogen/timestamp: build_qt/CMakeFiles/smart_cart_ui_autogen.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target smart_cart_ui"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/cmake -E cmake_autogen /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenInfo.json ""
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/cmake -E cmake_autogen /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/CMakeFiles/smart_cart_ui_autogen.dir/AutogenInfo.json Debug
 	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/cmake -E touch /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/timestamp
 
 smart_cart_ui_autogen: build_qt/CMakeFiles/smart_cart_ui_autogen

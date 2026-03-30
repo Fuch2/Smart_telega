@@ -73,141 +73,267 @@ build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o: build_qt/smart_cart_ui_autogen/mocs_compilation.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o -MF CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o -MF CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp > CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp > CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp -o CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp -o CMakeFiles/smart_cart_ui.dir/smart_cart_ui_autogen/mocs_compilation.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o -MF CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o -MF CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/main_qt.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp > CMakeFiles/smart_cart_ui.dir/main_qt.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp > CMakeFiles/smart_cart_ui.dir/main_qt.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/main_qt.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp -o CMakeFiles/smart_cart_ui.dir/main_qt.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/main_qt.cpp -o CMakeFiles/smart_cart_ui.dir/main_qt.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o -MF CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o -MF CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp > CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp > CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp -o CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.cpp -o CMakeFiles/smart_cart_ui.dir/MainWindow.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o -MF CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o -MF CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp > CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp > CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp -o CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/WorkerView.cpp -o CMakeFiles/smart_cart_ui.dir/views/WorkerView.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o -MF CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o -MF CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp > CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp > CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp -o CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/AdminView.cpp -o CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o -MF CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o -MF CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp > CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp > CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp -o CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/StatusPanelWidget.cpp -o CMakeFiles/smart_cart_ui.dir/widgets/StatusPanelWidget.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o -MF CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o -MF CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp > CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp > CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp -o CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/widgets/SlotGridWidget.cpp -o CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o -MF CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o -MF CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp > CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp > CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp -o CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/WorkerViewModel.cpp -o CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.s
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o -MF CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o -MF CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp > CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.i
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp > CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.i
 
 build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp -o CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.s
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.cpp -o CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.s
 
-build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
-build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp
-build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp
 
-build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.i"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.i
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp > CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.i
 
-build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.s"
-	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.s
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.s
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/flags.make
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o: build_qt/CMakeFiles/smart_cart_ui.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o -MF CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o.d -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.i"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp > CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.i
+
+build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.s"
+	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp -o CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.s
 
 # Object files for target smart_cart_ui
 smart_cart_ui_OBJECTS = \
@@ -220,7 +346,16 @@ smart_cart_ui_OBJECTS = \
 "CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o" \
 "CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o" \
 "CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o" \
-"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o"
+"CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o" \
+"CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o"
 
 # External object files for target smart_cart_ui
 smart_cart_ui_EXTERNAL_OBJECTS =
@@ -234,16 +369,27 @@ build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/widgets/StatusPane
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/widgets/SlotGridWidget.cpp.o
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/AdminViewModel.cpp.o
-build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/persistence/SqliteModuleRepository.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/__/apps/smartcart_app/AppBootstrap.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/config/ConfigLoader.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/SqliteConnection.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ModuleRepositorySqlite.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/ReelRepositorySqlite.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/db/repositories/OperationRepositorySqlite.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/LoggerFactory.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/logging/SqliteEventLogger.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/UartStm32Link.cpp.o
+build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/__/__/infrastructure/hw/stm32/FrameCodec.cpp.o
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/build.make
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libQt6Widgets.so.6.4.2
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libsqlite3.so
+build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libspdlog.so.1.12.0
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libQt6Gui.so.6.4.2
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libQt6Core.so.6.4.2
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libGLX.so
 build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libOpenGL.so
+build_qt/smart_cart_ui: /usr/lib/aarch64-linux-gnu/libfmt.so.9.1.0
 build_qt/smart_cart_ui: build_qt/CMakeFiles/smart_cart_ui.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable smart_cart_ui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Linking CXX executable smart_cart_ui"
 	cd /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/smart_cart_ui.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -73,43 +73,43 @@ CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o: CMakeFiles/frame_codec_tests.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o -MF CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o -MF CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp
 
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp > CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp > CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.i
 
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/frame_codec_test.cpp -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/frame_codec_test.cpp.s
 
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o: CMakeFiles/frame_codec_tests.dir/flags.make
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o: CMakeFiles/frame_codec_tests.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o -MF CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o -MF CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp
 
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp > CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp > CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.i
 
 CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/tests/unit/infrastructure/stm32_stream_parser_test.cpp -o CMakeFiles/frame_codec_tests.dir/tests/unit/infrastructure/stm32_stream_parser_test.cpp.s
 
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o: CMakeFiles/frame_codec_tests.dir/flags.make
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o: /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o: CMakeFiles/frame_codec_tests.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/fuch/Documents/Smart_telega/smart-cart/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o -MF CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o -MF CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o.d -o CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.o -c /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp
 
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp > CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp > CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.i
 
 CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp -o CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp -o CMakeFiles/frame_codec_tests.dir/src/infrastructure/hw/stm32/FrameCodec.cpp.s
 
 # Object files for target frame_codec_tests
 frame_codec_tests_OBJECTS = \

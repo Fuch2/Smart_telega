@@ -65,3 +65,10 @@ target_link_libraries(smart_cart_ui PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+
+# Передаём include-пути в MOC явно (AUTOMOC_INCLUDE_DIRS — единственный рабочий способ)
+set_property(TARGET smart_cart_ui PROPERTY
+    AUTOMOC_INCLUDE_DIRS
+        "${CMAKE_SOURCE_DIR}/src"
+        "${CMAKE_SOURCE_DIR}/apps"
+)

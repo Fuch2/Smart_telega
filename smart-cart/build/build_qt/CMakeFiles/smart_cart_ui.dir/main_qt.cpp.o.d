@@ -382,6 +382,8 @@ build_qt/CMakeFiles/smart_cart_ui.dir/main_qt.cpp.o: \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qlocale.h \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qvariant.h \
  /usr/include/aarch64-linux-gnu/qt6/QtGui/qguiapplication_platform.h \
+ /usr/include/c++/13/iostream \
+ /home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.hpp \
  /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/MainWindow.hpp \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/QMainWindow \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qmainwindow.h \

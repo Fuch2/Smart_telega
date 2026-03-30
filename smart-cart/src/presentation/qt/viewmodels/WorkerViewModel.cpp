@@ -1,4 +1,9 @@
 #include "WorkerViewModel.hpp"
+
+// Полные include только здесь — MOC их не видит, это нормально
+#include "application/ports/IStm32Link.hpp"
+#include "infrastructure/hw/stm32/Protocol.hpp"
+
 #include <QMetaObject>
 #include <QString>
 
@@ -6,7 +11,7 @@ WorkerViewModel::WorkerViewModel(QObject* parent) : QObject(parent) {
     occupied_.fill(false);
 }
 
-void WorkerViewModel::setStm32Link(application::ports::IStm32Link* link) {
+void WorkerViewModel::setStm32Link(smartcart::application::ports::IStm32Link* link) {
     stm32_ = link;
     stm32_->setEventCallback([this](const smartcart::infrastructure::hw::stm32::Frame& frame) {
         QMetaObject::invokeMethod(this, [this, frame]() {
@@ -44,7 +49,6 @@ void WorkerViewModel::onStm32Event(const smartcart::infrastructure::hw::stm32::F
     const auto cmd = static_cast<CommandId>(frame.commandId);
 
     if (cmd == CommandId::EvtSwitchChanged) {
-        // payload[0] = номер слота (1..24), payload[1] = 0x01 занят / 0x00 свободен
         if (frame.payload.size() < 2) return;
         const int  slot     = frame.payload[0];
         const bool occupied = frame.payload[1] != 0x00;

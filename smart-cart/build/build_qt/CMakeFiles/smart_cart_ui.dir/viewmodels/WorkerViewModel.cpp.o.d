@@ -336,32 +336,9 @@ build_qt/CMakeFiles/smart_cart_ui.dir/viewmodels/WorkerViewModel.cpp.o: \
  /usr/include/c++/13/bits/locale_conv.h \
  /usr/include/c++/13/bits/quoted_string.h /usr/include/c++/13/format \
  /usr/include/c++/13/charconv /usr/include/c++/13/span \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/QTimer \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qtimer.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qbasictimer.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qobject.h \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/application/ports/IStm32Link.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/Protocol.hpp \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/QMetaObject \
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/qobjectdefs.h \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/QString \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qstring.h \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/../../../infrastructure/persistence/SqliteModuleRepository.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/../../../infrastructure/persistence/../../repositories/IModuleRepository.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/../../../infrastructure/persistence/../../repositories/../domain/entities/ModuleEntity.hpp \
- /usr/include/sqlite3.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/QCoreApplication \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qcoreapplication.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qcoreevent.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qeventloop.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qnativeinterface.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qdebug.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qtextstream.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qstringconverter_base.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qcontiguouscache.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qsharedpointer.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qshareddata.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qsharedpointer_impl.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qmap.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qshareddata_impl.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qset.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qhash.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qvarlengtharray.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qcoreapplication_platform.h \
- /usr/include/aarch64-linux-gnu/qt6/QtCore/qcoreapplication.h
+ /usr/include/aarch64-linux-gnu/qt6/QtCore/qstring.h

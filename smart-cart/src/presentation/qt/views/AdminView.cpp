@@ -96,11 +96,11 @@ void AdminView::bindVm() {
 
     connect(addBtn_, &QPushButton::clicked, this, [this]() {
         const QString serial = serialEdit_->text().trimmed();
-        const int     slots  = slotsSpin_->value();
+        const int     slotCount = slotsSpin_->value();
         const QString fw     = fwEdit_->text().trimmed();
         const QString st     = statusCombo_->currentText();
 
-        vm_->addModule(serial, slots, fw, st);
+        vm_->addModule(serial, slotCount, fw, st);
 
         // Автовыбор добавленной строки по serial
         const auto& items = vm_->items();

@@ -1,6 +1,7 @@
 #pragma once
 #include "../../../application/ports/IModuleRepository.hpp"
 #include "../SqliteConnection.hpp"
+struct sqlite3_stmt;
 
 namespace smartcart::infrastructure::db {
 

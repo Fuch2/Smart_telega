@@ -66,10 +66,11 @@ include build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/compiler_de
 # Include the progress variables for this target.
 include build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps.dir/progress.make
 
-build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/aarch64-linux-gnu/libsqlite3.so
-build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/qt6/libexec/uic
-build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/qt6/libexec/moc
 build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/aarch64-linux-gnu/libQt6Widgets.so.6.4.2
+build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/aarch64-linux-gnu/libsqlite3.so
+build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/aarch64-linux-gnu/libspdlog.so.1.12.0
+build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/qt6/libexec/moc
+build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/qt6/libexec/uic
 build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps: /usr/lib/aarch64-linux-gnu/libQt6Core.so.6.4.2
 
 smart_cart_ui_autogen_timestamp_deps: build_qt/CMakeFiles/smart_cart_ui_autogen_timestamp_deps

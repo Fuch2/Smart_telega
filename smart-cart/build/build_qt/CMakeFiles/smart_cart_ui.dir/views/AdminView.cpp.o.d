@@ -390,10 +390,8 @@ build_qt/CMakeFiles/smart_cart_ui.dir/views/AdminView.cpp.o: \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qvector.h \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/QString \
  /usr/include/aarch64-linux-gnu/qt6/QtCore/qstring.h \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/../../../repositories/IModuleRepository.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/../../../repositories/../domain/entities/ModuleEntity.hpp \
- /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/../../../infrastructure/persistence/SqliteModuleRepository.hpp \
- /usr/include/sqlite3.h \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/../../../application/ports/IModuleRepository.hpp \
+ /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/views/../viewmodels/../../../application/ports/../../domain/entities/ModuleInfo.hpp \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/QVBoxLayout \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qboxlayout.h \
  /usr/include/aarch64-linux-gnu/qt6/QtWidgets/qlayout.h \

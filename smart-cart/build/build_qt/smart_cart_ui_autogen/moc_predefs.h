@@ -68,7 +68,6 @@
 #define __LDBL_IS_IEC_60559__ 1
 #define __ARM_FP 14
 #define __FLT64X_IS_IEC_60559__ 1
-#define QT_NO_DEBUG 1
 #define __FLT64X_HAS_QUIET_NAN__ 1
 #define __WINT_TYPE__ unsigned int
 #define __UINT_LEAST8_MAX__ 0xff
@@ -79,6 +78,7 @@
 #define __DEC32_EPSILON__ 1E-6DF
 #define __UINT32_MAX__ 0xffffffffU
 #define __GXX_EXPERIMENTAL_CXX0X__ 1
+#define SPDLOG_FMT_EXTERNAL 1
 #define __DBL_DENORM_MIN__ double(4.94065645841246544176568792868221372e-324L)
 #define __AARCH64_CMODEL_SMALL__ 1
 #define __LDBL_MAX_EXP__ 16384
@@ -116,6 +116,7 @@
 #define __DEC64_MIN__ 1E-383DD
 #define __unix 1
 #define __FLT32_IS_IEC_60559__ 1
+#define SPDLOG_SHARED_LIB 1
 #define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __DBL_IS_IEC_60559__ 1
 #define __DEC32_MAX__ 9.999999E96DF
@@ -269,6 +270,7 @@
 #define __ORDER_PDP_ENDIAN__ 3412
 #define __DEC128_MIN_EXP__ (-6142)
 #define __cpp_constinit 201907L
+#define SPDLOG_COMPILED_LIB 1
 #define __INT_FAST32_TYPE__ long int
 #define __UINT_LEAST16_TYPE__ short unsigned int
 #define __UINT64_MAX__ 0xffffffffffffffffUL
@@ -313,7 +315,6 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __LONG_MAX__ 0x7fffffffffffffffL
 #define __FLT64X_HAS_DENORM__ 1
-#define DB_PATH "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smartcart.db"
 #define __FLT_HAS_INFINITY__ 1
 #define __GNUC_EXECUTION_CHARSET_NAME "UTF-8"
 #define __CHAR_UNSIGNED__ 1
@@ -347,6 +348,7 @@
 #define __UINT16_C(c) c
 #define __PTRDIFF_WIDTH__ 64
 #define __INT_FAST16_WIDTH__ 64
+#define FMT_SHARED 1
 #define __FLT64_HAS_INFINITY__ 1
 #define __FLT64X_MAX__ 1.18973149535723176508575932662800702e+4932F64x
 #define __FLT16_HAS_INFINITY__ 1
@@ -403,6 +405,7 @@
 #define __FLT64_MAX_EXP__ 1024
 #define __SIZEOF_WCHAR_T__ 4
 #define __ARM_NEON 1
+#define MIGRATIONS_DIR "/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/migrations"
 #define __FLT128_HAS_QUIET_NAN__ 1
 #define __INTMAX_MAX__ 0x7fffffffffffffffL
 #define __UINT_FAST8_TYPE__ unsigned char
@@ -439,6 +442,7 @@
 #define __FLT32X_NORM_MAX__ 1.79769313486231570814527423731704357e+308F32x
 #define __CHAR32_TYPE__ unsigned int
 #define __cpp_constexpr 202002L
+#define CONFIG_DIR "/home/fuch/Documents/Smart_telega/smart-cart/config"
 #define __cpp_deduction_guides 201907L
 #define __ARM_FEATURE_NUMERIC_MAXMIN 1
 #define __BFLT16_NORM_MAX__ 3.38953138925153547590470800371487867e+38BF16

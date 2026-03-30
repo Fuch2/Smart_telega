@@ -14,9 +14,63 @@
 	"HEADERS" : 
 	[
 		[
-			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.hpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.hpp",
 			"MU",
-			"2DX2LI4CNZ/moc_SqliteModuleRepository.cpp",
+			"FMXTYOPCZY/moc_AppBootstrap.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.hpp",
+			"MU",
+			"BBGJCQVSUU/moc_ConfigLoader.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.hpp",
+			"MU",
+			"ZPOZBAITNI/moc_SqliteConnection.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.hpp",
+			"MU",
+			"G5YLVRXBRR/moc_ModuleRepositorySqlite.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.hpp",
+			"MU",
+			"G5YLVRXBRR/moc_OperationRepositorySqlite.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.hpp",
+			"MU",
+			"G5YLVRXBRR/moc_ReelRepositorySqlite.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.hpp",
+			"MU",
+			"V5GZRJ77U2/moc_FrameCodec.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.hpp",
+			"MU",
+			"V5GZRJ77U2/moc_UartStm32Link.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.hpp",
+			"MU",
+			"EFDCZZO75B/moc_LoggerFactory.cpp",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.hpp",
+			"MU",
+			"EFDCZZO75B/moc_SqliteEventLogger.cpp",
 			null
 		],
 		[
@@ -67,11 +121,15 @@
 	"MOC_COMPILATION_FILE" : "/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/mocs_compilation.cpp",
 	"MOC_DEFINITIONS" : 
 	[
-		"DB_PATH=\"/home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smartcart.db\"",
+		"CONFIG_DIR=\"/home/fuch/Documents/Smart_telega/smart-cart/config\"",
+		"FMT_SHARED",
+		"MIGRATIONS_DIR=\"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/migrations\"",
 		"QT_CORE_LIB",
 		"QT_GUI_LIB",
-		"QT_NO_DEBUG",
-		"QT_WIDGETS_LIB"
+		"QT_WIDGETS_LIB",
+		"SPDLOG_COMPILED_LIB",
+		"SPDLOG_FMT_EXTERNAL",
+		"SPDLOG_SHARED_LIB"
 	],
 	"MOC_DEPEND_FILTERS" : 
 	[
@@ -83,6 +141,7 @@
 	"MOC_INCLUDES" : 
 	[
 		"/home/fuch/Documents/Smart_telega/smart-cart/src",
+		"/home/fuch/Documents/Smart_telega/smart-cart/apps",
 		"/home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt",
 		"/usr/include/aarch64-linux-gnu/qt6/QtWidgets",
 		"/usr/include/aarch64-linux-gnu/qt6",
@@ -109,7 +168,7 @@
 	"MOC_PATH_PREFIX" : false,
 	"MOC_PREDEFS_CMD" : 
 	[
-		"/usr/bin/g++",
+		"/usr/bin/c++",
 		"-std=c++20",
 		"-dM",
 		"-E",
@@ -130,7 +189,52 @@
 	"SOURCES" : 
 	[
 		[
-			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.cpp",
+			"/home/fuch/Documents/Smart_telega/smart-cart/apps/smartcart_app/AppBootstrap.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/config/ConfigLoader.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/SqliteConnection.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/OperationRepositorySqlite.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/db/repositories/ReelRepositorySqlite.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/FrameCodec.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/hw/stm32/UartStm32Link.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/LoggerFactory.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/logging/SqliteEventLogger.cpp",
 			"MU",
 			null
 		],

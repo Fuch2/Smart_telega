@@ -1,8 +1,7 @@
 /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/RVZ4ISEY7V/moc_AdminViewModel.cpp: /home/fuch/Documents/Smart_telega/smart-cart/src/presentation/qt/viewmodels/AdminViewModel.hpp \
   /home/fuch/Documents/Smart_telega/smart-cart/build/build_qt/smart_cart_ui_autogen/moc_predefs.h \
-  /home/fuch/Documents/Smart_telega/smart-cart/src/domain/entities/ModuleEntity.hpp \
-  /home/fuch/Documents/Smart_telega/smart-cart/src/infrastructure/persistence/SqliteModuleRepository.hpp \
-  /home/fuch/Documents/Smart_telega/smart-cart/src/repositories/IModuleRepository.hpp \
+  /home/fuch/Documents/Smart_telega/smart-cart/src/application/ports/IModuleRepository.hpp \
+  /home/fuch/Documents/Smart_telega/smart-cart/src/domain/entities/ModuleInfo.hpp \
   /usr/include/aarch64-linux-gnu/asm/bitsperlong.h \
   /usr/include/aarch64-linux-gnu/asm/errno.h \
   /usr/include/aarch64-linux-gnu/asm/unistd.h \
@@ -345,7 +344,6 @@
   /usr/include/locale.h \
   /usr/include/pthread.h \
   /usr/include/sched.h \
-  /usr/include/sqlite3.h \
   /usr/include/stdc-predef.h \
   /usr/include/stdint.h \
   /usr/include/stdlib.h \
