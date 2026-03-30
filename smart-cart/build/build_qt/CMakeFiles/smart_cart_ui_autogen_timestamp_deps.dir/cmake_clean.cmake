@@ -1,6 +1,3 @@
-file(REMOVE_RECURSE
-  "CMakeFiles/smart_cart_ui_autogen_timestamp_deps"
-)
 
 # Per-language clean rules from dependency scanning.
 foreach(lang )

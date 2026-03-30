@@ -28,9 +28,7 @@ target_compile_definitions(smartcart_app PRIVATE
     CONFIG_DIR="${SMARTCART_CONFIG_DIR}"
 )
 
-target_include_directories(smartcart_app PRIVATE
-    src
-)
+target_include_directories(smartcart_app PRIVATE src)
 
 target_link_libraries(smartcart_app PRIVATE
     SQLite::SQLite3
@@ -62,12 +60,11 @@ target_include_directories(frame_codec_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 
-target_link_libraries(frame_codec_tests PRIVATE
-    GTest::gtest_main
-)
+target_link_libraries(frame_codec_tests PRIVATE GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(frame_codec_tests)
 
-# ── Qt UI (smart_cart_ui) ─────────────────────────────────────────────────────
+# ── Qt UI ─────────────────────────────────────────────────────────────────────
+# ТОЛЬКО add_subdirectory — сам таргет живёт в src/presentation/qt/CMakeLists.txt
 add_subdirectory(src/presentation/qt build_qt)
