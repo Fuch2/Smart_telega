@@ -91,29 +91,25 @@ def parse_response(data: bytes):
     return {'ver': ver, 'type': ftype, 'seq': seq, 'cmd': cmd, 'payload': payload}
 
 
-def get_switch_state(ser):
+def get_switch_state(ser, prev_bits=[None]):
     frame = build_frame(CMD_GET_SWITCH_STATE, seq=1)
-    print(f"TX: {frame.hex(' ').upper()}")
     ser.write(frame)
     resp = read_frame(ser)
-    print(f"RX: {resp.hex(' ').upper()}")
 
     parsed = parse_response(resp)
     if parsed is None:
         return
 
     if parsed['type'] != FRAME_TYPE_RESP:
-        print(f"NACK получен для cmd=0x{parsed['cmd']:02X}")
         return
 
     p = parsed['payload']
     if len(p) >= 3:
         bits = p[0] | (p[1] << 8) | (p[2] << 16)
-        print(f"\nDebounced bits: 0x{bits:06X} ({bits:024b})")
-        active = [i for i in range(24) if bits & (1 << i)]
-        print(f"Активные каналы: {active if active else 'нет'}")
-    else:
-        print(f"Неожиданный payload: {p.hex()}")
+        if bits != prev_bits[0]:  # печатаем только при изменении
+            active = [i for i in range(24) if bits & (1 << i)]
+            print(f"[{time.strftime('%H:%M:%S')}] 0x{bits:06X} → каналы: {active if active else 'нет'}")
+            prev_bits[0] = bits
 
 
 if __name__ == '__main__':
