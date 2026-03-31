@@ -9,7 +9,6 @@ add_executable(smart_cart_ui
     ${CMAKE_CURRENT_SOURCE_DIR}/main_qt.cpp
 
     # ── bootstrap ────────────────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.cpp
     ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.hpp
 
     # ── presentation: main window ─────────────────────────────────────────────
@@ -65,17 +64,9 @@ target_compile_definitions(smart_cart_ui PRIVATE
 # smartcart_infra уже тянет SQLite3, spdlog, nlohmann_json
 target_link_libraries(smart_cart_ui PRIVATE
     smartcart_infra
+    smartcart_app_qt
     Qt6::Widgets
     Qt6::Core
-)
-
-# AUTOMOC не видит include-пути из target_include_directories автоматически —
-# явно указываем, где искать Q_OBJECT заголовки
-set_property(TARGET smart_cart_ui PROPERTY
-    AUTOMOC_INCLUDE_DIRS
-        "${CMAKE_SOURCE_DIR}/src"
-        "${CMAKE_SOURCE_DIR}/apps"
-        "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 add_custom_command(TARGET smart_cart_ui POST_BUILD
