@@ -147,8 +147,8 @@ void WorkerView::connectSignals() {
             });
 }
 
-void WorkerView::onSlotsUpdated(QVector<SlotCellData> slots) {
-    slotGrid_->updateSlots(slots);
+void WorkerView::onSlotsUpdated(QVector<SlotCellData> items) {
+    slotGrid_->updateSlots(items);
 }
 
 void WorkerView::onOperationStateChanged(const QString& state,

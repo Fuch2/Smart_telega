@@ -20,7 +20,7 @@ public:
     explicit WorkerView(WorkerViewModel& viewModel, QWidget* parent = nullptr);
 
 private slots:
-    void onSlotsUpdated(QVector<SlotCellData> slots);
+    void onSlotsUpdated(QVector<SlotCellData> items);
     void onOperationStateChanged(const QString& state, const QString& message);
     void onErrorOccurred(const QString& message);
     void onBarcodeSubmitted();
