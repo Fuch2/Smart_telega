@@ -1,5 +1,4 @@
 // ===== src/application/services/StartupService.cpp =====
-// Исправлено: добавлен #include <unordered_map>
 #include "application/services/StartupService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 
@@ -26,6 +25,9 @@ StartupService::StartupService(
 {}
 
 StartupResult StartupService::run() {
+    // Шаг 0: убедиться что модуль существует в БД
+    ensureModuleExists();
+
     if (!ping())
         return ErrorCode::Stm32CommunicationError;
 
@@ -40,6 +42,48 @@ StartupResult StartupService::run() {
     }
 
     return reconcile(physical);
+}
+
+void StartupService::ensureModuleExists() {
+    // Если модуль уже есть — ничего не делаем
+    const auto existing = moduleRepo_.getById(config_.moduleId);
+    if (existing.has_value()) {
+        // Убедиться что все слоты инициализированы
+        ensureSlotsInitialized();
+        return;
+    }
+
+    // Создаём модуль с нужным id через INSERT OR IGNORE
+    // Используем serial = "MODULE-<id>" как дефолт
+    ModuleInfo m;
+    m.id        = config_.moduleId;
+    m.serial    = "MODULE-" + std::to_string(config_.moduleId);
+    m.slotCount = config_.slotCount;
+    m.firmware  = "";
+    m.status    = ModuleStatus::Online;
+
+    moduleRepo_.add(m);
+
+    // Инициализируем все слоты как FREE
+    ensureSlotsInitialized();
+}
+
+void StartupService::ensureSlotsInitialized() {
+    // Проверяем сколько слотов уже есть
+    const auto existingSlots = reelRepo_.getSlotStates(config_.moduleId);
+    if (static_cast<int>(existingSlots.size()) >= config_.slotCount)
+        return;
+
+    // Собираем уже существующие индексы
+    std::unordered_map<int, bool> existing;
+    for (const auto& s : existingSlots)
+        existing[s.slotIndex] = true;
+
+    // Вставляем недостающие слоты как FREE
+    for (int i = 1; i <= config_.slotCount; ++i) {
+        if (!existing.count(i))
+            reelRepo_.setSlotState(config_.moduleId, i, SlotState::Free);
+    }
 }
 
 bool StartupService::ping() {
@@ -65,6 +109,7 @@ bool StartupService::waitReady() {
         resp->payload[0] == 0x01)
         return true;
 
+    // STM32 не готов — ждём EvtReady
     std::mutex              mtx;
     std::condition_variable cv;
     bool                    ready = false;
@@ -142,6 +187,10 @@ std::vector<Slot> StartupService::reconcile(const std::vector<bool>& physical) {
             .state     = state
         });
 
+        // Обновляем оба репозитория — moduleRepo для slots-таблицы,
+        // reelRepo для slot_states-таблицы (они одна и та же таблица,
+        // но через разные порты)
+        reelRepo_.setSlotState(config_.moduleId, slotIndex, state);
         moduleRepo_.updateSlotState(config_.moduleId, slotIndex, state);
     }
 
