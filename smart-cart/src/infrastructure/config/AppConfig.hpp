@@ -12,12 +12,15 @@ struct AppConfig {
     std::string logFile;            // путь к лог-файлу
     std::string sqlitePath;         // путь к БД
     std::string stm32Device{"/dev/ttyAMA0"};
+    std::string rfidSpiDevice{"/dev/spidev0.0"};
 
     bool demoMode{true};
+    bool rfidEnabled{false};
 
     std::uint32_t stm32PollMs{500};
     std::uint32_t debounceMs{50};
     std::uint32_t stableConfirmMs{1000};
+    std::uint32_t rfidReadTimeoutMs{3000};
 
     std::string ledMappingPath{"config/led_mapping.default.json"};
     std::string moduleProfilePath{"config/module_profiles/tray24.json"};

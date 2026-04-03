@@ -62,14 +62,25 @@ DiagnosticsRepositorySqlite::recentEvents(int limit) {
 bool DiagnosticsRepositorySqlite::resetTestCart(int moduleId) {
     try {
         conn_.execute("BEGIN IMMEDIATE;");
-        conn_.execute("DELETE FROM order_items;");
-        conn_.execute("DELETE FROM orders;");
-        conn_.execute("DELETE FROM reels;");
-        conn_.execute("DELETE FROM operations;");
+        conn_.execute(
+            "DELETE FROM order_items "
+            "WHERE order_id IN (SELECT id FROM orders WHERE module_id = " +
+            std::to_string(moduleId) + ");"
+        );
+        conn_.execute(
+            "DELETE FROM orders WHERE module_id = " + std::to_string(moduleId) + ";"
+        );
+        conn_.execute(
+            "DELETE FROM reels WHERE module_id = " + std::to_string(moduleId) + ";"
+        );
+        conn_.execute(
+            "DELETE FROM operations WHERE module_id = " +
+            std::to_string(moduleId) + ";"
+        );
         conn_.execute(
             "UPDATE cart_workflow "
             "SET current_order_id = NULL, state = 'FREE', updated_at = datetime('now') "
-            "WHERE id = 1;"
+            "WHERE module_id = " + std::to_string(moduleId) + ";"
         );
         conn_.execute(
             "UPDATE slot_states "

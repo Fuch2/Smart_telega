@@ -133,6 +133,7 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
 
         const json j = readJsonFile(jsonPath);
         domain::OrderInfo order = parseOrder(j);
+        order.moduleId = config_.moduleId;
         std::vector<domain::OrderItem> items = parseItems(j);
 
         std::unordered_set<std::string> orderBarcodes;

@@ -11,7 +11,7 @@ class OrderRepositorySqlite final
     : public application::ports::IOrderRepository
 {
 public:
-    explicit OrderRepositorySqlite(SqliteConnection& conn);
+    explicit OrderRepositorySqlite(SqliteConnection& conn, int moduleId = 1);
 
     int addOrder(const domain::OrderInfo& order) override;
     int addItem(const domain::OrderItem& item) override;
@@ -34,6 +34,7 @@ public:
 
 private:
     SqliteConnection& conn_;
+    int moduleId_{1};
 
     static domain::OrderInfo rowToOrder(sqlite3_stmt* stmt);
     static domain::OrderItem rowToItem(sqlite3_stmt* stmt);

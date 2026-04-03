@@ -15,6 +15,7 @@
 #include "infrastructure/db/repositories/DiagnosticsRepositorySqlite.hpp"
 #include "infrastructure/hw/stm32/UartStm32Link.hpp"
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
+#include "infrastructure/hw/rfid/Rc522RfidProvider.hpp"
 #include "application/services/StartupService.hpp"
 #include "application/services/AddReelService.hpp"
 #include "application/services/ReplaceReelService.hpp"
@@ -75,7 +76,10 @@ private:
     std::unique_ptr<WorkerViewModel> workerVm_;
     MainWindow*                      mainWindow_ = nullptr;
     smartcart::infrastructure::hw::stm32::MockStm32Link* mockLink_ = nullptr;
+    int activeModuleId_ = 1;
+    std::string activeModuleUid_;
 
     std::vector<int> slotToLedMap_;
     void buildSlotToLedMap();
+    int resolveActiveModuleId();
 };

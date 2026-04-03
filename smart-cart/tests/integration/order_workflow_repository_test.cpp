@@ -117,3 +117,51 @@ TEST(OrderWorkflowRepositoryTest, DiagnosticsResetTestCartClearsWorkflowData) {
     ASSERT_FALSE(events.empty());
     EXPECT_EQ(events.front().code, "TestCartReset");
 }
+
+TEST(OrderWorkflowRepositoryTest, OrderAndWorkflowAreScopedByModuleId) {
+    infrastructure::db::SqliteConnection conn(":memory:");
+    conn.runMigrations(std::string{MIGRATIONS_DIR});
+
+    infrastructure::db::OrderRepositorySqlite orderRepoModule1(conn, 1);
+    infrastructure::db::OrderRepositorySqlite orderRepoModule2(conn, 2);
+    infrastructure::db::WorkflowRepositorySqlite workflowRepoModule1(conn, 1);
+    infrastructure::db::WorkflowRepositorySqlite workflowRepoModule2(conn, 2);
+
+    domain::OrderInfo order1;
+    order1.externalOrderId = "ORDER-SHARED";
+    order1.title = "Module 1 order";
+    order1.priority = "normal";
+    const int orderId1 = orderRepoModule1.addOrder(order1);
+    ASSERT_GT(orderId1, 0);
+
+    domain::OrderInfo order2;
+    order2.externalOrderId = "ORDER-SHARED";
+    order2.title = "Module 2 order";
+    order2.priority = "high";
+    const int orderId2 = orderRepoModule2.addOrder(order2);
+    ASSERT_GT(orderId2, 0);
+    EXPECT_NE(orderId1, orderId2);
+
+    ASSERT_TRUE(workflowRepoModule1.setCurrentOrder(
+        orderId1,
+        domain::CartWorkflowState::OrderLoaded));
+    ASSERT_TRUE(workflowRepoModule2.setCurrentOrder(
+        orderId2,
+        domain::CartWorkflowState::PickingMaterials));
+
+    const auto workflow1 = workflowRepoModule1.get();
+    const auto workflow2 = workflowRepoModule2.get();
+    ASSERT_TRUE(workflow1.currentOrderId.has_value());
+    ASSERT_TRUE(workflow2.currentOrderId.has_value());
+    EXPECT_EQ(*workflow1.currentOrderId, orderId1);
+    EXPECT_EQ(*workflow2.currentOrderId, orderId2);
+    EXPECT_EQ(workflow1.state, domain::CartWorkflowState::OrderLoaded);
+    EXPECT_EQ(workflow2.state, domain::CartWorkflowState::PickingMaterials);
+
+    const auto active1 = orderRepoModule1.getActiveOrder();
+    const auto active2 = orderRepoModule2.getActiveOrder();
+    ASSERT_TRUE(active1.has_value());
+    ASSERT_TRUE(active2.has_value());
+    EXPECT_EQ(active1->title, "Module 1 order");
+    EXPECT_EQ(active2->title, "Module 2 order");
+}

@@ -28,10 +28,13 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "log_file",            cfg.logFile);
     readOptional(j, "sqlite_path",         cfg.sqlitePath);
     readOptional(j, "stm32_device",        cfg.stm32Device);
+    readOptional(j, "rfid_spi_device",     cfg.rfidSpiDevice);
     readOptional(j, "demo_mode",           cfg.demoMode);
+    readOptional(j, "rfid_enabled",        cfg.rfidEnabled);
     readOptional(j, "stm32_poll_ms",       cfg.stm32PollMs);
     readOptional(j, "debounce_ms",         cfg.debounceMs);
     readOptional(j, "stable_confirm_ms",   cfg.stableConfirmMs);
+    readOptional(j, "rfid_read_timeout_ms", cfg.rfidReadTimeoutMs);
     readOptional(j, "led_mapping_path",    cfg.ledMappingPath);
     readOptional(j, "module_profile_path", cfg.moduleProfilePath);
     readOptional(j, "slot_to_led_map",     cfg.slotToLedMap);
@@ -50,6 +53,8 @@ void ConfigLoader::validate(AppConfig& cfg) {
         throw std::runtime_error("ConfigLoader: sqlite_path is empty");
     if (!cfg.demoMode && cfg.stm32Device.empty())
         throw std::runtime_error("ConfigLoader: stm32_device is empty");
+    if (cfg.rfidEnabled && cfg.rfidSpiDevice.empty())
+        throw std::runtime_error("ConfigLoader: rfid_spi_device is empty");
     if (cfg.stm32PollMs == 0)
         throw std::runtime_error("ConfigLoader: stm32_poll_ms must be > 0");
     if (cfg.debounceMs == 0)
@@ -57,6 +62,9 @@ void ConfigLoader::validate(AppConfig& cfg) {
     if (cfg.stableConfirmMs < cfg.debounceMs)
         throw std::runtime_error(
             "ConfigLoader: stable_confirm_ms must be >= debounce_ms");
+    if (cfg.rfidReadTimeoutMs == 0)
+        throw std::runtime_error(
+            "ConfigLoader: rfid_read_timeout_ms must be > 0");
     if (!cfg.slotToLedMap.empty() && cfg.slotToLedMap.size() != 24)
         throw std::runtime_error(
             "ConfigLoader: slot_to_led_map must contain 24 entries");

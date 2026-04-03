@@ -19,16 +19,19 @@ void throwOnPrepareError(sqlite3* db, int rc, const char* where) {
 
 } // namespace
 
-WorkflowRepositorySqlite::WorkflowRepositorySqlite(SqliteConnection& conn)
+WorkflowRepositorySqlite::WorkflowRepositorySqlite(SqliteConnection& conn,
+                                                   int moduleId)
     : conn_(conn)
+    , moduleId_(moduleId)
 {
     ensureSchema();
+    ensureRow();
 }
 
 void WorkflowRepositorySqlite::ensureSchema() {
     conn_.execute(
         "CREATE TABLE IF NOT EXISTS cart_workflow ("
-        "  id               INTEGER PRIMARY KEY CHECK (id = 1),"
+        "  module_id        INTEGER PRIMARY KEY,"
         "  current_order_id INTEGER,"
         "  state            TEXT    NOT NULL DEFAULT 'FREE',"
         "  updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
@@ -36,24 +39,29 @@ void WorkflowRepositorySqlite::ensureSchema() {
         "    ON DELETE SET NULL ON UPDATE CASCADE"
         ");"
     );
+}
 
+void WorkflowRepositorySqlite::ensureRow() {
     conn_.execute(
-        "INSERT INTO cart_workflow(id, current_order_id, state) "
-        "VALUES(1, NULL, 'FREE') "
-        "ON CONFLICT(id) DO NOTHING;"
+        "INSERT INTO cart_workflow(module_id, current_order_id, state) "
+        "VALUES(" + std::to_string(moduleId_) + ", NULL, 'FREE') "
+        "ON CONFLICT(module_id) DO NOTHING;"
     );
 }
 
 domain::CartWorkflow WorkflowRepositorySqlite::get() {
     const char* sql =
         "SELECT current_order_id, state, updated_at "
-        "FROM cart_workflow WHERE id = 1;";
+        "FROM cart_workflow WHERE module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
                         "WorkflowRepositorySqlite::get prepare");
 
+    sqlite3_bind_int(stmt, 1, moduleId_);
+
     domain::CartWorkflow workflow;
+    workflow.moduleId = moduleId_;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) {
             workflow.currentOrderId = sqlite3_column_int(stmt, 0);
@@ -72,7 +80,7 @@ bool WorkflowRepositorySqlite::setState(domain::CartWorkflowState state) {
     const char* sql =
         "UPDATE cart_workflow "
         "SET state = ?, updated_at = datetime('now') "
-        "WHERE id = 1;";
+        "WHERE module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
@@ -80,6 +88,7 @@ bool WorkflowRepositorySqlite::setState(domain::CartWorkflowState state) {
 
     const std::string stateStr{domain::toString(state)};
     sqlite3_bind_text(stmt, 1, stateStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, moduleId_);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -93,7 +102,7 @@ bool WorkflowRepositorySqlite::setCurrentOrder(
     const char* sql =
         "UPDATE cart_workflow "
         "SET current_order_id = ?, state = ?, updated_at = datetime('now') "
-        "WHERE id = 1;";
+        "WHERE module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
@@ -102,6 +111,7 @@ bool WorkflowRepositorySqlite::setCurrentOrder(
     const std::string stateStr{domain::toString(state)};
     sqlite3_bind_int(stmt, 1, orderId);
     sqlite3_bind_text(stmt, 2, stateStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 3, moduleId_);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -112,7 +122,7 @@ bool WorkflowRepositorySqlite::clearCurrentOrder(domain::CartWorkflowState state
     const char* sql =
         "UPDATE cart_workflow "
         "SET current_order_id = NULL, state = ?, updated_at = datetime('now') "
-        "WHERE id = 1;";
+        "WHERE module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
@@ -120,6 +130,7 @@ bool WorkflowRepositorySqlite::clearCurrentOrder(domain::CartWorkflowState state
 
     const std::string stateStr{domain::toString(state)};
     sqlite3_bind_text(stmt, 1, stateStr.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, moduleId_);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

@@ -11,7 +11,7 @@ class WorkflowRepositorySqlite final
     : public application::ports::IWorkflowRepository
 {
 public:
-    explicit WorkflowRepositorySqlite(SqliteConnection& conn);
+    explicit WorkflowRepositorySqlite(SqliteConnection& conn, int moduleId = 1);
 
     domain::CartWorkflow get() override;
     bool setState(domain::CartWorkflowState state) override;
@@ -21,8 +21,10 @@ public:
 
 private:
     SqliteConnection& conn_;
+    int moduleId_{1};
 
     void ensureSchema();
+    void ensureRow();
 };
 
 } // namespace smartcart::infrastructure::db

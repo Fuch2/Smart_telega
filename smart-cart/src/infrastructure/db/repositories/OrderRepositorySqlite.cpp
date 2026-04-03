@@ -12,7 +12,7 @@ namespace domain = smartcart::domain;
 namespace {
 
 const char* kOrderColumns =
-    "SELECT id, external_order_id, title, priority, duration_minutes,"
+    "SELECT id, module_id, external_order_id, title, priority, duration_minutes,"
     "       status, created_at, updated_at "
     "FROM orders";
 
@@ -29,8 +29,10 @@ void throwOnPrepareError(sqlite3* db, int rc, const char* where) {
 
 } // namespace
 
-OrderRepositorySqlite::OrderRepositorySqlite(SqliteConnection& conn)
+OrderRepositorySqlite::OrderRepositorySqlite(SqliteConnection& conn,
+                                             int moduleId)
     : conn_(conn)
+    , moduleId_(moduleId)
 {
     ensureSchema();
 }
@@ -39,13 +41,15 @@ void OrderRepositorySqlite::ensureSchema() {
     conn_.execute(
         "CREATE TABLE IF NOT EXISTS orders ("
         "  id                INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "  external_order_id TEXT    NOT NULL UNIQUE,"
+        "  module_id         INTEGER NOT NULL DEFAULT 1,"
+        "  external_order_id TEXT    NOT NULL,"
         "  title             TEXT    NOT NULL DEFAULT '',"
         "  priority          TEXT    NOT NULL DEFAULT '',"
         "  duration_minutes  INTEGER NOT NULL DEFAULT 0,"
         "  status            TEXT    NOT NULL DEFAULT 'LOADED',"
         "  created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-        "  updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+        "  updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+        "  UNIQUE(module_id, external_order_id)"
         ");"
     );
 
@@ -64,24 +68,30 @@ void OrderRepositorySqlite::ensureSchema() {
         "    ON DELETE CASCADE ON UPDATE CASCADE"
         ");"
     );
+
+    conn_.execute(
+        "CREATE INDEX IF NOT EXISTS idx_orders_status "
+        "ON orders(module_id, status, updated_at);"
+    );
 }
 
 domain::OrderInfo OrderRepositorySqlite::rowToOrder(sqlite3_stmt* stmt) {
     domain::OrderInfo order;
     order.id = sqlite3_column_int(stmt, 0);
+    order.moduleId = sqlite3_column_int(stmt, 1);
     order.externalOrderId =
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-    order.title =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-    order.priority =
+    order.title =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-    order.durationMinutes = sqlite3_column_int(stmt, 4);
+    order.priority =
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+    order.durationMinutes = sqlite3_column_int(stmt, 5);
     order.status = domain::orderStatusFromString(
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
     order.createdAt =
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-    order.updatedAt =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+    order.updatedAt =
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
     return order;
 }
 
@@ -106,9 +116,9 @@ domain::OrderItem OrderRepositorySqlite::rowToItem(sqlite3_stmt* stmt) {
 
 int OrderRepositorySqlite::addOrder(const domain::OrderInfo& order) {
     const char* sql =
-        "INSERT INTO orders(external_order_id, title, priority,"
+        "INSERT INTO orders(module_id, external_order_id, title, priority,"
         "                   duration_minutes, status) "
-        "VALUES(?, ?, ?, ?, ?);";
+        "VALUES(?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
@@ -116,11 +126,12 @@ int OrderRepositorySqlite::addOrder(const domain::OrderInfo& order) {
                         "OrderRepositorySqlite::addOrder prepare");
 
     const std::string status{domain::toString(order.status)};
-    sqlite3_bind_text(stmt, 1, order.externalOrderId.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, order.title.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, order.priority.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, order.durationMinutes);
-    sqlite3_bind_text(stmt, 5, status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 1, moduleId_);
+    sqlite3_bind_text(stmt, 2, order.externalOrderId.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, order.title.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, order.priority.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 5, order.durationMinutes);
+    sqlite3_bind_text(stmt, 6, status.c_str(), -1, SQLITE_TRANSIENT);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -163,12 +174,14 @@ int OrderRepositorySqlite::addItem(const domain::OrderItem& item) {
 
 std::optional<domain::OrderInfo>
 OrderRepositorySqlite::getOrderById(int id) {
-    const std::string sql = std::string(kOrderColumns) + " WHERE id = ?;";
+    const std::string sql =
+        std::string(kOrderColumns) + " WHERE id = ? AND module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr),
                         "OrderRepositorySqlite::getOrderById prepare");
     sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_int(stmt, 2, moduleId_);
 
     std::optional<domain::OrderInfo> result;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -181,12 +194,14 @@ OrderRepositorySqlite::getOrderById(int id) {
 std::optional<domain::OrderInfo>
 OrderRepositorySqlite::findOrderByExternalId(const std::string& externalOrderId) {
     const std::string sql =
-        std::string(kOrderColumns) + " WHERE external_order_id = ?;";
+        std::string(kOrderColumns) +
+        " WHERE external_order_id = ? AND module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr),
                         "OrderRepositorySqlite::findOrderByExternalId prepare");
     sqlite3_bind_text(stmt, 1, externalOrderId.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, moduleId_);
 
     std::optional<domain::OrderInfo> result;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -199,12 +214,14 @@ OrderRepositorySqlite::findOrderByExternalId(const std::string& externalOrderId)
 std::optional<domain::OrderInfo> OrderRepositorySqlite::getActiveOrder() {
     const std::string sql =
         std::string(kOrderColumns) +
-        " WHERE status IN ('LOADED','IN_PROGRESS') "
+        " WHERE module_id = ? AND status IN ('LOADED','IN_PROGRESS') "
         " ORDER BY id DESC LIMIT 1;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr),
                         "OrderRepositorySqlite::getActiveOrder prepare");
+
+    sqlite3_bind_int(stmt, 1, moduleId_);
 
     std::optional<domain::OrderInfo> result;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -255,7 +272,8 @@ OrderRepositorySqlite::findItemByBarcode(int orderId,
 
 bool OrderRepositorySqlite::updateOrderStatus(int id, domain::OrderStatus status) {
     const char* sql =
-        "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?;";
+        "UPDATE orders SET status = ?, updated_at = datetime('now') "
+        "WHERE id = ? AND module_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
                         sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
@@ -264,6 +282,7 @@ bool OrderRepositorySqlite::updateOrderStatus(int id, domain::OrderStatus status
     const std::string statusStr{domain::toString(status)};
     sqlite3_bind_text(stmt, 1, statusStr.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 2, id);
+    sqlite3_bind_int(stmt, 3, moduleId_);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

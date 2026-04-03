@@ -109,6 +109,7 @@ inline OrderStatus orderStatusFromString(std::string_view value) {
 
 struct OrderInfo {
     int id{0};
+    int moduleId{1};
     std::string externalOrderId;
     std::string title;
     std::string priority;
@@ -130,6 +131,7 @@ struct OrderItem {
 };
 
 struct CartWorkflow {
+    int moduleId{1};
     std::optional<int> currentOrderId;
     CartWorkflowState state{CartWorkflowState::Free};
     std::string updatedAt;

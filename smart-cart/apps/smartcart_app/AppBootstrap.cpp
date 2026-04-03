@@ -2,6 +2,7 @@
 #include "AppBootstrap.hpp"
 
 #include "infrastructure/config/ConfigLoader.hpp"
+#include "infrastructure/hw/rfid/Rc522RfidProvider.hpp"
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "presentation/qt/MainWindow.hpp"
 #include "presentation/qt/viewmodels/AdminViewModel.hpp"
@@ -27,12 +28,14 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     conn_->runMigrations(migrationsDir);
 
     moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
+    eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
+    activeModuleId_ = resolveActiveModuleId();
+
     reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
     opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
-    orderRepo_  = std::make_unique<db::OrderRepositorySqlite>(*conn_);
-    workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_);
+    orderRepo_  = std::make_unique<db::OrderRepositorySqlite>(*conn_, activeModuleId_);
+    workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_, activeModuleId_);
     diagnosticsRepo_ = std::make_unique<db::DiagnosticsRepositorySqlite>(*conn_);
-    eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
 
     // ── 3. LED map ────────────────────────────────────────────────────────────
     buildSlotToLedMap();
@@ -73,7 +76,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
     // ── 5. Services ───────────────────────────────────────────────────────────
     StartupConfig startupCfg;
-    startupCfg.moduleId       = 1;
+    startupCfg.moduleId       = activeModuleId_;
     startupCfg.slotCount      = 24;
     startupCfg.readyTimeoutMs = 5000;
     startupCfg.slotToLedMap   = slotToLedMap_;
@@ -85,7 +88,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     AddReelConfig addCfg;
-    addCfg.moduleId        = 1;
+    addCfg.moduleId        = activeModuleId_;
     addCfg.slotCount       = 24;
     addCfg.stableConfirmMs = cfg_.stableConfirmMs;
     addCfg.slotToLedMap    = slotToLedMap_;
@@ -95,7 +98,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     ReplaceReelConfig replaceCfg;
-    replaceCfg.moduleId        = 1;
+    replaceCfg.moduleId        = activeModuleId_;
     replaceCfg.stableConfirmMs = cfg_.stableConfirmMs;
     replaceCfg.slotToLedMap    = slotToLedMap_;
 
@@ -104,7 +107,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     RecoveryConfig recoveryCfg;
-    recoveryCfg.moduleId     = 1;
+    recoveryCfg.moduleId     = activeModuleId_;
     recoveryCfg.slotCount    = 24;
     recoveryCfg.slotToLedMap = slotToLedMap_;
 
@@ -117,11 +120,11 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *workflowRepo_,
         *reelRepo_,
         *eventLogger_,
-        1
+        activeModuleId_
     );
 
     Stm32PollingConfig pollingCfg;
-    pollingCfg.moduleId  = 1;
+    pollingCfg.moduleId  = activeModuleId_;
     pollingCfg.slotCount = 24;
     pollingCfg.pollMs    = static_cast<int>(cfg_.stm32PollMs);
     pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
@@ -143,7 +146,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     OrderImportConfig orderImportCfg;
-    orderImportCfg.moduleId = 1;
+    orderImportCfg.moduleId = activeModuleId_;
     orderImportSvc_ = std::make_unique<OrderImportService>(
         *orderRepo_,
         *workflowRepo_,
@@ -153,7 +156,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     AdminDiagnosticsConfig adminDiagnosticsCfg;
-    adminDiagnosticsCfg.moduleId = 1;
+    adminDiagnosticsCfg.moduleId = activeModuleId_;
     adminDiagnosticsCfg.trackedChannels = cfg_.switchTrackedChannels;
     adminDiagnosticsCfg.ignoredChannels = cfg_.switchIgnoredChannels;
     adminDiagnosticsCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
@@ -204,6 +207,62 @@ void AppBootstrap::buildSlotToLedMap() {
     slotToLedMap_.resize(24);
     for (int i = 0; i < 24; ++i)
         slotToLedMap_[i] = i * 2;
+}
+
+int AppBootstrap::resolveActiveModuleId() {
+    if (!cfg_.rfidEnabled) {
+        return 1;
+    }
+
+    try {
+        infrastructure::hw::rfid::Rc522RfidProvider rfidReader(cfg_.rfidSpiDevice);
+        const auto uid = rfidReader.readOnce(static_cast<int>(cfg_.rfidReadTimeoutMs));
+        if (!uid.has_value() || uid->empty()) {
+            eventLogger_->log("WARN",
+                              "RfidModuleDetectionFallback",
+                              "RFID-метка модуля не найдена, используем module_id=1");
+            return 1;
+        }
+
+        activeModuleUid_ = *uid;
+        const std::string serial = "RFID-" + *uid;
+
+        for (const auto& module : moduleRepo_->getAll()) {
+            if (module.serial == serial) {
+                eventLogger_->log("INFO",
+                                  "RfidModuleDetected",
+                                  "uid=" + *uid +
+                                  " module_id=" + std::to_string(module.id));
+                return module.id;
+            }
+        }
+
+        domain::ModuleInfo module;
+        module.serial = serial;
+        module.slotCount = 24;
+        module.firmware = "rfid-auto";
+        module.status = domain::ModuleStatus::Online;
+
+        const int moduleId = moduleRepo_->add(module);
+        if (moduleId > 0) {
+            eventLogger_->log("INFO",
+                              "RfidModuleRegistered",
+                              "uid=" + *uid +
+                              " module_id=" + std::to_string(moduleId));
+            return moduleId;
+        }
+    } catch (const std::exception& ex) {
+        eventLogger_->log("ERROR", "RfidModuleDetectionFailed", ex.what());
+    } catch (...) {
+        eventLogger_->log("ERROR",
+                          "RfidModuleDetectionFailed",
+                          "Неизвестная ошибка RFID-определения модуля");
+    }
+
+    eventLogger_->log("WARN",
+                      "RfidModuleDetectionFallback",
+                      "Используем module_id=1 после ошибки RFID");
+    return 1;
 }
 
 void AppBootstrap::launch() {
