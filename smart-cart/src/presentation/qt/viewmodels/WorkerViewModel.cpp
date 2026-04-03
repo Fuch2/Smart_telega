@@ -56,6 +56,28 @@ QString WorkerViewModel::stateLabel() const {
     return QString::fromUtf8("Неизвестно");
 }
 
+void WorkerViewModel::submitBarcode(const QString& barcode) {
+    const auto normalized = barcode.trimmed();
+    if (normalized.isEmpty()) {
+        emit errorOccurred(QString::fromUtf8("Пустой штрихкод — игнорируется"));
+        return;
+    }
+
+    const auto workflow = workflowRepo_.get();
+    switch (workflow.state) {
+        case CartWorkflowState::IssuingToLine:
+            markItemIssued(normalized);
+            return;
+        case CartWorkflowState::LeftoversDetected:
+        case CartWorkflowState::ReturningLeftovers:
+            markLeftoverReturned(normalized);
+            return;
+        default:
+            onBarcodeScanned(normalized);
+            return;
+    }
+}
+
 void WorkerViewModel::onBarcodeScanned(const QString& barcode) {
     if (barcode.trimmed().isEmpty()) {
         emit errorOccurred(QString::fromUtf8("Пустой штрихкод — игнорируется"));

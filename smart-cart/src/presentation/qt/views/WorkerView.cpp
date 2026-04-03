@@ -383,7 +383,7 @@ void WorkerView::onBarcodeSubmitted() {
     const QString barcode = barcodeEdit_->text().trimmed();
     if (barcode.isEmpty()) return;
     barcodeEdit_->clear();
-    viewModel_.onBarcodeScanned(barcode);
+    viewModel_.submitBarcode(barcode);
     barcodeEdit_->setFocus();  // возвращаем фокус после скана
 }
 

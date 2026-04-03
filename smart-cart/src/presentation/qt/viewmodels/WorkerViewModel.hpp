@@ -49,6 +49,7 @@ signals:
     void errorOccurred(QString message);
 
 public Q_SLOTS:
+    void submitBarcode(const QString& barcode);
     void onBarcodeScanned(const QString& barcode);
     void onSlotPhysicalChange(int slotIndex, bool occupied);
     void cancelCurrentOperation();
