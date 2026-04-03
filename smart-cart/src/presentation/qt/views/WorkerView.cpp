@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 
 WorkerView::WorkerView(WorkerViewModel& viewModel, QWidget* parent)
     : QWidget(parent)
@@ -97,7 +98,7 @@ void WorkerView::setupUi() {
     const QString primaryButtonStyle =
         "QPushButton { background: #2F8F57; color: #FFFFFF; "
         "border: 1px solid #2F8F57; border-radius: 8px; "
-        "padding: 12px 18px; font-weight: bold; }"
+        "padding: 10px 14px; font-weight: bold; }"
         "QPushButton:hover { background: #3CA86A; }"
         "QPushButton:pressed { background: #267346; }"
         "QPushButton:disabled { background: #DCE5DF; color: #819086; "
@@ -105,7 +106,7 @@ void WorkerView::setupUi() {
     const QString secondaryButtonStyle =
         "QPushButton { background: #E6F0E9; color: #173025; "
         "border: 1px solid #B8D0BF; border-radius: 8px; "
-        "padding: 12px 14px; font-weight: bold; }"
+        "padding: 9px 12px; font-weight: bold; }"
         "QPushButton:hover { background: #D7E8DC; }"
         "QPushButton:pressed { background: #C4DACB; }"
         "QPushButton:disabled { background: #E7ECE8; color: #8B968F; "
@@ -113,7 +114,7 @@ void WorkerView::setupUi() {
     const QString dangerButtonStyle =
         "QPushButton { background: #B85C5C; color: #FFFFFF; "
         "border: 1px solid #B85C5C; border-radius: 8px; "
-        "padding: 12px 14px; font-weight: bold; }"
+        "padding: 9px 12px; font-weight: bold; }"
         "QPushButton:hover { background: #C86F6F; }"
         "QPushButton:pressed { background: #954747; }"
         "QPushButton:disabled { background: #E7ECE8; color: #8B968F; "
@@ -206,8 +207,8 @@ void WorkerView::setupUi() {
     workPage_ = new QWidget(this);
     workPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* workLayout = new QVBoxLayout(workPage_);
-    workLayout->setContentsMargins(14, 14, 14, 14);
-    workLayout->setSpacing(12);
+    workLayout->setContentsMargins(10, 10, 10, 10);
+    workLayout->setSpacing(10);
 
     rootLayout->addWidget(startPage_);
     rootLayout->addWidget(missingModulePage_);
@@ -219,63 +220,63 @@ void WorkerView::setupUi() {
     statusFrame->setStyleSheet(darkPanelStyle);
 
     auto* statusLayout = new QHBoxLayout(statusFrame);
-    statusLayout->setContentsMargins(18, 14, 18, 14);
-    statusLayout->setSpacing(16);
+    statusLayout->setContentsMargins(14, 10, 14, 10);
+    statusLayout->setSpacing(12);
 
     auto* statusTextLayout = new QVBoxLayout();
-    statusTextLayout->setSpacing(6);
+    statusTextLayout->setSpacing(4);
 
     workflowPillLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"),
                                     statusFrame);
-    workflowPillLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    workflowPillLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
     workflowPillLabel_->setStyleSheet(
         "QLabel { background: #E6F4EA; color: #1F6F43; "
-        "border: 1px solid #A5D3B4; border-radius: 8px; padding: 6px 12px; }"
+        "border: 1px solid #A5D3B4; border-radius: 8px; padding: 4px 10px; }"
     );
 
     stateLabel_ = new QLabel(QString::fromUtf8("Инициализация..."), statusFrame);
-    stateLabel_->setFont(QFont("Segoe UI", 22, QFont::Bold));
+    stateLabel_->setFont(QFont("Segoe UI", 19, QFont::Bold));
     stateLabel_->setStyleSheet("color: #FFFFFF;");
 
     messageLabel_ = new QLabel(QString::fromUtf8("Подождите..."), statusFrame);
-    messageLabel_->setFont(QFont("Segoe UI", 13));
+    messageLabel_->setFont(QFont("Segoe UI", 12));
     messageLabel_->setStyleSheet("color: #C8D9CE;");
     messageLabel_->setWordWrap(true);
 
     actionHintLabel_ = new QLabel(
         QString::fromUtf8("Загрузите заказ, чтобы начать подбор материалов"),
         statusFrame);
-    actionHintLabel_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    actionHintLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
     actionHintLabel_->setWordWrap(true);
     actionHintLabel_->setStyleSheet("color: #8DE4AD;");
 
     activeModuleLabel_ = new QLabel(
         QString::fromUtf8("Активный модуль: определяем..."),
         statusFrame);
-    activeModuleLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    activeModuleLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
     activeModuleLabel_->setWordWrap(true);
     activeModuleLabel_->setTextFormat(Qt::RichText);
     activeModuleLabel_->setStyleSheet(
         "QLabel { color: #DDF3E4; background: #1A3B2A; "
-        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 8px 12px; }"
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 6px 10px; }"
     );
 
     stm32StatusLabel_ = new QLabel(QString::fromUtf8("STM32: ожидание связи"),
                                    statusFrame);
-    stm32StatusLabel_->setFont(QFont("Segoe UI", 10));
+    stm32StatusLabel_->setFont(QFont("Segoe UI", 9));
     stm32StatusLabel_->setWordWrap(true);
-    stm32StatusLabel_->setMinimumWidth(340);
+    stm32StatusLabel_->setMinimumWidth(280);
     stm32StatusLabel_->setStyleSheet(
         "QLabel { background: #183928; color: #DDEBE1; "
-        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 10px 12px; }"
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 8px 10px; }"
     );
 
     errorLabel_ = new QLabel("", statusFrame);
-    errorLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    errorLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
     errorLabel_->setWordWrap(true);
     errorLabel_->setStyleSheet(
         "QLabel { color: #FFE8E8; background: #803B3B; "
-        "border: 1px solid #B85C5C; border-radius: 8px; padding: 8px 12px; }"
+        "border: 1px solid #B85C5C; border-radius: 8px; padding: 6px 10px; }"
     );
     errorLabel_->setVisible(false);
 
@@ -291,18 +292,18 @@ void WorkerView::setupUi() {
     workLayout->addWidget(statusFrame);
 
     auto* bodyLayout = new QHBoxLayout();
-    bodyLayout->setSpacing(12);
+    bodyLayout->setSpacing(10);
 
     // ── Сетка слотов: главный рабочий объект на сенсорном экране ────────────
     auto* slotFrame = new QFrame(workPage_);
     slotFrame->setFrameShape(QFrame::StyledPanel);
     slotFrame->setStyleSheet(panelStyle);
     auto* slotLayout = new QVBoxLayout(slotFrame);
-    slotLayout->setContentsMargins(14, 12, 14, 14);
-    slotLayout->setSpacing(10);
+    slotLayout->setContentsMargins(12, 10, 12, 12);
+    slotLayout->setSpacing(8);
 
     auto* slotTitle = new QLabel(QString::fromUtf8("Слоты тележки"), slotFrame);
-    slotTitle->setFont(QFont("Segoe UI", 17, QFont::Bold));
+    slotTitle->setFont(QFont("Segoe UI", 15, QFont::Bold));
     slotTitle->setStyleSheet("color: #102217;");
 
     slotGrid_ = new SlotGridWidget(slotFrame);
@@ -312,7 +313,7 @@ void WorkerView::setupUi() {
     auto* rightColumn = new QWidget(workPage_);
     auto* rightLayout = new QVBoxLayout(rightColumn);
     rightLayout->setContentsMargins(0, 0, 0, 0);
-    rightLayout->setSpacing(12);
+    rightLayout->setSpacing(10);
 
     // ── Панель ввода штрихкода: крупная зона действия пальцем ───────────────
     auto* inputFrame = new QFrame(workPage_);
@@ -320,40 +321,40 @@ void WorkerView::setupUi() {
     inputFrame->setStyleSheet(panelStyle);
 
     auto* inputLayout = new QGridLayout(inputFrame);
-    inputLayout->setContentsMargins(14, 12, 14, 14);
-    inputLayout->setHorizontalSpacing(10);
-    inputLayout->setVerticalSpacing(10);
+    inputLayout->setContentsMargins(12, 10, 12, 12);
+    inputLayout->setHorizontalSpacing(8);
+    inputLayout->setVerticalSpacing(8);
 
     auto* barcodeLabel = new QLabel(QString::fromUtf8("Сканер"), inputFrame);
     barcodeLabel->setStyleSheet("color: #102217;");
-    barcodeLabel->setFont(QFont("Segoe UI", 17, QFont::Bold));
+    barcodeLabel->setFont(QFont("Segoe UI", 15, QFont::Bold));
 
     barcodeEdit_ = new QLineEdit(inputFrame);
     barcodeEdit_->setPlaceholderText(
         QString::fromUtf8("Отсканируйте или введите вручную..."));
-    barcodeEdit_->setFont(QFont("Segoe UI", 15));
-    barcodeEdit_->setMinimumHeight(48);
-    barcodeEdit_->setMinimumWidth(280);
+    barcodeEdit_->setFont(QFont("Segoe UI", 13));
+    barcodeEdit_->setMinimumHeight(42);
+    barcodeEdit_->setMinimumWidth(260);
     barcodeEdit_->setStyleSheet(
         "QLineEdit { background: #FFFFFF; color: #102217; "
-        "border: 2px solid #B8D0BF; border-radius: 8px; padding: 10px 14px; }"
+        "border: 2px solid #B8D0BF; border-radius: 8px; padding: 8px 12px; }"
         "QLineEdit:focus { border-color: #2F8F57; }"
     );
 
     importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"),
                                     inputFrame);
-    importButton_->setFont(QFont("Segoe UI", 12, QFont::Bold));
-    importButton_->setMinimumHeight(48);
+    importButton_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    importButton_->setMinimumHeight(40);
     importButton_->setStyleSheet(secondaryButtonStyle);
 
     scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
-    scanButton_->setFont(QFont("Segoe UI", 14, QFont::Bold));
-    scanButton_->setMinimumHeight(54);
+    scanButton_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    scanButton_->setMinimumHeight(46);
     scanButton_->setStyleSheet(primaryButtonStyle);
 
     cancelButton_ = new QPushButton(QString::fromUtf8("Отмена"), inputFrame);
-    cancelButton_->setFont(QFont("Segoe UI", 12, QFont::Bold));
-    cancelButton_->setMinimumHeight(48);
+    cancelButton_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    cancelButton_->setMinimumHeight(40);
     cancelButton_->setEnabled(false);
     cancelButton_->setStyleSheet(dangerButtonStyle);
 
@@ -370,28 +371,28 @@ void WorkerView::setupUi() {
     orderFrame->setStyleSheet(panelStyle);
 
     auto* orderLayout = new QVBoxLayout(orderFrame);
-    orderLayout->setContentsMargins(14, 12, 14, 14);
-    orderLayout->setSpacing(8);
+    orderLayout->setContentsMargins(12, 10, 12, 12);
+    orderLayout->setSpacing(6);
 
     workflowLabel_ = new QLabel(QString::fromUtf8("Заказ"), orderFrame);
-    workflowLabel_->setFont(QFont("Segoe UI", 17, QFont::Bold));
+    workflowLabel_->setFont(QFont("Segoe UI", 15, QFont::Bold));
     workflowLabel_->setStyleSheet("color: #102217;");
 
     orderLabel_ = new QLabel(QString::fromUtf8("Заказ не загружен"), orderFrame);
-    orderLabel_->setFont(QFont("Segoe UI", 12));
+    orderLabel_->setFont(QFont("Segoe UI", 11));
     orderLabel_->setStyleSheet("color: #102217;");
     orderLabel_->setWordWrap(true);
     orderLabel_->setTextFormat(Qt::RichText);
 
     progressLabel_ = new QLabel(QString::fromUtf8("Материалы: 0/0"), orderFrame);
-    progressLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    progressLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
     progressLabel_->setWordWrap(true);
     progressLabel_->setStyleSheet("color: #31533D;");
 
     checklistText_ = new QTextEdit(orderFrame);
     checklistText_->setReadOnly(true);
-    checklistText_->setMinimumHeight(150);
-    checklistText_->setFont(QFont("Segoe UI", 12));
+    checklistText_->setMinimumHeight(110);
+    checklistText_->setFont(QFont("Segoe UI", 11));
     checklistText_->setStyleSheet(
         "QTextEdit { background: #FFFFFF; color: #102217; "
         "border: 1px solid #C7D8CC; border-radius: 8px; padding: 8px; }"
@@ -410,22 +411,22 @@ void WorkerView::setupUi() {
     workflowFrame->setStyleSheet(panelStyle);
 
     auto* workflowRootLayout = new QVBoxLayout(workflowFrame);
-    workflowRootLayout->setContentsMargins(14, 12, 14, 14);
-    workflowRootLayout->setSpacing(8);
+    workflowRootLayout->setContentsMargins(12, 10, 12, 12);
+    workflowRootLayout->setSpacing(6);
 
     auto* routeTitle = new QLabel(QString::fromUtf8("Маршрут тележки"),
                                   workflowFrame);
-    routeTitle->setFont(QFont("Segoe UI", 17, QFont::Bold));
+    routeTitle->setFont(QFont("Segoe UI", 15, QFont::Bold));
     routeTitle->setStyleSheet("color: #102217;");
 
     auto* workflowLayout = new QGridLayout();
-    workflowLayout->setHorizontalSpacing(10);
-    workflowLayout->setVerticalSpacing(10);
+    workflowLayout->setHorizontalSpacing(8);
+    workflowLayout->setVerticalSpacing(8);
 
     auto makeWorkflowButton = [workflowFrame, secondaryButtonStyle](const QString& text) {
         auto* button = new QPushButton(text, workflowFrame);
-        button->setFont(QFont("Segoe UI", 11, QFont::Bold));
-        button->setMinimumHeight(44);
+        button->setFont(QFont("Segoe UI", 10, QFont::Bold));
+        button->setMinimumHeight(38);
         button->setStyleSheet(secondaryButtonStyle);
         return button;
     };
@@ -453,20 +454,27 @@ void WorkerView::setupUi() {
 
     workflowLayout->addWidget(arrivedFeederButton_, 0, 0);
     workflowLayout->addWidget(startFeederPrepButton_, 0, 1);
-    workflowLayout->addWidget(feederPrepDoneButton_, 1, 0);
-    workflowLayout->addWidget(arrivedLineButton_, 1, 1);
-    workflowLayout->addWidget(startIssuingButton_, 2, 0);
-    workflowLayout->addWidget(issueButton_, 2, 1);
-    workflowLayout->addWidget(completeIssuingButton_, 3, 0);
-    workflowLayout->addWidget(inspectLeftoversButton_, 3, 1);
-    workflowLayout->addWidget(startReturnButton_, 4, 0);
-    workflowLayout->addWidget(returnLeftoverButton_, 4, 1);
+    workflowLayout->addWidget(feederPrepDoneButton_, 0, 2);
+    workflowLayout->addWidget(arrivedLineButton_, 1, 0);
+    workflowLayout->addWidget(startIssuingButton_, 1, 1);
+    workflowLayout->addWidget(issueButton_, 1, 2);
+    workflowLayout->addWidget(completeIssuingButton_, 2, 0);
+    workflowLayout->addWidget(inspectLeftoversButton_, 2, 1);
+    workflowLayout->addWidget(startReturnButton_, 2, 2);
+    workflowLayout->addWidget(returnLeftoverButton_, 3, 0, 1, 3);
     workflowRootLayout->addWidget(routeTitle);
     workflowRootLayout->addLayout(workflowLayout);
     rightLayout->addWidget(workflowFrame);
+    rightLayout->addStretch();
+
+    auto* rightScroll = new QScrollArea(workPage_);
+    rightScroll->setFrameShape(QFrame::NoFrame);
+    rightScroll->setWidgetResizable(true);
+    rightScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    rightScroll->setWidget(rightColumn);
 
     bodyLayout->addWidget(slotFrame, 7);
-    bodyLayout->addWidget(rightColumn, 5);
+    bodyLayout->addWidget(rightScroll, 5);
     workLayout->addLayout(bodyLayout, 1);
 
     setLayout(rootLayout);
