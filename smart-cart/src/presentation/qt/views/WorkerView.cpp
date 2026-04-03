@@ -163,6 +163,46 @@ void WorkerView::setupUi() {
     startLayout->addWidget(startCard, 0, Qt::AlignCenter);
     startLayout->addStretch();
 
+    missingModulePage_ = new QWidget(this);
+    missingModulePage_->setStyleSheet("QWidget { background: #102217; }");
+    auto* missingLayout = new QVBoxLayout(missingModulePage_);
+    missingLayout->setContentsMargins(64, 56, 64, 56);
+    missingLayout->setSpacing(24);
+    missingLayout->addStretch();
+
+    auto* missingCard = new QFrame(missingModulePage_);
+    missingCard->setFrameShape(QFrame::StyledPanel);
+    missingCard->setMinimumSize(760, 360);
+    missingCard->setMaximumWidth(920);
+    missingCard->setStyleSheet(
+        "QFrame { background: #F6FAF7; border: 1px solid #AFC8B8; "
+        "border-radius: 8px; }");
+
+    auto* missingCardLayout = new QVBoxLayout(missingCard);
+    missingCardLayout->setContentsMargins(40, 36, 40, 36);
+    missingCardLayout->setSpacing(22);
+
+    auto* missingTitle = new QLabel(QString::fromUtf8("Вставьте модуль"), missingCard);
+    missingTitle->setFont(QFont("Segoe UI", 34, QFont::Bold));
+    missingTitle->setStyleSheet("color: #102217;");
+    missingTitle->setAlignment(Qt::AlignCenter);
+
+    auto* missingText = new QLabel(
+        QString::fromUtf8(
+            "1. Активный модуль сейчас недоступен.\n"
+            "2. Вставьте модуль в тележку и поднесите RFID-метку к считывателю.\n"
+            "3. После перехода модуля в онлайн рабочий экран откроется автоматически."),
+        missingCard);
+    missingText->setFont(QFont("Segoe UI", 20));
+    missingText->setStyleSheet("color: #31533D;");
+    missingText->setAlignment(Qt::AlignCenter);
+    missingText->setWordWrap(true);
+
+    missingCardLayout->addWidget(missingTitle);
+    missingCardLayout->addWidget(missingText);
+    missingLayout->addWidget(missingCard, 0, Qt::AlignCenter);
+    missingLayout->addStretch();
+
     workPage_ = new QWidget(this);
     workPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* workLayout = new QVBoxLayout(workPage_);
@@ -170,6 +210,7 @@ void WorkerView::setupUi() {
     workLayout->setSpacing(14);
 
     rootLayout->addWidget(startPage_);
+    rootLayout->addWidget(missingModulePage_);
     rootLayout->addWidget(workPage_);
 
     // ── Верхняя панель: крупная подсказка для оператора ─────────────────────
@@ -448,6 +489,8 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onStm32StatusUpdated);
     connect(&viewModel_, &WorkerViewModel::activeModuleUpdated,
             this, &WorkerView::onActiveModuleUpdated);
+    connect(&viewModel_, &WorkerViewModel::activeModuleAvailabilityChanged,
+            this, &WorkerView::onActiveModuleAvailabilityChanged);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
             this, &WorkerView::onErrorOccurred);
 
@@ -489,8 +532,8 @@ void WorkerView::connectSignals() {
                 const bool operating =
                     (state == smartcart::application::AppState::Operating);
                 cancelButton_->setEnabled(operating);
-                scanButton_->setEnabled(!operating);
-                barcodeEdit_->setEnabled(!operating);
+                scanButton_->setEnabled(!operating && moduleOnline_);
+                barcodeEdit_->setEnabled(!operating && moduleOnline_);
                 if (!operating) barcodeEdit_->setFocus();  // фокус после завершения операции
                 // Скрываем ошибку при переходе в рабочее состояние
                 if (state == smartcart::application::AppState::Ready ||
@@ -529,10 +572,8 @@ void WorkerView::onWorkflowUpdated(const QString& workflow,
     progressLabel_->setText(progress);
     checklistText_->setPlainText(checklist);
 
-    if (startPage_ && workPage_) {
-        startPage_->setVisible(showStartPage);
-        workPage_->setVisible(!showStartPage);
-    }
+    showStartPage_ = showStartPage;
+    updateVisiblePage();
 }
 
 void WorkerView::onStm32StatusUpdated(const QString& status) {
@@ -543,6 +584,11 @@ void WorkerView::onActiveModuleUpdated(const QString& moduleSummary) {
     if (activeModuleLabel_) {
         activeModuleLabel_->setText(moduleSummary);
     }
+}
+
+void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
+    moduleOnline_ = online;
+    updateVisiblePage();
 }
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
@@ -709,6 +755,36 @@ void WorkerView::focusBarcodeInput() {
         return;
     }
     barcodeEdit_->setFocus(Qt::OtherFocusReason);
+}
+
+void WorkerView::updateVisiblePage() {
+    if (!startPage_ || !missingModulePage_ || !workPage_) {
+        return;
+    }
+
+    const bool showMissingModulePage = !moduleOnline_;
+    startPage_->setVisible(!showMissingModulePage && showStartPage_);
+    missingModulePage_->setVisible(showMissingModulePage);
+    workPage_->setVisible(!showMissingModulePage && !showStartPage_);
+
+    const bool workEnabled = !showMissingModulePage;
+    if (barcodeEdit_) {
+        barcodeEdit_->setEnabled(workEnabled);
+    }
+    if (scanButton_) {
+        scanButton_->setEnabled(workEnabled);
+    }
+    if (importButton_) {
+        importButton_->setEnabled(workEnabled);
+    }
+    if (startImportButton_) {
+        startImportButton_->setEnabled(workEnabled);
+    }
+    if (cancelButton_) {
+        if (!workEnabled) {
+            cancelButton_->setEnabled(false);
+        }
+    }
 }
 
 void WorkerView::updateScanActionText(const QString& stateKey) {

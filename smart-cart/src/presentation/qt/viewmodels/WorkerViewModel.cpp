@@ -66,6 +66,9 @@ void WorkerViewModel::submitBarcode(const QString& barcode) {
         emit errorOccurred(QString::fromUtf8("Пустой штрихкод — игнорируется"));
         return;
     }
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Сканирование недоступно"))) {
+        return;
+    }
 
     const auto workflow = workflowRepo_.get();
     switch (workflow.state) {
@@ -85,6 +88,9 @@ void WorkerViewModel::submitBarcode(const QString& barcode) {
 void WorkerViewModel::onBarcodeScanned(const QString& barcode) {
     if (barcode.trimmed().isEmpty()) {
         emit errorOccurred(QString::fromUtf8("Пустой штрихкод — игнорируется"));
+        return;
+    }
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Подбор недоступен"))) {
         return;
     }
     stateMachine_.scanBarcode(barcode.trimmed());
@@ -107,6 +113,9 @@ void WorkerViewModel::importOrderFromFile(const QString& path) {
     if (path.trimmed().isEmpty()) {
         return;
     }
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Загрузка заказа недоступна"))) {
+        return;
+    }
 
     const auto result = orderImportSvc_.importFromFile(path.toStdString());
     if (!result) {
@@ -121,22 +130,37 @@ void WorkerViewModel::importOrderFromFile(const QString& path) {
 }
 
 void WorkerViewModel::markCartArrivedToFeederPrep() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Маршрут недоступен"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.markCartArrivedToFeederPrep());
 }
 
 void WorkerViewModel::startFeederPrep() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Подготовка недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.startFeederPrep());
 }
 
 void WorkerViewModel::markFeederPrepCompleted() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Подготовка недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.markFeederPrepCompleted());
 }
 
 void WorkerViewModel::markCartArrivedToLine() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Маршрут недоступен"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.markCartArrivedToLine());
 }
 
 void WorkerViewModel::startIssuingToLine() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Выдача недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.startIssuingToLine());
 }
 
@@ -146,18 +170,30 @@ void WorkerViewModel::markItemIssued(const QString& barcode) {
         emit errorOccurred(QString::fromUtf8("Введите штрихкод для выдачи"));
         return;
     }
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Выдача недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.markItemIssued(normalized.toStdString()));
 }
 
 void WorkerViewModel::completeIssuing() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Выдача недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.completeIssuing());
 }
 
 void WorkerViewModel::inspectLeftovers() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Проверка остатков недоступна"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.inspectLeftoversAfterOrderCompleted());
 }
 
 void WorkerViewModel::startReturningLeftovers() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Возврат недоступен"))) {
+        return;
+    }
     handleWorkflowResult(workflowSvc_.startReturningLeftovers());
 }
 
@@ -165,6 +201,9 @@ void WorkerViewModel::markLeftoverReturned(const QString& barcodeOrSlot) {
     const auto normalized = barcodeOrSlot.trimmed();
     if (normalized.isEmpty()) {
         emit errorOccurred(QString::fromUtf8("Введите штрихкод или номер слота остатка"));
+        return;
+    }
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Возврат недоступен"))) {
         return;
     }
 
@@ -450,6 +489,7 @@ void WorkerViewModel::rebuildModuleStatus() {
         emit activeModuleUpdated(
             QString::fromUtf8("Активный модуль: #%1 · запись не найдена")
                 .arg(workflow.moduleId));
+        emit activeModuleAvailabilityChanged(false);
         return;
     }
 
@@ -478,6 +518,25 @@ void WorkerViewModel::rebuildModuleStatus() {
             .arg(QString::fromStdString(module->serial).toHtmlEscaped())
             .arg(statusColor)
             .arg(statusText));
+    emit activeModuleAvailabilityChanged(module->status == ModuleStatus::Online);
+}
+
+bool WorkerViewModel::isActiveModuleOnline() const {
+    const auto workflow = workflowRepo_.get();
+    const auto module = moduleRepo_.getById(workflow.moduleId);
+    return module.has_value() && module->status == ModuleStatus::Online;
+}
+
+bool WorkerViewModel::ensureActiveModuleOnline(const QString& actionLabel) {
+    if (isActiveModuleOnline()) {
+        return true;
+    }
+
+    emit operationStateChanged(
+        QString::fromUtf8("Модуль недоступен"),
+        actionLabel + QString::fromUtf8(". Вставьте модуль и дождитесь перехода в онлайн."));
+    emit activeModuleAvailabilityChanged(false);
+    return false;
 }
 
 void WorkerViewModel::handleWorkflowResult(

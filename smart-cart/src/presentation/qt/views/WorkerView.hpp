@@ -32,6 +32,7 @@ private slots:
     void onWorkflowControlsUpdated(const QString& stateKey);
     void onStm32StatusUpdated(const QString& status);
     void onActiveModuleUpdated(const QString& moduleSummary);
+    void onActiveModuleAvailabilityChanged(bool online);
     void onErrorOccurred(const QString& message);
     void onImportOrderClicked();
     void onBarcodeSubmitted();
@@ -51,6 +52,7 @@ private:
     WorkerViewModel& viewModel_;
 
     QWidget*        startPage_ = nullptr;
+    QWidget*        missingModulePage_ = nullptr;
     QWidget*        workPage_ = nullptr;
     SlotGridWidget* slotGrid_     = nullptr;
     QLabel*         stateLabel_   = nullptr;
@@ -79,10 +81,13 @@ private:
     QPushButton*    inspectLeftoversButton_ = nullptr;
     QPushButton*    startReturnButton_ = nullptr;
     QPushButton*    returnLeftoverButton_ = nullptr;
+    bool            moduleOnline_ = true;
+    bool            showStartPage_ = false;
 
     void setupUi();
     void connectSignals();
     void focusBarcodeInput();
+    void updateVisiblePage();
     void updateScanActionText(const QString& stateKey);
     void updateActionHint(const QString& stateKey);
     void setWorkflowActionsEnabled(bool arrivedFeeder,

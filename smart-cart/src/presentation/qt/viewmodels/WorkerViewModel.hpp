@@ -53,6 +53,7 @@ signals:
     void workflowControlsUpdated(QString stateKey);
     void stm32StatusUpdated(QString status);
     void activeModuleUpdated(QString moduleSummary);
+    void activeModuleAvailabilityChanged(bool online);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
 
@@ -100,6 +101,8 @@ private:
     void           rebuildWorkflowSummary();
     void           rebuildStm32Status();
     void           rebuildModuleStatus();
+    bool           ensureActiveModuleOnline(const QString& actionLabel);
+    bool           isActiveModuleOnline() const;
     void           handleWorkflowResult(
         const smartcart::application::services::WorkflowActionResult& result);
     static QString errorMessage(smartcart::domain::ErrorCode code);
