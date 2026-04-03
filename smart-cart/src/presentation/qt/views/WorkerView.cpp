@@ -213,6 +213,7 @@ void WorkerView::setupUi() {
         statusFrame);
     activeModuleLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
     activeModuleLabel_->setWordWrap(true);
+    activeModuleLabel_->setTextFormat(Qt::RichText);
     activeModuleLabel_->setStyleSheet(
         "QLabel { color: #DDF3E4; background: #1A3B2A; "
         "border: 1px solid #3E6B4C; border-radius: 8px; padding: 8px 12px; }"
