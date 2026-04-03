@@ -6,7 +6,9 @@
 //   - onStateChanged: все строки через QString::fromUtf8
 #include "WorkerViewModel.hpp"
 
+#include <QDateTime>
 #include <QStringList>
+#include <algorithm>
 #include <string>
 #include <unordered_map>
 
@@ -298,13 +300,20 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     QString orderText = QString::fromUtf8("Заказ не загружен");
     QString checklistText = QString::fromUtf8("Загрузите JSON заказа");
     QString progressText = QString::fromUtf8("Материалы: 0/0");
+    const bool showLeftovers =
+        workflow.state == CartWorkflowState::LeftoversDetected ||
+        workflow.state == CartWorkflowState::ReturningLeftovers;
+    const auto leftovers = reelRepo_.getActiveByModule(1);
+    const bool showStartPage =
+        workflow.state == CartWorkflowState::Free &&
+        !workflow.currentOrderId.has_value() &&
+        leftovers.empty();
 
     if (!workflow.currentOrderId.has_value()) {
-        const auto leftovers = reelRepo_.getActiveByModule(1);
         if (!leftovers.empty()) {
             QStringList lines;
             for (const auto& reel : leftovers) {
-                lines << QString::fromUtf8("%1 → слот %2")
+                lines << QString::fromUtf8("%1 → слот %2 → вернуть на склад")
                              .arg(QString::fromStdString(reel.barcode))
                              .arg(reel.slotIndex);
             }
@@ -317,10 +326,16 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     } else {
         const auto order = orderRepo_.getOrderById(*workflow.currentOrderId);
         if (order.has_value()) {
-            orderText = QString::fromUtf8("%1 — %2, приоритет: %3")
-                            .arg(QString::fromStdString(order->externalOrderId),
-                                 QString::fromStdString(order->title),
-                                 QString::fromStdString(order->priority));
+            orderText =
+                QString::fromUtf8(
+                    "<b>%1</b> — %2<br>"
+                    "<span style=\"color:%3; font-weight:700;\">● %4</span>"
+                    " · %5")
+                    .arg(QString::fromStdString(order->externalOrderId).toHtmlEscaped(),
+                         QString::fromStdString(order->title).toHtmlEscaped(),
+                         priorityColor(order->priority),
+                         priorityLabel(order->priority),
+                         orderTimeText(*order).toHtmlEscaped());
 
             const auto items = orderRepo_.getItems(order->id);
             QStringList lines;
@@ -367,13 +382,30 @@ void WorkerViewModel::rebuildWorkflowSummary() {
                     .arg(issued)
                     .arg(wrongSlot)
                     .arg(pending);
+
+            if (showLeftovers) {
+                QStringList leftoverLines;
+                for (const auto& reel : leftovers) {
+                    leftoverLines << QString::fromUtf8("%1 → слот %2 → вернуть на склад")
+                                         .arg(QString::fromStdString(reel.barcode))
+                                         .arg(reel.slotIndex);
+                }
+
+                checklistText = leftoverLines.isEmpty()
+                    ? QString::fromUtf8("Остатков нет")
+                    : QString::fromUtf8("Остатки к возврату:\n") +
+                          leftoverLines.join('\n');
+                progressText = QString::fromUtf8("Остатки: %1")
+                                   .arg(static_cast<int>(leftovers.size()));
+            }
         }
     }
 
     emit workflowUpdated(workflowLabel(workflow.state),
                          orderText,
                          checklistText,
-                         progressText);
+                         progressText,
+                         showStartPage);
     emit workflowControlsUpdated(
         QString::fromStdString(std::string(toString(workflow.state))));
 }
@@ -467,4 +499,77 @@ QString WorkerViewModel::itemStatusLabel(OrderItemStatus status) {
         case OrderItemStatus::WrongSlot: return QString::fromUtf8("неверный слот");
     }
     return QString::fromUtf8("неизвестно");
+}
+
+QString WorkerViewModel::priorityColor(const std::string& priority) {
+    const QString value = QString::fromStdString(priority).trimmed().toLower();
+    if (value == QStringLiteral("high") ||
+        value == QStringLiteral("urgent") ||
+        value == QStringLiteral("critical") ||
+        value == QString::fromUtf8("высокий") ||
+        value == QString::fromUtf8("срочно"))
+    {
+        return QStringLiteral("#B85C5C");
+    }
+
+    if (value == QStringLiteral("low") ||
+        value == QString::fromUtf8("низкий"))
+    {
+        return QStringLiteral("#6E8F78");
+    }
+
+    return QStringLiteral("#C58A36");
+}
+
+QString WorkerViewModel::priorityLabel(const std::string& priority) {
+    const QString value = QString::fromStdString(priority).trimmed();
+    if (value.isEmpty()) {
+        return QString::fromUtf8("приоритет не задан");
+    }
+
+    const QString lower = value.toLower();
+    if (lower == QStringLiteral("high") ||
+        lower == QStringLiteral("urgent") ||
+        lower == QStringLiteral("critical"))
+    {
+        return QString::fromUtf8("высокий приоритет");
+    }
+    if (lower == QStringLiteral("normal") ||
+        lower == QStringLiteral("medium"))
+    {
+        return QString::fromUtf8("обычный приоритет");
+    }
+    if (lower == QStringLiteral("low")) {
+        return QString::fromUtf8("низкий приоритет");
+    }
+
+    return value.toHtmlEscaped();
+}
+
+QString WorkerViewModel::orderTimeText(const OrderInfo& order) {
+    if (order.durationMinutes <= 0) {
+        return QString::fromUtf8("время не задано");
+    }
+
+    QDateTime createdAt =
+        QDateTime::fromString(QString::fromStdString(order.createdAt),
+                              QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    if (!createdAt.isValid()) {
+        return QString::fromUtf8("выделено: %1 мин").arg(order.durationMinutes);
+    }
+
+    const qint64 elapsedSeconds = createdAt.secsTo(QDateTime::currentDateTime());
+    const int elapsedMinutes =
+        static_cast<int>(std::max<qint64>(0, elapsedSeconds) / 60);
+    const int remainingMinutes = order.durationMinutes - elapsedMinutes;
+
+    if (remainingMinutes >= 0) {
+        return QString::fromUtf8("выделено: %1 мин, осталось: %2 мин")
+            .arg(order.durationMinutes)
+            .arg(remainingMinutes);
+    }
+
+    return QString::fromUtf8("выделено: %1 мин, просрочено на %2 мин")
+        .arg(order.durationMinutes)
+        .arg(-remainingMinutes);
 }

@@ -27,7 +27,8 @@ private slots:
     void onWorkflowUpdated(const QString& workflow,
                            const QString& order,
                            const QString& checklist,
-                           const QString& progress);
+                           const QString& progress,
+                           bool showStartPage);
     void onWorkflowControlsUpdated(const QString& stateKey);
     void onStm32StatusUpdated(const QString& status);
     void onErrorOccurred(const QString& message);
@@ -48,6 +49,8 @@ private slots:
 private:
     WorkerViewModel& viewModel_;
 
+    QWidget*        startPage_ = nullptr;
+    QWidget*        workPage_ = nullptr;
     SlotGridWidget* slotGrid_     = nullptr;
     QLabel*         stateLabel_   = nullptr;
     QLabel*         messageLabel_ = nullptr;
@@ -61,6 +64,7 @@ private:
     QLabel*         errorLabel_   = nullptr;
     QLineEdit*      barcodeEdit_  = nullptr;
     QPushButton*    importButton_ = nullptr;
+    QPushButton*    startImportButton_ = nullptr;
     QPushButton*    scanButton_   = nullptr;
     QPushButton*    cancelButton_ = nullptr;
     QPushButton*    arrivedFeederButton_ = nullptr;

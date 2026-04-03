@@ -4,10 +4,79 @@
 #include <optional>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 namespace smartcart::application::services {
 
 namespace domain = smartcart::domain;
+
+namespace {
+
+struct ItemStats {
+    int total{0};
+    int pending{0};
+    int placed{0};
+    int issued{0};
+    int returned{0};
+    int missing{0};
+    int wrongSlot{0};
+};
+
+ItemStats countItems(const std::vector<domain::OrderItem>& items) {
+    ItemStats stats;
+    stats.total = static_cast<int>(items.size());
+
+    for (const auto& item : items) {
+        switch (item.status) {
+            case domain::OrderItemStatus::Pending:   ++stats.pending; break;
+            case domain::OrderItemStatus::Placed:    ++stats.placed; break;
+            case domain::OrderItemStatus::Issued:    ++stats.issued; break;
+            case domain::OrderItemStatus::Returned:  ++stats.returned; break;
+            case domain::OrderItemStatus::Missing:   ++stats.missing; break;
+            case domain::OrderItemStatus::WrongSlot: ++stats.wrongSlot; break;
+        }
+    }
+
+    return stats;
+}
+
+std::string describeLeftovers(const std::vector<domain::ReelRecord>& leftovers) {
+    if (leftovers.empty()) {
+        return "leftovers=[]";
+    }
+
+    std::ostringstream msg;
+    msg << "leftovers=[";
+    for (size_t i = 0; i < leftovers.size(); ++i) {
+        if (i != 0) {
+            msg << "; ";
+        }
+        msg << leftovers[i].barcode << " slot=" << leftovers[i].slotIndex;
+    }
+    msg << "]";
+    return msg.str();
+}
+
+std::string buildOrderReport(int orderId,
+                             const std::vector<domain::OrderItem>& items,
+                             const std::vector<domain::ReelRecord>& leftovers) {
+    const auto stats = countItems(items);
+
+    std::ostringstream msg;
+    msg << "order_id=" << orderId
+        << " total=" << stats.total
+        << " issued=" << stats.issued
+        << " returned=" << stats.returned
+        << " placed_not_issued=" << stats.placed
+        << " pending=" << stats.pending
+        << " missing=" << stats.missing
+        << " wrong_slot=" << stats.wrongSlot
+        << " leftovers_count=" << leftovers.size()
+        << " " << describeLeftovers(leftovers);
+    return msg.str();
+}
+
+} // namespace
 
 WorkflowService::WorkflowService(ports::IOrderRepository& orderRepo,
                                  ports::IWorkflowRepository& workflowRepo,
@@ -174,6 +243,7 @@ WorkflowActionResult WorkflowService::completeIssuing() {
     }
 
     const auto items = orderRepo_.getItems(*orderId);
+    const auto stats = countItems(items);
     const bool allIssued = !items.empty() &&
         std::all_of(items.begin(), items.end(), [](const auto& item) {
             return item.status == domain::OrderItemStatus::Issued ||
@@ -181,15 +251,36 @@ WorkflowActionResult WorkflowService::completeIssuing() {
         });
 
     if (!allIssued) {
+        std::ostringstream msg;
+        msg << "Не все материалы выданы на линию: выдано "
+            << stats.issued << "/" << stats.total
+            << ", ожидает=" << stats.pending
+            << ", размещено не выдано=" << stats.placed
+            << ", ошибок=" << stats.wrongSlot;
         return reject(domain::ErrorCode::Unknown,
-                      "Не все материалы выданы на линию",
+                      msg.str(),
                       "IssuingCompleteFailed");
     }
 
+    const auto active = reelRepo_.getActiveByModule(moduleId_);
+    logSafe("INFO", "OrderReport", buildOrderReport(*orderId, items, active));
+
     orderRepo_.updateOrderStatus(*orderId, domain::OrderStatus::Completed);
-    workflowRepo_.setState(domain::CartWorkflowState::OrderCompleted);
     logSafe("INFO", "OrderCompleted", "Заказ завершён");
-    return ok("Заказ завершён. Проверьте остатки");
+
+    if (active.empty()) {
+        workflowRepo_.clearCurrentOrder(domain::CartWorkflowState::Free);
+        logSafe("INFO", "CartFree", "Остатков нет, тележка свободна");
+        return ok("Заказ завершён. Отчёт записан. Остатков нет");
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::ReturningLeftovers);
+    std::ostringstream msg;
+    msg << "count=" << active.size()
+        << " " << describeLeftovers(active);
+    logSafe("WARN", "LeftoversDetected", msg.str());
+    logSafe("INFO", "ReturningLeftoversStarted", "Возврат остатков начат автоматически");
+    return ok("Заказ завершён. Отчёт записан. Верните остатки на склад");
 }
 
 WorkflowActionResult WorkflowService::inspectLeftoversAfterOrderCompleted() {
@@ -212,7 +303,8 @@ WorkflowActionResult WorkflowService::inspectLeftoversAfterOrderCompleted() {
 
     workflowRepo_.setState(domain::CartWorkflowState::LeftoversDetected);
     std::ostringstream msg;
-    msg << "count=" << active.size();
+    msg << "count=" << active.size()
+        << " " << describeLeftovers(active);
     logSafe("WARN", "LeftoversDetected", msg.str());
     return ok("Обнаружены остатки. Верните их на склад");
 }
@@ -251,11 +343,20 @@ WorkflowActionResult WorkflowService::markLeftoverReturnedBySlot(int slotIndex) 
                       "InvalidWorkflowTransition");
     }
 
+    const auto active = reelRepo_.getBySlot(moduleId_, slotIndex);
+    if (!active.has_value()) {
+        return reject(domain::ErrorCode::ReelNotFound,
+                      "В слоте нет активного остатка: " + std::to_string(slotIndex),
+                      "LeftoverReturnFailed");
+    }
+
     reelRepo_.markRemovedBySlot(moduleId_, slotIndex);
     reelRepo_.setSlotState(moduleId_, slotIndex, domain::SlotState::Free);
 
     std::ostringstream msg;
-    msg << "slot=" << slotIndex;
+    msg << "barcode=" << active->barcode
+        << " slot=" << slotIndex
+        << " destination=stock";
     logSafe("INFO", "LeftoverReturned", msg.str());
 
     if (reelRepo_.getActiveByModule(moduleId_).empty()) {

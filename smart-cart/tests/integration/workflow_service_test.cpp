@@ -217,10 +217,37 @@ TEST_F(WorkflowServiceTest, IssuingMarksMaterialRemovedAndCartFree) {
     EXPECT_EQ(slotStates[1].state, domain::SlotState::Free);
 
     EXPECT_TRUE(workflowSvc_->completeIssuing());
-    EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::OrderCompleted);
-    EXPECT_TRUE(workflowSvc_->inspectLeftoversAfterOrderCompleted());
     EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::Free);
     EXPECT_EQ(countEvents(conn_->handle(), "MaterialIssued"), 1);
+    EXPECT_EQ(countEvents(conn_->handle(), "OrderReport"), 1);
+    EXPECT_EQ(countEvents(conn_->handle(), "CartFree"), 1);
+}
+
+TEST_F(WorkflowServiceTest, CompleteIssuingWithLeftoverStartsReturnFlow) {
+    const int orderId = addOrder("ORDER-ISSUING-LEFTOVER");
+    orderRepo_->addItem(
+        makeItem(orderId,
+                 "R-ISSUED",
+                 2,
+                 domain::OrderItemStatus::Issued,
+                 2)
+    );
+    reelRepo_->addRecord(1, 5, "EXTRA-LEFTOVER");
+    reelRepo_->setSlotState(1, 5, domain::SlotState::Occupied);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::IssuingToLine);
+
+    EXPECT_TRUE(workflowSvc_->completeIssuing());
+    EXPECT_EQ(workflowRepo_->get().state,
+              domain::CartWorkflowState::ReturningLeftovers);
+    EXPECT_TRUE(workflowRepo_->get().currentOrderId.has_value());
+    EXPECT_EQ(countEvents(conn_->handle(), "OrderReport"), 1);
+    EXPECT_EQ(countEvents(conn_->handle(), "LeftoversDetected"), 1);
+    EXPECT_EQ(countEvents(conn_->handle(), "ReturningLeftoversStarted"), 1);
+
+    EXPECT_TRUE(workflowSvc_->markLeftoverReturnedByBarcode("EXTRA-LEFTOVER"));
+    EXPECT_FALSE(workflowRepo_->get().currentOrderId.has_value());
+    EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::Free);
+    EXPECT_EQ(countEvents(conn_->handle(), "LeftoverReturned"), 1);
     EXPECT_EQ(countEvents(conn_->handle(), "CartFree"), 1);
 }
 

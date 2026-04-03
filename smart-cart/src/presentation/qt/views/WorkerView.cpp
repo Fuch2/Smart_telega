@@ -41,6 +41,9 @@ bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
     {
         return QWidget::eventFilter(watched, event);
     }
+    if (workPage_ && !workPage_->isVisible()) {
+        return QWidget::eventFilter(watched, event);
+    }
 
     auto* keyEvent = static_cast<QKeyEvent*>(event);
     const auto modifiers = keyEvent->modifiers();
@@ -82,11 +85,67 @@ bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
 
 void WorkerView::setupUi() {
     auto* rootLayout = new QVBoxLayout(this);
-    rootLayout->setContentsMargins(16, 16, 16, 16);
-    rootLayout->setSpacing(12);
+    rootLayout->setContentsMargins(0, 0, 0, 0);
+    rootLayout->setSpacing(0);
+
+    startPage_ = new QWidget(this);
+    startPage_->setStyleSheet("QWidget { background: #F0F4F1; }");
+    auto* startLayout = new QVBoxLayout(startPage_);
+    startLayout->setContentsMargins(48, 48, 48, 48);
+    startLayout->setSpacing(20);
+    startLayout->addStretch();
+
+    auto* startCard = new QFrame(startPage_);
+    startCard->setFrameShape(QFrame::StyledPanel);
+    startCard->setMaximumWidth(760);
+    startCard->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #C8D8CC; "
+        "border-radius: 8px; }");
+
+    auto* startCardLayout = new QVBoxLayout(startCard);
+    startCardLayout->setContentsMargins(28, 24, 28, 24);
+    startCardLayout->setSpacing(14);
+
+    auto* startTitle = new QLabel(QString::fromUtf8("Тележка свободна"), startCard);
+    startTitle->setFont(QFont("Segoe UI", 24, QFont::Bold));
+    startTitle->setStyleSheet("color: #223027;");
+    startTitle->setAlignment(Qt::AlignCenter);
+
+    auto* startText = new QLabel(
+        QString::fromUtf8("1. Остатков нет.\n2. Тележка свободна. Выберите заказ."),
+        startCard);
+    startText->setFont(QFont("Segoe UI", 15));
+    startText->setStyleSheet("color: #4A6653;");
+    startText->setAlignment(Qt::AlignCenter);
+    startText->setWordWrap(true);
+
+    startImportButton_ =
+        new QPushButton(QString::fromUtf8("Выбрать заказ"), startCard);
+    startImportButton_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    startImportButton_->setMinimumHeight(44);
+    startImportButton_->setStyleSheet(
+        "QPushButton { background: #2E7D4F; color: #FFFFFF; "
+        "border-radius: 4px; padding: 8px 18px; font-weight: bold; }"
+        "QPushButton:hover { background: #3F9362; }"
+        "QPushButton:pressed { background: #24663F; }"
+    );
+
+    startCardLayout->addWidget(startTitle);
+    startCardLayout->addWidget(startText);
+    startCardLayout->addWidget(startImportButton_, 0, Qt::AlignCenter);
+    startLayout->addWidget(startCard, 0, Qt::AlignCenter);
+    startLayout->addStretch();
+
+    workPage_ = new QWidget(this);
+    auto* workLayout = new QVBoxLayout(workPage_);
+    workLayout->setContentsMargins(16, 16, 16, 16);
+    workLayout->setSpacing(12);
+
+    rootLayout->addWidget(startPage_);
+    rootLayout->addWidget(workPage_);
 
     // ── Верхняя панель: где мы и что делать дальше ───────────────────────────
-    auto* statusFrame = new QFrame(this);
+    auto* statusFrame = new QFrame(workPage_);
     statusFrame->setFrameShape(QFrame::StyledPanel);
     statusFrame->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #C8D8CC; "
@@ -150,18 +209,18 @@ void WorkerView::setupUi() {
 
     statusLayout->addLayout(statusTextLayout, 1);
     statusLayout->addWidget(stm32StatusLabel_);
-    rootLayout->addWidget(statusFrame);
+    workLayout->addWidget(statusFrame);
 
     auto* bodyLayout = new QHBoxLayout();
     bodyLayout->setSpacing(12);
 
-    auto* leftColumn = new QWidget(this);
+    auto* leftColumn = new QWidget(workPage_);
     auto* leftLayout = new QVBoxLayout(leftColumn);
     leftLayout->setContentsMargins(0, 0, 0, 0);
     leftLayout->setSpacing(12);
 
     // ── Заказ и чек-лист ─────────────────────────────────────────────────────
-    auto* orderFrame = new QFrame(this);
+    auto* orderFrame = new QFrame(workPage_);
     orderFrame->setFrameShape(QFrame::StyledPanel);
     orderFrame->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
@@ -179,6 +238,7 @@ void WorkerView::setupUi() {
     orderLabel_->setFont(QFont("Segoe UI", 10));
     orderLabel_->setStyleSheet("color: #223027;");
     orderLabel_->setWordWrap(true);
+    orderLabel_->setTextFormat(Qt::RichText);
 
     progressLabel_ = new QLabel(QString::fromUtf8("Материалы: 0/0"), orderFrame);
     progressLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
@@ -202,7 +262,7 @@ void WorkerView::setupUi() {
     leftLayout->addWidget(orderFrame, 1);
 
     // ── Панель ввода штрихкода ────────────────────────────────────────────────
-    auto* inputFrame = new QFrame(this);
+    auto* inputFrame = new QFrame(workPage_);
     inputFrame->setFrameShape(QFrame::StyledPanel);
     inputFrame->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
@@ -265,7 +325,7 @@ void WorkerView::setupUi() {
     leftLayout->addWidget(inputFrame);
 
     // ── Этапы маршрута тележки ───────────────────────────────────────────────
-    auto* workflowFrame = new QFrame(this);
+    auto* workflowFrame = new QFrame(workPage_);
     workflowFrame->setFrameShape(QFrame::StyledPanel);
     workflowFrame->setStyleSheet(
         "QFrame { background: #EEF5EF; border: 1px solid #D8E1D9; "
@@ -335,7 +395,7 @@ void WorkerView::setupUi() {
     leftLayout->addWidget(workflowFrame);
 
     // ── Сетка слотов ─────────────────────────────────────────────────────────
-    auto* slotFrame = new QFrame(this);
+    auto* slotFrame = new QFrame(workPage_);
     slotFrame->setFrameShape(QFrame::StyledPanel);
     slotFrame->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
@@ -354,7 +414,7 @@ void WorkerView::setupUi() {
 
     bodyLayout->addWidget(leftColumn, 0);
     bodyLayout->addWidget(slotFrame, 1);
-    rootLayout->addLayout(bodyLayout, 1);
+    workLayout->addLayout(bodyLayout, 1);
 
     setLayout(rootLayout);
     setStyleSheet("WorkerView { background: #F0F4F1; }");
@@ -378,6 +438,8 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onErrorOccurred);
 
     connect(importButton_, &QPushButton::clicked,
+            this, &WorkerView::onImportOrderClicked);
+    connect(startImportButton_, &QPushButton::clicked,
             this, &WorkerView::onImportOrderClicked);
     connect(scanButton_,  &QPushButton::clicked,
             this, &WorkerView::onBarcodeSubmitted);
@@ -445,12 +507,18 @@ void WorkerView::onOperationStateChanged(const QString& state,
 void WorkerView::onWorkflowUpdated(const QString& workflow,
                                    const QString& order,
                                    const QString& checklist,
-                                   const QString& progress) {
+                                   const QString& progress,
+                                   bool showStartPage) {
     workflowPillLabel_->setText(workflow);
     workflowLabel_->setText(workflow);
     orderLabel_->setText(order);
     progressLabel_->setText(progress);
     checklistText_->setPlainText(checklist);
+
+    if (startPage_ && workPage_) {
+        startPage_->setVisible(showStartPage);
+        workPage_->setVisible(!showStartPage);
+    }
 }
 
 void WorkerView::onStm32StatusUpdated(const QString& status) {
@@ -615,6 +683,7 @@ void WorkerView::onReturnLeftoverClicked() {
 void WorkerView::focusBarcodeInput() {
     if (!barcodeEdit_ ||
         !barcodeEdit_->isEnabled() ||
+        (workPage_ && !workPage_->isVisible()) ||
         QApplication::activeWindow() != window())
     {
         return;

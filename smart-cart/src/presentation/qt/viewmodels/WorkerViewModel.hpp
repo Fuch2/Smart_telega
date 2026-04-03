@@ -46,7 +46,8 @@ signals:
     void workflowUpdated(QString workflow,
                          QString order,
                          QString checklist,
-                         QString progress);
+                         QString progress,
+                         bool showStartPage);
     void workflowControlsUpdated(QString stateKey);
     void stm32StatusUpdated(QString status);
     void operationStateChanged(QString state, QString message);
@@ -99,4 +100,7 @@ private:
     static QString errorMessage(smartcart::domain::ErrorCode code);
     static QString workflowLabel(smartcart::domain::CartWorkflowState state);
     static QString itemStatusLabel(smartcart::domain::OrderItemStatus status);
+    static QString priorityColor(const std::string& priority);
+    static QString priorityLabel(const std::string& priority);
+    static QString orderTimeText(const smartcart::domain::OrderInfo& order);
 };
