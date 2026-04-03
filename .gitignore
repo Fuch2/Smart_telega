@@ -1,1 +1,4 @@
 SetupSTM32CubeProgrammer_linux_64.zip
+__pycache__/
+*.pyc
+*.pyo
