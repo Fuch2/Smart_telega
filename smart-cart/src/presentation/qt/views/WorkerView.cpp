@@ -5,10 +5,13 @@
 //   - onOperationStateChanged: убрано хрупкое сравнение строк
 #include "WorkerView.hpp"
 
+#include <QApplication>
+#include <QEvent>
 #include <QFont>
 #include <QFileDialog>
 #include <QFrame>
 #include <QGridLayout>
+#include <QKeyEvent>
 #include <QSizePolicy>
 #include <QTextEdit>
 #include <QTimer>
@@ -24,9 +27,56 @@ WorkerView::WorkerView(WorkerViewModel& viewModel, QWidget* parent)
 {
     setupUi();
     connectSignals();
+    qApp->installEventFilter(this);
 
     slotGrid_->updateSlots(viewModel_.slotItems());
     stateLabel_->setText(viewModel_.stateLabel());
+}
+
+bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
+    if (!barcodeEdit_ ||
+        event->type() != QEvent::KeyPress ||
+        QApplication::activeWindow() != window())
+    {
+        return QWidget::eventFilter(watched, event);
+    }
+
+    auto* keyEvent = static_cast<QKeyEvent*>(event);
+    const auto modifiers = keyEvent->modifiers();
+    if (modifiers.testFlag(Qt::ControlModifier) ||
+        modifiers.testFlag(Qt::AltModifier) ||
+        modifiers.testFlag(Qt::MetaModifier))
+    {
+        return QWidget::eventFilter(watched, event);
+    }
+
+    auto* focused = QApplication::focusWidget();
+    if (focused == barcodeEdit_) {
+        return QWidget::eventFilter(watched, event);
+    }
+    if (focused && !isAncestorOf(focused)) {
+        return QWidget::eventFilter(watched, event);
+    }
+
+    if (keyEvent->key() == Qt::Key_Return ||
+        keyEvent->key() == Qt::Key_Enter)
+    {
+        if (!barcodeEdit_->text().trimmed().isEmpty()) {
+            onBarcodeSubmitted();
+            return true;
+        }
+        focusBarcodeInput();
+        return QWidget::eventFilter(watched, event);
+    }
+
+    const QString text = keyEvent->text();
+    if (text.isEmpty() || !text.at(0).isPrint()) {
+        return QWidget::eventFilter(watched, event);
+    }
+
+    focusBarcodeInput();
+    barcodeEdit_->insert(text);
+    return true;
 }
 
 void WorkerView::setupUi() {
@@ -316,49 +366,65 @@ void WorkerView::onWorkflowUpdated(const QString& workflow,
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(true, true, false, false, false,
                                   false, false, false, false, false);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("FEEDER_PREP")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, true, false, false,
                                   false, false, false, false, false);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("READY_FOR_LINE")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, false, true, true,
                                   false, false, false, false, false);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   true, true, false, false, false);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("ORDER_COMPLETED")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, false, false);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("LEFTOVERS_DETECTED")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, true, true);
+        focusBarcodeInput();
         return;
     }
 
     if (stateKey == QStringLiteral("RETURNING_LEFTOVERS")) {
+        updateScanActionText(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, false, true);
+        focusBarcodeInput();
         return;
     }
 
+    updateScanActionText(stateKey);
     setWorkflowActionsEnabled(false, false, false, false, false,
                               false, false, false, false, false);
+    focusBarcodeInput();
 }
 
 void WorkerView::onErrorOccurred(const QString& message) {
@@ -377,6 +443,7 @@ void WorkerView::onImportOrderClicked() {
         return;
     }
     viewModel_.importOrderFromFile(path);
+    focusBarcodeInput();
 }
 
 void WorkerView::onBarcodeSubmitted() {
@@ -389,50 +456,91 @@ void WorkerView::onBarcodeSubmitted() {
 
 void WorkerView::onCancelClicked() {
     viewModel_.cancelCurrentOperation();
+    focusBarcodeInput();
 }
 
 void WorkerView::onArrivedFeederClicked() {
     viewModel_.markCartArrivedToFeederPrep();
+    focusBarcodeInput();
 }
 
 void WorkerView::onStartFeederPrepClicked() {
     viewModel_.startFeederPrep();
+    focusBarcodeInput();
 }
 
 void WorkerView::onFeederPrepDoneClicked() {
     viewModel_.markFeederPrepCompleted();
+    focusBarcodeInput();
 }
 
 void WorkerView::onArrivedLineClicked() {
     viewModel_.markCartArrivedToLine();
+    focusBarcodeInput();
 }
 
 void WorkerView::onStartIssuingClicked() {
     viewModel_.startIssuingToLine();
+    focusBarcodeInput();
 }
 
 void WorkerView::onIssueMaterialClicked() {
     viewModel_.markItemIssued(barcodeEdit_->text().trimmed());
     barcodeEdit_->clear();
-    barcodeEdit_->setFocus();
+    focusBarcodeInput();
 }
 
 void WorkerView::onCompleteIssuingClicked() {
     viewModel_.completeIssuing();
+    focusBarcodeInput();
 }
 
 void WorkerView::onInspectLeftoversClicked() {
     viewModel_.inspectLeftovers();
+    focusBarcodeInput();
 }
 
 void WorkerView::onStartReturnClicked() {
     viewModel_.startReturningLeftovers();
+    focusBarcodeInput();
 }
 
 void WorkerView::onReturnLeftoverClicked() {
     viewModel_.markLeftoverReturned(barcodeEdit_->text().trimmed());
     barcodeEdit_->clear();
-    barcodeEdit_->setFocus();
+    focusBarcodeInput();
+}
+
+void WorkerView::focusBarcodeInput() {
+    if (!barcodeEdit_ ||
+        !barcodeEdit_->isEnabled() ||
+        QApplication::activeWindow() != window())
+    {
+        return;
+    }
+    barcodeEdit_->setFocus(Qt::OtherFocusReason);
+}
+
+void WorkerView::updateScanActionText(const QString& stateKey) {
+    if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
+        scanButton_->setText(QString::fromUtf8("Выдать"));
+        barcodeEdit_->setPlaceholderText(
+            QString::fromUtf8("Отсканируйте катушку для выдачи на линию..."));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+        stateKey == QStringLiteral("RETURNING_LEFTOVERS"))
+    {
+        scanButton_->setText(QString::fromUtf8("Вернуть"));
+        barcodeEdit_->setPlaceholderText(
+            QString::fromUtf8("Отсканируйте остаток или введите номер слота..."));
+        return;
+    }
+
+    scanButton_->setText(QString::fromUtf8("Сканировать"));
+    barcodeEdit_->setPlaceholderText(
+        QString::fromUtf8("Отсканируйте или введите вручную..."));
 }
 
 void WorkerView::setWorkflowActionsEnabled(bool arrivedFeeder,

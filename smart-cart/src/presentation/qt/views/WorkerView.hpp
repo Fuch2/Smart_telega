@@ -17,6 +17,9 @@ public:
     explicit WorkerView(WorkerViewModel& viewModel,
                         QWidget*         parent = nullptr);
 
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private slots:
     void onSlotsUpdated(QVector<SlotCellData> items);
     void onOperationStateChanged(const QString& state,
@@ -67,6 +70,8 @@ private:
 
     void setupUi();
     void connectSignals();
+    void focusBarcodeInput();
+    void updateScanActionText(const QString& stateKey);
     void setWorkflowActionsEnabled(bool arrivedFeeder,
                                    bool startFeederPrep,
                                    bool feederPrepDone,
