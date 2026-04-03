@@ -26,7 +26,8 @@ private slots:
                                  const QString& message);
     void onWorkflowUpdated(const QString& workflow,
                            const QString& order,
-                           const QString& checklist);
+                           const QString& checklist,
+                           const QString& progress);
     void onWorkflowControlsUpdated(const QString& stateKey);
     void onStm32StatusUpdated(const QString& status);
     void onErrorOccurred(const QString& message);
@@ -52,6 +53,9 @@ private:
     QLabel*         messageLabel_ = nullptr;
     QLabel*         stm32StatusLabel_ = nullptr;
     QLabel*         workflowLabel_ = nullptr;
+    QLabel*         workflowPillLabel_ = nullptr;
+    QLabel*         actionHintLabel_ = nullptr;
+    QLabel*         progressLabel_ = nullptr;
     QLabel*         orderLabel_   = nullptr;
     QTextEdit*      checklistText_ = nullptr;
     QLabel*         errorLabel_   = nullptr;
@@ -74,6 +78,7 @@ private:
     void connectSignals();
     void focusBarcodeInput();
     void updateScanActionText(const QString& stateKey);
+    void updateActionHint(const QString& stateKey);
     void setWorkflowActionsEnabled(bool arrivedFeeder,
                                    bool startFeederPrep,
                                    bool feederPrepDone,

@@ -31,6 +31,7 @@ WorkerView::WorkerView(WorkerViewModel& viewModel, QWidget* parent)
 
     slotGrid_->updateSlots(viewModel_.slotItems());
     stateLabel_->setText(viewModel_.stateLabel());
+    viewModel_.reload();
 }
 
 bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
@@ -81,48 +82,85 @@ bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
 
 void WorkerView::setupUi() {
     auto* rootLayout = new QVBoxLayout(this);
-    rootLayout->setContentsMargins(12, 12, 12, 12);
-    rootLayout->setSpacing(10);
+    rootLayout->setContentsMargins(16, 16, 16, 16);
+    rootLayout->setSpacing(12);
 
-    // ── Статус-панель ──────────────────────────────────────────────────────────
+    // ── Верхняя панель: где мы и что делать дальше ───────────────────────────
     auto* statusFrame = new QFrame(this);
     statusFrame->setFrameShape(QFrame::StyledPanel);
     statusFrame->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
+        "QFrame { background: #FFFFFF; border: 1px solid #C8D8CC; "
         "border-radius: 8px; }");
 
-    auto* statusLayout = new QVBoxLayout(statusFrame);
-    statusLayout->setContentsMargins(12, 8, 12, 8);
+    auto* statusLayout = new QHBoxLayout(statusFrame);
+    statusLayout->setContentsMargins(16, 12, 16, 12);
+    statusLayout->setSpacing(16);
+
+    auto* statusTextLayout = new QVBoxLayout();
+    statusTextLayout->setSpacing(6);
+
+    workflowPillLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"),
+                                    statusFrame);
+    workflowPillLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
+    workflowPillLabel_->setStyleSheet(
+        "QLabel { background: #DDEEE2; color: #2E7D4F; "
+        "border: 1px solid #BAD6C2; border-radius: 4px; padding: 4px 8px; }"
+    );
 
     stateLabel_ = new QLabel(QString::fromUtf8("Инициализация..."), statusFrame);
-    stateLabel_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    stateLabel_->setFont(QFont("Segoe UI", 18, QFont::Bold));
     stateLabel_->setStyleSheet("color: #223027;");
 
     messageLabel_ = new QLabel(QString::fromUtf8("Подождите..."), statusFrame);
-    messageLabel_->setFont(QFont("Segoe UI", 10));
+    messageLabel_->setFont(QFont("Segoe UI", 11));
     messageLabel_->setStyleSheet("color: #66736B;");
+    messageLabel_->setWordWrap(true);
+
+    actionHintLabel_ = new QLabel(
+        QString::fromUtf8("Загрузите заказ, чтобы начать подбор материалов"),
+        statusFrame);
+    actionHintLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    actionHintLabel_->setWordWrap(true);
+    actionHintLabel_->setStyleSheet("color: #2E7D4F;");
 
     stm32StatusLabel_ = new QLabel(QString::fromUtf8("STM32: ожидание связи"),
                                    statusFrame);
-    stm32StatusLabel_->setFont(QFont("Segoe UI", 10));
+    stm32StatusLabel_->setFont(QFont("Segoe UI", 9));
     stm32StatusLabel_->setWordWrap(true);
+    stm32StatusLabel_->setMinimumWidth(360);
     stm32StatusLabel_->setStyleSheet(
         "QLabel { background: #F7FAF7; color: #4A6653; "
-        "border: 1px solid #D8E1D9; border-radius: 4px; padding: 4px 6px; }"
+        "border: 1px solid #D8E1D9; border-radius: 4px; padding: 6px 8px; }"
     );
 
     errorLabel_ = new QLabel("", statusFrame);
     errorLabel_->setFont(QFont("Segoe UI", 10));
-    errorLabel_->setStyleSheet("color: #B84A4A;");
+    errorLabel_->setWordWrap(true);
+    errorLabel_->setStyleSheet(
+        "QLabel { color: #9B3E3E; background: #F8EAEA; "
+        "border: 1px solid #E2B9B9; border-radius: 4px; padding: 4px 8px; }"
+    );
     errorLabel_->setVisible(false);
 
-    statusLayout->addWidget(stateLabel_);
-    statusLayout->addWidget(messageLabel_);
+    statusTextLayout->addWidget(workflowPillLabel_, 0, Qt::AlignLeft);
+    statusTextLayout->addWidget(stateLabel_);
+    statusTextLayout->addWidget(messageLabel_);
+    statusTextLayout->addWidget(actionHintLabel_);
+    statusTextLayout->addWidget(errorLabel_);
+
+    statusLayout->addLayout(statusTextLayout, 1);
     statusLayout->addWidget(stm32StatusLabel_);
-    statusLayout->addWidget(errorLabel_);
     rootLayout->addWidget(statusFrame);
 
-    // ── Заказ и чек-лист ──────────────────────────────────────────────────────
+    auto* bodyLayout = new QHBoxLayout();
+    bodyLayout->setSpacing(12);
+
+    auto* leftColumn = new QWidget(this);
+    auto* leftLayout = new QVBoxLayout(leftColumn);
+    leftLayout->setContentsMargins(0, 0, 0, 0);
+    leftLayout->setSpacing(12);
+
+    // ── Заказ и чек-лист ─────────────────────────────────────────────────────
     auto* orderFrame = new QFrame(this);
     orderFrame->setFrameShape(QFrame::StyledPanel);
     orderFrame->setStyleSheet(
@@ -130,21 +168,26 @@ void WorkerView::setupUi() {
         "border-radius: 8px; }");
 
     auto* orderLayout = new QVBoxLayout(orderFrame);
-    orderLayout->setContentsMargins(12, 8, 12, 8);
-    orderLayout->setSpacing(6);
+    orderLayout->setContentsMargins(14, 12, 14, 12);
+    orderLayout->setSpacing(8);
 
-    workflowLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"), orderFrame);
-    workflowLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
-    workflowLabel_->setStyleSheet("color: #2E7D4F;");
+    workflowLabel_ = new QLabel(QString::fromUtf8("Заказ"), orderFrame);
+    workflowLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
+    workflowLabel_->setStyleSheet("color: #223027;");
 
     orderLabel_ = new QLabel(QString::fromUtf8("Заказ не загружен"), orderFrame);
     orderLabel_->setFont(QFont("Segoe UI", 10));
     orderLabel_->setStyleSheet("color: #223027;");
     orderLabel_->setWordWrap(true);
 
+    progressLabel_ = new QLabel(QString::fromUtf8("Материалы: 0/0"), orderFrame);
+    progressLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
+    progressLabel_->setWordWrap(true);
+    progressLabel_->setStyleSheet("color: #4A6653;");
+
     checklistText_ = new QTextEdit(orderFrame);
     checklistText_->setReadOnly(true);
-    checklistText_->setFixedHeight(92);
+    checklistText_->setMinimumHeight(160);
     checklistText_->setFont(QFont("Segoe UI", 10));
     checklistText_->setStyleSheet(
         "QTextEdit { background: #F7FAF7; color: #223027; "
@@ -154,27 +197,25 @@ void WorkerView::setupUi() {
 
     orderLayout->addWidget(workflowLabel_);
     orderLayout->addWidget(orderLabel_);
-    orderLayout->addWidget(checklistText_);
-    rootLayout->addWidget(orderFrame);
+    orderLayout->addWidget(progressLabel_);
+    orderLayout->addWidget(checklistText_, 1);
+    leftLayout->addWidget(orderFrame, 1);
 
-    // ── Сетка слотов ───────────────────────────────────────────────────────────
-    slotGrid_ = new SlotGridWidget(this);
-    rootLayout->addWidget(slotGrid_, /*stretch=*/1);
-
-    // ── Панель ввода штрихкода ─────────────────────────────────────────────────
+    // ── Панель ввода штрихкода ────────────────────────────────────────────────
     auto* inputFrame = new QFrame(this);
     inputFrame->setFrameShape(QFrame::StyledPanel);
     inputFrame->setStyleSheet(
         "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
         "border-radius: 8px; }");
 
-    auto* inputLayout = new QHBoxLayout(inputFrame);
-    inputLayout->setContentsMargins(12, 8, 12, 8);
-    inputLayout->setSpacing(8);
+    auto* inputLayout = new QGridLayout(inputFrame);
+    inputLayout->setContentsMargins(14, 12, 14, 12);
+    inputLayout->setHorizontalSpacing(8);
+    inputLayout->setVerticalSpacing(8);
 
-    auto* barcodeLabel = new QLabel(QString::fromUtf8("Штрихкод:"), inputFrame);
+    auto* barcodeLabel = new QLabel(QString::fromUtf8("Сканер"), inputFrame);
     barcodeLabel->setStyleSheet("color: #223027;");
-    barcodeLabel->setFont(QFont("Segoe UI", 10));
+    barcodeLabel->setFont(QFont("Segoe UI", 13, QFont::Bold));
 
     barcodeEdit_ = new QLineEdit(inputFrame);
     barcodeEdit_->setPlaceholderText(
@@ -187,7 +228,8 @@ void WorkerView::setupUi() {
         "QLineEdit:focus { border-color: #2E7D4F; }"
     );
 
-    importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"), inputFrame);
+    importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"),
+                                    inputFrame);
     importButton_->setFont(QFont("Segoe UI", 10));
     importButton_->setStyleSheet(
         "QPushButton { background: #2E7D4F; color: #FFFFFF; "
@@ -215,22 +257,30 @@ void WorkerView::setupUi() {
         "QPushButton:disabled { background: #D7DED8; color: #8B968F; }"
     );
 
-    inputLayout->addWidget(barcodeLabel);
-    inputLayout->addWidget(barcodeEdit_, /*stretch=*/1);
-    inputLayout->addWidget(importButton_);
-    inputLayout->addWidget(scanButton_);
-    inputLayout->addWidget(cancelButton_);
-    rootLayout->addWidget(inputFrame);
+    inputLayout->addWidget(barcodeLabel, 0, 0, 1, 3);
+    inputLayout->addWidget(barcodeEdit_, 1, 0, 1, 3);
+    inputLayout->addWidget(importButton_, 2, 0);
+    inputLayout->addWidget(scanButton_, 2, 1);
+    inputLayout->addWidget(cancelButton_, 2, 2);
+    leftLayout->addWidget(inputFrame);
 
-    // ── Этапы маршрута тележки ────────────────────────────────────────────────
+    // ── Этапы маршрута тележки ───────────────────────────────────────────────
     auto* workflowFrame = new QFrame(this);
     workflowFrame->setFrameShape(QFrame::StyledPanel);
     workflowFrame->setStyleSheet(
         "QFrame { background: #EEF5EF; border: 1px solid #D8E1D9; "
         "border-radius: 8px; }");
 
-    auto* workflowLayout = new QGridLayout(workflowFrame);
-    workflowLayout->setContentsMargins(12, 8, 12, 8);
+    auto* workflowRootLayout = new QVBoxLayout(workflowFrame);
+    workflowRootLayout->setContentsMargins(14, 12, 14, 12);
+    workflowRootLayout->setSpacing(8);
+
+    auto* routeTitle = new QLabel(QString::fromUtf8("Маршрут тележки"),
+                                  workflowFrame);
+    routeTitle->setFont(QFont("Segoe UI", 13, QFont::Bold));
+    routeTitle->setStyleSheet("color: #223027;");
+
+    auto* workflowLayout = new QGridLayout();
     workflowLayout->setHorizontalSpacing(8);
     workflowLayout->setVerticalSpacing(8);
 
@@ -280,7 +330,31 @@ void WorkerView::setupUi() {
     workflowLayout->addWidget(inspectLeftoversButton_, 2, 1);
     workflowLayout->addWidget(startReturnButton_, 2, 2);
     workflowLayout->addWidget(returnLeftoverButton_, 3, 0, 1, 3);
-    rootLayout->addWidget(workflowFrame);
+    workflowRootLayout->addWidget(routeTitle);
+    workflowRootLayout->addLayout(workflowLayout);
+    leftLayout->addWidget(workflowFrame);
+
+    // ── Сетка слотов ─────────────────────────────────────────────────────────
+    auto* slotFrame = new QFrame(this);
+    slotFrame->setFrameShape(QFrame::StyledPanel);
+    slotFrame->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
+        "border-radius: 8px; }");
+    auto* slotLayout = new QVBoxLayout(slotFrame);
+    slotLayout->setContentsMargins(14, 12, 14, 12);
+    slotLayout->setSpacing(8);
+
+    auto* slotTitle = new QLabel(QString::fromUtf8("Слоты тележки"), slotFrame);
+    slotTitle->setFont(QFont("Segoe UI", 13, QFont::Bold));
+    slotTitle->setStyleSheet("color: #223027;");
+
+    slotGrid_ = new SlotGridWidget(slotFrame);
+    slotLayout->addWidget(slotTitle);
+    slotLayout->addWidget(slotGrid_, 1);
+
+    bodyLayout->addWidget(leftColumn, 0);
+    bodyLayout->addWidget(slotFrame, 1);
+    rootLayout->addLayout(bodyLayout, 1);
 
     setLayout(rootLayout);
     setStyleSheet("WorkerView { background: #F0F4F1; }");
@@ -370,9 +444,12 @@ void WorkerView::onOperationStateChanged(const QString& state,
 
 void WorkerView::onWorkflowUpdated(const QString& workflow,
                                    const QString& order,
-                                   const QString& checklist) {
+                                   const QString& checklist,
+                                   const QString& progress) {
+    workflowPillLabel_->setText(workflow);
     workflowLabel_->setText(workflow);
     orderLabel_->setText(order);
+    progressLabel_->setText(progress);
     checklistText_->setPlainText(checklist);
 }
 
@@ -383,6 +460,7 @@ void WorkerView::onStm32StatusUpdated(const QString& status) {
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(true, true, false, false, false,
                                   false, false, false, false, false);
         focusBarcodeInput();
@@ -391,6 +469,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("FEEDER_PREP")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, true, false, false,
                                   false, false, false, false, false);
         focusBarcodeInput();
@@ -399,6 +478,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("READY_FOR_LINE")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, true, true,
                                   false, false, false, false, false);
         focusBarcodeInput();
@@ -407,6 +487,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   true, true, false, false, false);
         focusBarcodeInput();
@@ -415,6 +496,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("ORDER_COMPLETED")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, false, false);
         focusBarcodeInput();
@@ -423,6 +505,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("LEFTOVERS_DETECTED")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, true, true);
         focusBarcodeInput();
@@ -431,6 +514,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
 
     if (stateKey == QStringLiteral("RETURNING_LEFTOVERS")) {
         updateScanActionText(stateKey);
+        updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
                                   false, false, true, false, true);
         focusBarcodeInput();
@@ -438,13 +522,14 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     }
 
     updateScanActionText(stateKey);
+    updateActionHint(stateKey);
     setWorkflowActionsEnabled(false, false, false, false, false,
                               false, false, false, false, false);
     focusBarcodeInput();
 }
 
 void WorkerView::onErrorOccurred(const QString& message) {
-    errorLabel_->setText("⚠ " + message);
+    errorLabel_->setText(QString::fromUtf8("Ошибка: ") + message);
     errorLabel_->setVisible(true);
 }
 
@@ -557,6 +642,70 @@ void WorkerView::updateScanActionText(const QString& stateKey) {
     scanButton_->setText(QString::fromUtf8("Сканировать"));
     barcodeEdit_->setPlaceholderText(
         QString::fromUtf8("Отсканируйте или введите вручную..."));
+}
+
+void WorkerView::updateActionHint(const QString& stateKey) {
+    if (!actionHintLabel_) {
+        return;
+    }
+
+    if (stateKey == QStringLiteral("FREE")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Загрузите JSON заказа, чтобы начать подбор"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("ORDER_LOADED") ||
+        stateKey == QStringLiteral("PICKING_MATERIALS"))
+    {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Сканируйте материал и кладите его в подсказанный слот"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Перевезите тележку к зоне подготовки питателей"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("FEEDER_PREP")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Подготовьте питатели и подтвердите завершение этапа"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("READY_FOR_LINE")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Перевезите тележку к линии SMT"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Сканируйте катушки при выдаче на линию"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("ORDER_COMPLETED")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Проверьте остатки после завершения заказа"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("LEFTOVERS_DETECTED")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Верните остатки перед загрузкой нового заказа"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("RETURNING_LEFTOVERS")) {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Сканируйте остаток или введите номер слота"));
+        return;
+    }
+
+    actionHintLabel_->setText(QString::fromUtf8("Следуйте текущему этапу"));
 }
 
 void WorkerView::setWorkflowActionsEnabled(bool arrivedFeeder,

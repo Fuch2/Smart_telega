@@ -297,8 +297,24 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     const auto workflow = workflowRepo_.get();
     QString orderText = QString::fromUtf8("Заказ не загружен");
     QString checklistText = QString::fromUtf8("Загрузите JSON заказа");
+    QString progressText = QString::fromUtf8("Материалы: 0/0");
 
-    if (workflow.currentOrderId.has_value()) {
+    if (!workflow.currentOrderId.has_value()) {
+        const auto leftovers = reelRepo_.getActiveByModule(1);
+        if (!leftovers.empty()) {
+            QStringList lines;
+            for (const auto& reel : leftovers) {
+                lines << QString::fromUtf8("%1 → слот %2")
+                             .arg(QString::fromStdString(reel.barcode))
+                             .arg(reel.slotIndex);
+            }
+
+            orderText = QString::fromUtf8("В тележке есть остатки");
+            checklistText = lines.join('\n');
+            progressText = QString::fromUtf8("Остатки: %1")
+                               .arg(static_cast<int>(leftovers.size()));
+        }
+    } else {
         const auto order = orderRepo_.getOrderById(*workflow.currentOrderId);
         if (order.has_value()) {
             orderText = QString::fromUtf8("%1 — %2, приоритет: %3")
@@ -308,7 +324,29 @@ void WorkerViewModel::rebuildWorkflowSummary() {
 
             const auto items = orderRepo_.getItems(order->id);
             QStringList lines;
+            int placedOrIssued = 0;
+            int issued = 0;
+            int wrongSlot = 0;
+            int pending = 0;
             for (const auto& item : items) {
+                switch (item.status) {
+                    case OrderItemStatus::Placed:
+                        ++placedOrIssued;
+                        break;
+                    case OrderItemStatus::Issued:
+                        ++placedOrIssued;
+                        ++issued;
+                        break;
+                    case OrderItemStatus::WrongSlot:
+                        ++wrongSlot;
+                        break;
+                    case OrderItemStatus::Pending:
+                    case OrderItemStatus::Missing:
+                    case OrderItemStatus::Returned:
+                        ++pending;
+                        break;
+                }
+
                 QString line = QString::fromUtf8("%1 → слот %2 [%3]")
                     .arg(QString::fromStdString(item.barcode))
                     .arg(item.targetSlot)
@@ -321,12 +359,21 @@ void WorkerViewModel::rebuildWorkflowSummary() {
             checklistText = lines.isEmpty()
                 ? QString::fromUtf8("В заказе нет позиций")
                 : lines.join('\n');
+
+            progressText =
+                QString::fromUtf8("Материалы: %1/%2 размещены · выдано: %3 · ошибок: %4 · ожидает: %5")
+                    .arg(placedOrIssued)
+                    .arg(static_cast<int>(items.size()))
+                    .arg(issued)
+                    .arg(wrongSlot)
+                    .arg(pending);
         }
     }
 
     emit workflowUpdated(workflowLabel(workflow.state),
                          orderText,
-                         checklistText);
+                         checklistText,
+                         progressText);
     emit workflowControlsUpdated(
         QString::fromStdString(std::string(toString(workflow.state))));
 }
