@@ -43,31 +43,31 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(0);
 
-    // ── Боковая навигация: крупные зоны для сенсорного экрана ───────────────
+    // ── Боковая навигация: более компактный desktop-вариант ─────────────────
     auto* sideRail = new QFrame(central);
-    sideRail->setFixedWidth(230);
+    sideRail->setFixedWidth(196);
     sideRail->setStyleSheet(
         "QFrame { background: #0B1A12; border-right: 1px solid #31533D; }"
     );
 
     auto* sideLayout = new QVBoxLayout(sideRail);
-    sideLayout->setContentsMargins(16, 20, 16, 20);
-    sideLayout->setSpacing(14);
+    sideLayout->setContentsMargins(14, 18, 14, 18);
+    sideLayout->setSpacing(12);
 
     auto* title = new QLabel(QString::fromUtf8("SmartCart"), sideRail);
-    title->setFont(QFont("Segoe UI", 24, QFont::Bold));
+    title->setFont(QFont("Segoe UI", 22, QFont::Bold));
     title->setStyleSheet("color: #FFFFFF;");
 
     auto* subtitle = new QLabel(QString::fromUtf8("Пульт тележки"), sideRail);
-    subtitle->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    subtitle->setFont(QFont("Segoe UI", 11, QFont::Bold));
     subtitle->setStyleSheet("color: #8DE4AD;");
 
     workerBtn_ = new QPushButton(QString::fromUtf8("Рабочий режим"), central);
     adminBtn_  = new QPushButton(QString::fromUtf8("Админ"),         central);
-    workerBtn_->setMinimumHeight(72);
-    adminBtn_->setMinimumHeight(72);
-    workerBtn_->setFont(QFont("Segoe UI", 14, QFont::Bold));
-    adminBtn_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    workerBtn_->setMinimumHeight(58);
+    adminBtn_->setMinimumHeight(58);
+    workerBtn_->setFont(QFont("Segoe UI", 13, QFont::Bold));
+    adminBtn_->setFont(QFont("Segoe UI", 13, QFont::Bold));
     workerBtn_->setStyleSheet(
         "QPushButton { background: #2F8F57; color: #FFFFFF; "
         "border: 1px solid #2F8F57; border-radius: 8px; }"
@@ -83,7 +83,7 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
 
     sideLayout->addWidget(title);
     sideLayout->addWidget(subtitle);
-    sideLayout->addSpacing(14);
+    sideLayout->addSpacing(10);
     sideLayout->addWidget(workerBtn_);
     sideLayout->addWidget(adminBtn_);
 
@@ -108,7 +108,7 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
                                           const QString& color,
                                           const QString& pressed) {
             auto* button = new QPushButton(text, demoFrame);
-            button->setMinimumHeight(46);
+            button->setMinimumHeight(40);
             button->setFont(QFont("Segoe UI", 10, QFont::Bold));
             button->setStyleSheet(QString(
                 "QPushButton { background: %1; color: #FFFFFF; "
@@ -164,30 +164,30 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
     switchingPage_ = new QWidget(central);
     switchingPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* switchingLayout = new QVBoxLayout(switchingPage_);
-    switchingLayout->setContentsMargins(64, 56, 64, 56);
+    switchingLayout->setContentsMargins(48, 40, 48, 40);
     switchingLayout->addStretch();
 
     auto* switchingCard = new QFrame(switchingPage_);
     switchingCard->setFrameShape(QFrame::StyledPanel);
-    switchingCard->setMinimumSize(760, 260);
-    switchingCard->setMaximumWidth(920);
+    switchingCard->setMinimumSize(680, 220);
+    switchingCard->setMaximumWidth(860);
     switchingCard->setStyleSheet(
         "QFrame { background: #F6FAF7; border: 1px solid #AFC8B8; "
         "border-radius: 8px; }");
 
     auto* switchingCardLayout = new QVBoxLayout(switchingCard);
-    switchingCardLayout->setContentsMargins(40, 36, 40, 36);
-    switchingCardLayout->setSpacing(18);
+    switchingCardLayout->setContentsMargins(32, 28, 32, 28);
+    switchingCardLayout->setSpacing(14);
 
     auto* switchingTitle = new QLabel(QString::fromUtf8("Переключаем модуль"), switchingCard);
-    switchingTitle->setFont(QFont("Segoe UI", 30, QFont::Bold));
+    switchingTitle->setFont(QFont("Segoe UI", 24, QFont::Bold));
     switchingTitle->setStyleSheet("color: #102217;");
     switchingTitle->setAlignment(Qt::AlignCenter);
 
     auto* switchingText = new QLabel(
         QString::fromUtf8("Подождите, данные нового модуля загружаются..."),
         switchingCard);
-    switchingText->setFont(QFont("Segoe UI", 18));
+    switchingText->setFont(QFont("Segoe UI", 15));
     switchingText->setStyleSheet("color: #31533D;");
     switchingText->setAlignment(Qt::AlignCenter);
     switchingText->setWordWrap(true);

@@ -14,7 +14,7 @@ SlotGridWidget::SlotGridWidget(QWidget* parent)
     : QWidget(parent)
 {
     layout_ = new QGridLayout(this);
-    layout_->setSpacing(10);
+    layout_->setSpacing(8);
     layout_->setContentsMargins(4, 4, 4, 4);
 
     cells_.resize(kSlots);
@@ -38,10 +38,10 @@ SlotGridWidget::SlotGridWidget(QWidget* parent)
 QPushButton* SlotGridWidget::createCell(int slotIndex) {
     auto* btn = new QPushButton(
         QString::fromUtf8("Слот\n%1").arg(slotIndex), this);
-    btn->setMinimumSize(118, 96);
+    btn->setMinimumSize(100, 78);
     btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     btn->setCheckable(false);
-    btn->setFont(QFont("Segoe UI", 16, QFont::Bold));
+    btn->setFont(QFont("Segoe UI", 13, QFont::Bold));
 
     applyStyle(btn, SlotState::Free, false, colorForState(SlotState::Free));
 
@@ -106,6 +106,7 @@ void SlotGridWidget::applyStyle(QPushButton* cell,
 
     cell->setStyleSheet(QString(
         "QPushButton { %1 %2 %3 border-radius: 8px; padding: 10px; "
+        "font-size: 13px; "
         "font-weight: bold; }"
         "QPushButton:hover { border-color: #2F8F57; }"
     ).arg(bg, border, textColor));
