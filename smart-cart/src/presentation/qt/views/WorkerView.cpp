@@ -183,6 +183,8 @@ void WorkerView::setupUi() {
             "padding: 6px 10px; font-weight: bold; }"
             "QPushButton:hover { background: #C8E0CE; }"
             "QPushButton:pressed { background: #B5D2BD; }"
+            "QPushButton:disabled { background: #E5EBE6; color: #8B968F; "
+            "border-color: #CBD5CE; }"
         );
         return button;
     };
@@ -234,6 +236,8 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onOperationStateChanged);
     connect(&viewModel_, &WorkerViewModel::workflowUpdated,
             this, &WorkerView::onWorkflowUpdated);
+    connect(&viewModel_, &WorkerViewModel::workflowControlsUpdated,
+            this, &WorkerView::onWorkflowControlsUpdated);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
             this, &WorkerView::onErrorOccurred);
 
@@ -289,6 +293,7 @@ void WorkerView::connectSignals() {
     connect(reloadTimer, &QTimer::timeout,
             &viewModel_, &WorkerViewModel::reload);
     reloadTimer->start(1000);
+    onWorkflowControlsUpdated(QStringLiteral("FREE"));
 }
 
 void WorkerView::onSlotsUpdated(QVector<SlotCellData> items) {
@@ -307,6 +312,53 @@ void WorkerView::onWorkflowUpdated(const QString& workflow,
     workflowLabel_->setText(workflow);
     orderLabel_->setText(order);
     checklistText_->setPlainText(checklist);
+}
+
+void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
+    if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
+        setWorkflowActionsEnabled(true, true, false, false, false,
+                                  false, false, false, false, false);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("FEEDER_PREP")) {
+        setWorkflowActionsEnabled(false, false, true, false, false,
+                                  false, false, false, false, false);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("READY_FOR_LINE")) {
+        setWorkflowActionsEnabled(false, false, false, true, true,
+                                  false, false, false, false, false);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  true, true, false, false, false);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("ORDER_COMPLETED")) {
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  false, false, true, false, false);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("LEFTOVERS_DETECTED")) {
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  false, false, true, true, true);
+        return;
+    }
+
+    if (stateKey == QStringLiteral("RETURNING_LEFTOVERS")) {
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  false, false, true, false, true);
+        return;
+    }
+
+    setWorkflowActionsEnabled(false, false, false, false, false,
+                              false, false, false, false, false);
 }
 
 void WorkerView::onErrorOccurred(const QString& message) {
@@ -381,4 +433,26 @@ void WorkerView::onReturnLeftoverClicked() {
     viewModel_.markLeftoverReturned(barcodeEdit_->text().trimmed());
     barcodeEdit_->clear();
     barcodeEdit_->setFocus();
+}
+
+void WorkerView::setWorkflowActionsEnabled(bool arrivedFeeder,
+                                           bool startFeederPrep,
+                                           bool feederPrepDone,
+                                           bool arrivedLine,
+                                           bool startIssuing,
+                                           bool issue,
+                                           bool completeIssuing,
+                                           bool inspectLeftovers,
+                                           bool startReturn,
+                                           bool returnLeftover) {
+    arrivedFeederButton_->setEnabled(arrivedFeeder);
+    startFeederPrepButton_->setEnabled(startFeederPrep);
+    feederPrepDoneButton_->setEnabled(feederPrepDone);
+    arrivedLineButton_->setEnabled(arrivedLine);
+    startIssuingButton_->setEnabled(startIssuing);
+    issueButton_->setEnabled(issue);
+    completeIssuingButton_->setEnabled(completeIssuing);
+    inspectLeftoversButton_->setEnabled(inspectLeftovers);
+    startReturnButton_->setEnabled(startReturn);
+    returnLeftoverButton_->setEnabled(returnLeftover);
 }

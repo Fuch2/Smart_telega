@@ -24,6 +24,7 @@ private slots:
     void onWorkflowUpdated(const QString& workflow,
                            const QString& order,
                            const QString& checklist);
+    void onWorkflowControlsUpdated(const QString& stateKey);
     void onErrorOccurred(const QString& message);
     void onImportOrderClicked();
     void onBarcodeSubmitted();
@@ -66,4 +67,14 @@ private:
 
     void setupUi();
     void connectSignals();
+    void setWorkflowActionsEnabled(bool arrivedFeeder,
+                                   bool startFeederPrep,
+                                   bool feederPrepDone,
+                                   bool arrivedLine,
+                                   bool startIssuing,
+                                   bool issue,
+                                   bool completeIssuing,
+                                   bool inspectLeftovers,
+                                   bool startReturn,
+                                   bool returnLeftover);
 };

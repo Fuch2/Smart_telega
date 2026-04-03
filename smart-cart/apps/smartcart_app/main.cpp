@@ -7,10 +7,12 @@
 #include "infrastructure/db/repositories/WorkflowRepositorySqlite.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/OrderImportService.hpp"
+#include "application/services/WorkflowService.hpp"
 #include "domain/entities/CartWorkflow.hpp"
 
 #include <sqlite3.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <optional>
@@ -32,7 +34,10 @@ void printUsage(const char* appName) {
         << "Usage:\n"
         << "  " << appName << "\n"
         << "  " << appName << " --diag\n"
-        << "  " << appName << " --import-order /path/order.json\n";
+        << "  " << appName << " --import-order /path/order.json\n"
+        << "  " << appName << " --workflow-next\n"
+        << "  " << appName << " --issue BARCODE\n"
+        << "  " << appName << " --return-leftover BARCODE_OR_SLOT\n";
 }
 
 void printLatestEvents(sqlite3* db) {
@@ -103,6 +108,67 @@ void printDiagnostics(
     printLatestEvents(conn.handle());
 }
 
+std::optional<int> parsePositiveSlot(const std::string& value) {
+    try {
+        std::size_t parsed = 0;
+        const int slot = std::stoi(value, &parsed);
+        if (parsed == value.size() && slot > 0) {
+            return slot;
+        }
+    } catch (...) {
+    }
+    return std::nullopt;
+}
+
+smartcart::application::services::WorkflowActionResult runNextWorkflowStep(
+    smartcart::application::services::WorkflowService& workflowSvc,
+    smartcart::infrastructure::db::WorkflowRepositorySqlite& workflowRepo)
+{
+    namespace domain = smartcart::domain;
+    namespace services = smartcart::application::services;
+
+    const auto workflow = workflowRepo.get();
+    switch (workflow.state) {
+        case domain::CartWorkflowState::ReadyForFeederPrep:
+            return workflowSvc.startFeederPrep();
+        case domain::CartWorkflowState::FeederPrep:
+            return workflowSvc.markFeederPrepCompleted();
+        case domain::CartWorkflowState::ReadyForLine:
+            return workflowSvc.startIssuingToLine();
+        case domain::CartWorkflowState::IssuingToLine:
+            return workflowSvc.completeIssuing();
+        case domain::CartWorkflowState::OrderCompleted:
+            return workflowSvc.inspectLeftoversAfterOrderCompleted();
+        case domain::CartWorkflowState::LeftoversDetected:
+            return workflowSvc.startReturningLeftovers();
+        default:
+            return services::WorkflowActionResult{
+                false,
+                domain::ErrorCode::Unknown,
+                "Для состояния " + std::string(domain::toString(workflow.state)) +
+                    " нет безопасного автоматического перехода"
+            };
+    }
+}
+
+int printActionResult(
+    const smartcart::application::services::WorkflowActionResult& result,
+    smartcart::infrastructure::db::SqliteConnection& conn,
+    smartcart::infrastructure::db::OrderRepositorySqlite& orderRepo,
+    smartcart::infrastructure::db::ReelRepositorySqlite& reelRepo,
+    smartcart::infrastructure::db::WorkflowRepositorySqlite& workflowRepo)
+{
+    if (!result) {
+        std::cerr << "Workflow action failed: " << result.message << "\n";
+        printDiagnostics(conn, orderRepo, reelRepo, workflowRepo);
+        return 2;
+    }
+
+    std::cout << "Workflow action OK: " << result.message << "\n";
+    printDiagnostics(conn, orderRepo, reelRepo, workflowRepo);
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char* argv[]) {
@@ -122,6 +188,13 @@ int main(int argc, char* argv[]) {
         db::ReelRepositorySqlite reelRepo(conn);
         db::WorkflowRepositorySqlite workflowRepo(conn);
         logging::SqliteEventLogger logger(conn.handle());
+        services::WorkflowService workflowSvc(
+            orderRepo,
+            workflowRepo,
+            reelRepo,
+            logger,
+            1
+        );
 
         if (argc == 1) {
             std::cout << "DB OK: " << config.sqlitePath << std::endl;
@@ -161,6 +234,33 @@ int main(int argc, char* argv[]) {
             std::cout << "Order imported: id=" << result.orderId << "\n";
             printDiagnostics(conn, orderRepo, reelRepo, workflowRepo);
             return 0;
+        }
+
+        if (command == "--workflow-next") {
+            const auto result = runNextWorkflowStep(workflowSvc, workflowRepo);
+            return printActionResult(result, conn, orderRepo, reelRepo, workflowRepo);
+        }
+
+        if (command == "--issue") {
+            if (argc < 3) {
+                throw std::runtime_error("--issue requires barcode");
+            }
+
+            const auto result = workflowSvc.markItemIssued(argv[2]);
+            return printActionResult(result, conn, orderRepo, reelRepo, workflowRepo);
+        }
+
+        if (command == "--return-leftover") {
+            if (argc < 3) {
+                throw std::runtime_error("--return-leftover requires barcode or slot");
+            }
+
+            const std::string value = argv[2];
+            const auto slot = parsePositiveSlot(value);
+            const auto result = slot.has_value()
+                ? workflowSvc.markLeftoverReturnedBySlot(*slot)
+                : workflowSvc.markLeftoverReturnedByBarcode(value);
+            return printActionResult(result, conn, orderRepo, reelRepo, workflowRepo);
         }
 
         printUsage(argv[0]);

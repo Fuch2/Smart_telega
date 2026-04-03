@@ -1,7 +1,10 @@
-../App/Src/app_mainloop.c:30:13:period_elapsed	1
-../App/Src/app_mainloop.c:42:13:send_ready_event_once	2
-../App/Src/app_mainloop.c:53:13:finalize_longop_if_due	4
-../App/Src/app_mainloop.c:69:6:app_mainloop_init	5
-../App/Src/app_mainloop.c:106:13:process_uart_rx	6
-../App/Src/app_mainloop.c:140:6:app_mainloop_step	4
-../App/Src/app_mainloop.c:171:6:app_mainloop_run_forever	2
+../App/Src/app_mainloop.c:32:13:period_elapsed	1
+../App/Src/app_mainloop.c:37:13:send_event_frame	5
+../App/Src/app_mainloop.c:73:13:send_ready_event_once	3
+../App/Src/app_mainloop.c:84:13:send_switch_changed_events	4
+../App/Src/app_mainloop.c:105:13:emit_switch_events_from_snapshot	3
+../App/Src/app_mainloop.c:128:13:finalize_longop_if_due	4
+../App/Src/app_mainloop.c:144:6:app_mainloop_init	5
+../App/Src/app_mainloop.c:183:13:process_uart_rx	6
+../App/Src/app_mainloop.c:217:6:app_mainloop_step	4
+../App/Src/app_mainloop.c:249:6:app_mainloop_run_forever	2

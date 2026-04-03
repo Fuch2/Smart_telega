@@ -21,7 +21,7 @@ typedef struct {
     uint32_t last_switch_scan_ms;
     uint32_t last_debounce_ms;
     uint32_t last_heartbeat_ms;
-    uint32_t last_debounced_bits;
+    uint32_t last_stable_bits;
     bool has_switch_snapshot;
     protocol_stream_parser_t rx_parser;
 } app_mainloop_state_t;
@@ -82,7 +82,7 @@ static void send_ready_event_once(void)
 }
 
 static void send_switch_changed_events(uint32_t changed_bits,
-                                       uint32_t debounced_bits)
+                                       uint32_t stable_bits)
 {
     uint8_t channel;
 
@@ -95,7 +95,7 @@ static void send_switch_changed_events(uint32_t changed_bits,
         }
 
         payload[0] = channel;
-        payload[1] = ((debounced_bits & bit) != 0u) ? 1u : 0u;
+        payload[1] = ((stable_bits & bit) != 0u) ? 1u : 0u;
         (void)send_event_frame(PROTOCOL_EVT_SWITCH_CHANGED,
                                payload,
                                (uint16_t)sizeof(payload));
@@ -110,19 +110,19 @@ static void emit_switch_events_from_snapshot(void)
     switch_debounce_get_snapshot(&snap);
 
     if (!g_ml.has_switch_snapshot) {
-        g_ml.last_debounced_bits = snap.debounced_bits;
+        g_ml.last_stable_bits = snap.stable_bits;
         g_ml.has_switch_snapshot = true;
         return;
     }
 
-    changed_bits = (g_ml.last_debounced_bits ^ snap.debounced_bits) &
+    changed_bits = (g_ml.last_stable_bits ^ snap.stable_bits) &
                    SWITCH_CHANNEL_MASK24;
     if (changed_bits == 0u) {
         return;
     }
 
-    g_ml.last_debounced_bits = snap.debounced_bits;
-    send_switch_changed_events(changed_bits, snap.debounced_bits);
+    g_ml.last_stable_bits = snap.stable_bits;
+    send_switch_changed_events(changed_bits, snap.stable_bits);
 }
 
 static void finalize_longop_if_due(uint32_t now)
@@ -160,7 +160,7 @@ void app_mainloop_init(const app_mainloop_cfg_t *cfg)
     g_ml.last_switch_scan_ms = now;
     g_ml.last_debounce_ms = now;
     g_ml.last_heartbeat_ms = now;
-    g_ml.last_debounced_bits = 0u;
+    g_ml.last_stable_bits = 0u;
     g_ml.has_switch_snapshot = false;
 
     switch_scan_init();

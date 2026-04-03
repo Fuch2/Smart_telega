@@ -44,6 +44,7 @@ public:
 signals:
     void slotsUpdated(QVector<SlotCellData> slots);
     void workflowUpdated(QString workflow, QString order, QString checklist);
+    void workflowControlsUpdated(QString stateKey);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
 

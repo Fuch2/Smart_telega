@@ -7,6 +7,7 @@
 #include "WorkerViewModel.hpp"
 
 #include <QStringList>
+#include <string>
 #include <unordered_map>
 
 using namespace smartcart::application;
@@ -303,6 +304,8 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     emit workflowUpdated(workflowLabel(workflow.state),
                          orderText,
                          checklistText);
+    emit workflowControlsUpdated(
+        QString::fromStdString(std::string(toString(workflow.state))));
 }
 
 void WorkerViewModel::handleWorkflowResult(
