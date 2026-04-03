@@ -1,3 +1,4 @@
+// ===== src/application/services/StartupService.hpp =====
 #pragma once
 
 #include "application/ports/IStm32Link.hpp"
@@ -11,18 +12,15 @@
 
 namespace smartcart::application::services {
 
-/// Конфигурация, необходимая сервису запуска.
 struct StartupConfig {
-    int moduleId         = 1;       // ID модуля в БД
-    int slotCount        = 24;      // количество слотов
-    int readyTimeoutMs   = 5000;    // таймаут ожидания EvtReady
-    std::vector<int> slotToLedMap; // slot_index (0-based) → led_index
+    int moduleId         = 1;
+    int slotCount        = 24;
+    int readyTimeoutMs   = 5000;
+    std::vector<int> slotToLedMap;
 };
 
-/// Результат запуска: либо вектор слотов, либо код ошибки.
 using StartupResult = std::variant<std::vector<domain::Slot>, domain::ErrorCode>;
 
-/// Сервис инициализации: пингует STM32, синхронизирует снимок слотов с БД.
 class StartupService {
 public:
     StartupService(
@@ -32,8 +30,6 @@ public:
         StartupConfig              config
     );
 
-    /// Выполнить полную последовательность запуска.
-    /// Блокирует вызывающий поток до завершения или ошибки.
     StartupResult run();
 
 private:
@@ -42,17 +38,15 @@ private:
     ports::IModuleRepository& moduleRepo_;
     StartupConfig             config_;
 
-    /// Шаг 1: Ping → проверить связь.
-    bool ping();
+    /// Создать модуль в БД если не существует.
+    void ensureModuleExists();
 
-    /// Шаг 2: GetReadyState → при необходимости ждать EvtReady.
-    bool waitReady();
+    /// Инициализировать все слоты как FREE если их нет в slot_states.
+    void ensureSlotsInitialized();
 
-    /// Шаг 3: GetSwitchSnapshot → битовая маска занятых слотов.
-    /// Возвращает вектор bool[slotCount], true = занят.
+    bool              ping();
+    bool              waitReady();
     std::vector<bool> getSnapshot();
-
-    /// Шаг 4: сверить snapshot с БД, обновить состояния слотов.
     std::vector<domain::Slot> reconcile(const std::vector<bool>& physical);
 };
 
