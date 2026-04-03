@@ -12,9 +12,12 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
+#include <QTextEdit>
+#include <QMessageBox>
 #include <QAbstractItemView>
 #include <QBrush>
 #include <QColor>
+#include <QFont>
 
 AdminView::AdminView(AdminViewModel* vm, QWidget* parent)
     : QWidget(parent), vm_(vm) {
@@ -25,9 +28,13 @@ AdminView::AdminView(AdminViewModel* vm, QWidget* parent)
 
 void AdminView::buildUi() {
     auto* root = new QVBoxLayout(this);
+    root->setContentsMargins(12, 12, 12, 12);
+    root->setSpacing(10);
 
-    auto* title = new QLabel("AdminView: управление модулями", this);
+    auto* title = new QLabel(QString::fromUtf8("Админ-панель"), this);
+    title->setStyleSheet("font-size: 18px; font-weight: bold; color: #223027;");
     msgLabel_ = new QLabel("-", this);
+    msgLabel_->setStyleSheet("color: #4A6653;");
 
     table_ = new QTableWidget(this);
     table_->setColumnCount(5);
@@ -56,10 +63,10 @@ void AdminView::buildUi() {
     form->addWidget(statusCombo_, 1, 3);
 
     auto* btns = new QHBoxLayout();
-    addBtn_ = new QPushButton("Добавить", this);
-    updateBtn_ = new QPushButton("Обновить", this);
-    deleteBtn_ = new QPushButton("Удалить", this);
-    reloadBtn_ = new QPushButton("Перезагрузить demo", this);
+    addBtn_ = new QPushButton(QString::fromUtf8("Добавить"), this);
+    updateBtn_ = new QPushButton(QString::fromUtf8("Обновить"), this);
+    deleteBtn_ = new QPushButton(QString::fromUtf8("Удалить"), this);
+    reloadBtn_ = new QPushButton(QString::fromUtf8("Перезагрузить"), this);
 
     btns->addWidget(addBtn_);
     btns->addWidget(updateBtn_);
@@ -72,6 +79,40 @@ void AdminView::buildUi() {
     root->addWidget(table_, 1);
     root->addLayout(form);
     root->addLayout(btns);
+
+    auto* diagnosticsTitle =
+        new QLabel(QString::fromUtf8("Диагностика STM32 и БД"), this);
+    diagnosticsTitle->setStyleSheet(
+        "font-size: 14px; font-weight: bold; color: #223027;");
+
+    diagnosticsText_ = new QTextEdit(this);
+    diagnosticsText_->setReadOnly(true);
+    diagnosticsText_->setMinimumHeight(220);
+    diagnosticsText_->setFont(QFont("Courier New", 9));
+    diagnosticsText_->setStyleSheet(
+        "QTextEdit { background: #F7FAF7; color: #223027; "
+        "border: 1px solid #C9D6CC; border-radius: 4px; padding: 8px; }"
+    );
+
+    auto* diagnosticsBtns = new QHBoxLayout();
+    refreshDiagnosticsBtn_ =
+        new QPushButton(QString::fromUtf8("Обновить диагностику"), this);
+    resetCartBtn_ =
+        new QPushButton(QString::fromUtf8("Сбросить тестовую тележку"), this);
+    resetCartBtn_->setStyleSheet(
+        "QPushButton { background: #B85C5C; color: #FFFFFF; "
+        "border-radius: 4px; padding: 8px 14px; font-weight: bold; }"
+        "QPushButton:hover { background: #C66F6F; }"
+        "QPushButton:pressed { background: #954747; }"
+    );
+
+    diagnosticsBtns->addWidget(refreshDiagnosticsBtn_);
+    diagnosticsBtns->addStretch(1);
+    diagnosticsBtns->addWidget(resetCartBtn_);
+
+    root->addWidget(diagnosticsTitle);
+    root->addWidget(diagnosticsText_, 1);
+    root->addLayout(diagnosticsBtns);
 }
 
 void AdminView::bindVm() {
@@ -89,6 +130,11 @@ void AdminView::bindVm() {
         msgLabel_->setText("OK: " + m);
         msgLabel_->setStyleSheet("color:#7bd88f;");
     });
+
+    connect(vm_, &AdminViewModel::diagnosticsUpdated,
+            this, [this](const QString& text) {
+                diagnosticsText_->setPlainText(text);
+            });
 
     connect(table_, &QTableWidget::cellClicked, this, [this](int row, int) {
         loadRowToForm(row);
@@ -144,6 +190,29 @@ void AdminView::bindVm() {
         selectedId_ = 0;
         resetForm();
     });
+
+    connect(refreshDiagnosticsBtn_, &QPushButton::clicked,
+            vm_, &AdminViewModel::refreshDiagnostics);
+
+    connect(resetCartBtn_, &QPushButton::clicked, this, [this]() {
+        const auto answer = QMessageBox::warning(
+            this,
+            QString::fromUtf8("Сброс тестовой тележки"),
+            QString::fromUtf8(
+                "Будут удалены тестовые заказы, операции и катушки, "
+                "а слоты будут переведены в FREE. Продолжить?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+        );
+        if (answer == QMessageBox::Yes) {
+            vm_->resetTestCart();
+            vm_->load();
+            selectedId_ = 0;
+            resetForm();
+        }
+    });
+
+    vm_->refreshDiagnostics();
 }
 
 

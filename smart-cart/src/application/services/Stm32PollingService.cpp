@@ -358,6 +358,7 @@ std::optional<std::vector<bool>> Stm32PollingService::requestSnapshot() {
 
 void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
     const auto now = std::chrono::steady_clock::now();
+    updateActiveChannels(snapshot);
     std::lock_guard lock(stateMtx_);
 
     if (!lastSnapshot_.has_value()) {
@@ -599,6 +600,18 @@ void Stm32PollingService::updateLastSnapshot(std::string message) {
     std::lock_guard lock(statusMtx_);
     status_.lastSnapshot = std::move(message);
     status_.lastSnapshotAt = currentTimeText();
+}
+
+void Stm32PollingService::updateActiveChannels(const std::vector<bool>& snapshot) {
+    std::vector<int> channels;
+    for (int channel = 0; channel < static_cast<int>(snapshot.size()); ++channel) {
+        if (snapshot[channel]) {
+            channels.push_back(channel);
+        }
+    }
+
+    std::lock_guard lock(statusMtx_);
+    status_.activeChannels = std::move(channels);
 }
 
 void Stm32PollingService::logSafe(std::string_view level,

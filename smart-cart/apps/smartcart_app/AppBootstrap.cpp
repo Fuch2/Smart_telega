@@ -31,6 +31,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
     orderRepo_  = std::make_unique<db::OrderRepositorySqlite>(*conn_);
     workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_);
+    diagnosticsRepo_ = std::make_unique<db::DiagnosticsRepositorySqlite>(*conn_);
     eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
 
     // ── 3. LED map ────────────────────────────────────────────────────────────
@@ -151,6 +152,17 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         orderImportCfg
     );
 
+    AdminDiagnosticsConfig adminDiagnosticsCfg;
+    adminDiagnosticsCfg.moduleId = 1;
+    adminDiagnosticsCfg.trackedChannels = cfg_.switchTrackedChannels;
+    adminDiagnosticsCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    adminDiagnosticsCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
+    adminDiagnosticsSvc_ = std::make_unique<AdminDiagnosticsService>(
+        *pollingSvc_,
+        *diagnosticsRepo_,
+        adminDiagnosticsCfg
+    );
+
     // ── 6. State machine ──────────────────────────────────────────────────────
     stateMachine_ = std::make_unique<AppStateMachine>(
         *startupSvc_,
@@ -162,7 +174,8 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 
     // ── 7. ViewModels ─────────────────────────────────────────────────────────
-    adminVm_  = std::make_unique<AdminViewModel>(*moduleRepo_);
+    adminVm_  = std::make_unique<AdminViewModel>(*moduleRepo_,
+                                                 *adminDiagnosticsSvc_);
     workerVm_ = std::make_unique<WorkerViewModel>(
         *reelRepo_,
         *opRepo_,

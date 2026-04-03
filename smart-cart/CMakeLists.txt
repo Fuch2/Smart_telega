@@ -30,6 +30,7 @@ add_library(smartcart_infra OBJECT
     src/infrastructure/db/repositories/OperationRepositorySqlite.cpp
     src/infrastructure/db/repositories/OrderRepositorySqlite.cpp
     src/infrastructure/db/repositories/WorkflowRepositorySqlite.cpp
+    src/infrastructure/db/repositories/DiagnosticsRepositorySqlite.cpp
 
     # ── infrastructure: hw/stm32 ──────────────────────────────────────────────
     src/infrastructure/hw/stm32/FrameCodec.cpp
@@ -58,6 +59,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/Stm32PollingService.cpp
     src/application/services/OrderImportService.cpp
     src/application/services/WorkflowService.cpp
+    src/application/services/AdminDiagnosticsService.cpp
 )
 
 target_include_directories(smartcart_infra PUBLIC

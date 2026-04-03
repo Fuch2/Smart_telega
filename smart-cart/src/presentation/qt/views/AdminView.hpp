@@ -7,6 +7,7 @@ class QSpinBox;
 class QComboBox;
 class QPushButton;
 class QLabel;
+class QTextEdit;
 class AdminViewModel;
 
 class AdminView final : public QWidget {
@@ -29,6 +30,9 @@ private:
     QPushButton* updateBtn_{nullptr};
     QPushButton* deleteBtn_{nullptr};
     QPushButton* reloadBtn_{nullptr};
+    QPushButton* refreshDiagnosticsBtn_{nullptr};
+    QPushButton* resetCartBtn_{nullptr};
+    QTextEdit* diagnosticsText_{nullptr};
 
     void resetForm();
     void selectRowById(int id);

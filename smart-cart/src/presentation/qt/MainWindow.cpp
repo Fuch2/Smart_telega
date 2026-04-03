@@ -9,10 +9,12 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QFrame>
 #include <QLabel>
+#include <QFont>
 
 MainWindow::MainWindow(AdminViewModel*  adminVm,
                        WorkerViewModel* workerVm,
@@ -22,7 +24,7 @@ MainWindow::MainWindow(AdminViewModel*  adminVm,
 {
     buildUi(adminVm, workerVm, mock);
     wireSignals();
-    resize(1600, 900);
+    resize(1280, 800);
 }
 
 void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
@@ -30,78 +32,112 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
 {
     auto* central = new QWidget(this);
     central->setStyleSheet(
-        "QWidget { background: #F0F4F1; color: #223027; }"
-        "QPushButton { background: #E3ECE5; color: #223027; "
-        "border: 1px solid #C5D2C8; border-radius: 4px; "
-        "padding: 8px 14px; font-weight: bold; }"
-        "QPushButton:hover { background: #D6E5DA; }"
-        "QPushButton:pressed { background: #C3D7C9; }"
+        "QWidget { background: #102217; color: #102217; }"
+        "QPushButton { background: #E6F0E9; color: #173025; "
+        "border: 1px solid #B8D0BF; border-radius: 8px; "
+        "padding: 12px 14px; font-weight: bold; }"
+        "QPushButton:hover { background: #D7E8DC; }"
+        "QPushButton:pressed { background: #C4DACB; }"
     );
-    auto* root    = new QVBoxLayout(central);
+    auto* root = new QHBoxLayout(central);
+    root->setContentsMargins(0, 0, 0, 0);
+    root->setSpacing(0);
 
-    // ── Верхняя панель навигации ───────────────────────────────────────────────
-    auto* topBar = new QHBoxLayout();
+    // ── Боковая навигация: крупные зоны для сенсорного экрана ───────────────
+    auto* sideRail = new QFrame(central);
+    sideRail->setFixedWidth(230);
+    sideRail->setStyleSheet(
+        "QFrame { background: #0B1A12; border-right: 1px solid #31533D; }"
+    );
+
+    auto* sideLayout = new QVBoxLayout(sideRail);
+    sideLayout->setContentsMargins(16, 20, 16, 20);
+    sideLayout->setSpacing(14);
+
+    auto* title = new QLabel(QString::fromUtf8("SmartCart"), sideRail);
+    title->setFont(QFont("Segoe UI", 24, QFont::Bold));
+    title->setStyleSheet("color: #FFFFFF;");
+
+    auto* subtitle = new QLabel(QString::fromUtf8("Пульт тележки"), sideRail);
+    subtitle->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    subtitle->setStyleSheet("color: #8DE4AD;");
+
     workerBtn_ = new QPushButton(QString::fromUtf8("Рабочий режим"), central);
     adminBtn_  = new QPushButton(QString::fromUtf8("Админ"),         central);
-    workerBtn_->setMinimumHeight(48);
-    adminBtn_->setMinimumHeight(48);
-    topBar->addWidget(workerBtn_);
-    topBar->addWidget(adminBtn_);
-    topBar->addStretch();
+    workerBtn_->setMinimumHeight(72);
+    adminBtn_->setMinimumHeight(72);
+    workerBtn_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    adminBtn_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    workerBtn_->setStyleSheet(
+        "QPushButton { background: #2F8F57; color: #FFFFFF; "
+        "border: 1px solid #2F8F57; border-radius: 8px; }"
+        "QPushButton:hover { background: #3CA86A; }"
+        "QPushButton:pressed { background: #267346; }"
+    );
+    adminBtn_->setStyleSheet(
+        "QPushButton { background: #183928; color: #DDEBE1; "
+        "border: 1px solid #3E6B4C; border-radius: 8px; }"
+        "QPushButton:hover { background: #214B34; }"
+        "QPushButton:pressed { background: #122A1E; }"
+    );
+
+    sideLayout->addWidget(title);
+    sideLayout->addWidget(subtitle);
+    sideLayout->addSpacing(14);
+    sideLayout->addWidget(workerBtn_);
+    sideLayout->addWidget(adminBtn_);
 
     // ── Тестовая панель кнопок PA1/PA2 (только в demoMode) ────────────────────
     if (mock) {
         auto* demoFrame = new QFrame(central);
         demoFrame->setFrameShape(QFrame::StyledPanel);
         demoFrame->setStyleSheet(
-            "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
-            "border-radius: 6px; padding: 4px; }");
+            "QFrame { background: #122A1E; border: 1px solid #31533D; "
+            "border-radius: 8px; }");
 
-        auto* demoLayout = new QHBoxLayout(demoFrame);
-        demoLayout->setContentsMargins(8, 4, 8, 4);
+        auto* demoLayout = new QVBoxLayout(demoFrame);
+        demoLayout->setContentsMargins(10, 10, 10, 10);
         demoLayout->setSpacing(8);
 
-        auto* demoLabel = new QLabel(QString::fromUtf8("🧪 Demo:"), demoFrame);
-        demoLabel->setStyleSheet("color: #6E6A3A; font-weight: bold;");
+        auto* demoLabel = new QLabel(QString::fromUtf8("Demo PA1 / PA2"), demoFrame);
+        demoLabel->setFont(QFont("Segoe UI", 11, QFont::Bold));
+        demoLabel->setStyleSheet("color: #8DE4AD;");
         demoLayout->addWidget(demoLabel);
 
+        auto makeDemoButton = [demoFrame](const QString& text,
+                                          const QString& color,
+                                          const QString& pressed) {
+            auto* button = new QPushButton(text, demoFrame);
+            button->setMinimumHeight(46);
+            button->setFont(QFont("Segoe UI", 10, QFont::Bold));
+            button->setStyleSheet(QString(
+                "QPushButton { background: %1; color: #FFFFFF; "
+                "border: 1px solid %1; border-radius: 8px; padding: 8px; }"
+                "QPushButton:pressed { background: %2; }"
+            ).arg(color, pressed));
+            return button;
+        };
+
         // PA1 — вставить катушку (слот 1)
-        auto* pa1InsertBtn = new QPushButton(
-            QString::fromUtf8("PA1: вставить (слот 1)"), demoFrame);
-        pa1InsertBtn->setStyleSheet(
-            "QPushButton { background: #2E7D4F; color: #FFFFFF; "
-            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #24663F; }");
+        auto* pa1InsertBtn = makeDemoButton(
+            QString::fromUtf8("PA1: вставить"), "#2F8F57", "#267346");
 
         // PA1 — вынуть катушку (слот 1)
-        auto* pa1RemoveBtn = new QPushButton(
-            QString::fromUtf8("PA1: вынуть (слот 1)"), demoFrame);
-        pa1RemoveBtn->setStyleSheet(
-            "QPushButton { background: #B85C5C; color: #FFFFFF; "
-            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #954747; }");
+        auto* pa1RemoveBtn = makeDemoButton(
+            QString::fromUtf8("PA1: вынуть"), "#B85C5C", "#954747");
 
         // PA2 — вставить катушку (слот 2)
-        auto* pa2InsertBtn = new QPushButton(
-            QString::fromUtf8("PA2: вставить (слот 2)"), demoFrame);
-        pa2InsertBtn->setStyleSheet(
-            "QPushButton { background: #4E8F61; color: #FFFFFF; "
-            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #3E744E; }");
+        auto* pa2InsertBtn = makeDemoButton(
+            QString::fromUtf8("PA2: вставить"), "#2F8F57", "#267346");
 
         // PA2 — вынуть катушку (слот 2)
-        auto* pa2RemoveBtn = new QPushButton(
-            QString::fromUtf8("PA2: вынуть (слот 2)"), demoFrame);
-        pa2RemoveBtn->setStyleSheet(
-            "QPushButton { background: #C47B5A; color: #FFFFFF; "
-            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #9E6146; }");
+        auto* pa2RemoveBtn = makeDemoButton(
+            QString::fromUtf8("PA2: вынуть"), "#B85C5C", "#954747");
 
         demoLayout->addWidget(pa1InsertBtn);
         demoLayout->addWidget(pa1RemoveBtn);
         demoLayout->addWidget(pa2InsertBtn);
         demoLayout->addWidget(pa2RemoveBtn);
-        demoLayout->addStretch();
 
         // Подключаем кнопки к mock
         connect(pa1InsertBtn, &QPushButton::clicked, [mock]() {
@@ -117,8 +153,10 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
             mock->simulateSwitchEvent(3, false);
         });
 
-        topBar->addWidget(demoFrame);
+        sideLayout->addWidget(demoFrame);
     }
+
+    sideLayout->addStretch();
 
     // ── Стек экранов ───────────────────────────────────────────────────────────
     stack_      = new QStackedWidget(central);
@@ -129,7 +167,7 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
     stack_->addWidget(adminView_);
     stack_->setCurrentWidget(workerView_);
 
-    root->addLayout(topBar);
+    root->addWidget(sideRail);
     root->addWidget(stack_, 1);
     setCentralWidget(central);
 }

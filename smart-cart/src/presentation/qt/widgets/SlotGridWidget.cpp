@@ -14,8 +14,8 @@ SlotGridWidget::SlotGridWidget(QWidget* parent)
     : QWidget(parent)
 {
     layout_ = new QGridLayout(this);
-    layout_->setSpacing(6);
-    layout_->setContentsMargins(8, 8, 8, 8);
+    layout_->setSpacing(10);
+    layout_->setContentsMargins(4, 4, 4, 4);
 
     cells_.resize(kSlots);
 
@@ -27,6 +27,8 @@ SlotGridWidget::SlotGridWidget(QWidget* parent)
         QPushButton* cell = createCell(slotIdx);
         cells_[i] = cell;
         layout_->addWidget(cell, row, col);
+        layout_->setRowStretch(row, 1);
+        layout_->setColumnStretch(col, 1);
     }
 
     setLayout(layout_);
@@ -36,9 +38,10 @@ SlotGridWidget::SlotGridWidget(QWidget* parent)
 QPushButton* SlotGridWidget::createCell(int slotIndex) {
     auto* btn = new QPushButton(
         QString::fromUtf8("Слот\n%1").arg(slotIndex), this);
-    btn->setFixedSize(90, 70);
+    btn->setMinimumSize(118, 96);
+    btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     btn->setCheckable(false);
-    btn->setFont(QFont("Segoe UI", 9));
+    btn->setFont(QFont("Segoe UI", 16, QFont::Bold));
 
     applyStyle(btn, SlotState::Free, false, colorForState(SlotState::Free));
 
@@ -102,17 +105,18 @@ void SlotGridWidget::applyStyle(QPushButton* cell,
         (luminance < 128) ? "color: #FFFFFF;" : "color: #000000;";
 
     cell->setStyleSheet(QString(
-        "QPushButton { %1 %2 %3 border-radius: 6px; padding: 4px; }"
-        "QPushButton:hover { border-color: #6FA77A; }"
+        "QPushButton { %1 %2 %3 border-radius: 8px; padding: 10px; "
+        "font-weight: bold; }"
+        "QPushButton:hover { border-color: #2F8F57; }"
     ).arg(bg, border, textColor));
 }
 
 QColor SlotGridWidget::colorForState(SlotState state) {
     switch (state) {
-        case SlotState::Free:     return QColor(211, 218, 212);
-        case SlotState::Occupied: return QColor(78,  143,  97);
-        case SlotState::Reserved: return QColor(216, 183,  94);
-        case SlotState::Error:    return QColor(190,  85,  74);
+        case SlotState::Free:     return QColor(222, 229, 224);
+        case SlotState::Occupied: return QColor(47,  143,  87);
+        case SlotState::Reserved: return QColor(225, 177,  79);
+        case SlotState::Error:    return QColor(184,  92,  92);
     }
-    return QColor(211, 218, 212);
+    return QColor(222, 229, 224);
 }

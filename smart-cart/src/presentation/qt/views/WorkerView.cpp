@@ -88,47 +88,74 @@ void WorkerView::setupUi() {
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
 
+    const QString panelStyle =
+        "QFrame { background: #F6FAF7; border: 1px solid #D5E2D8; "
+        "border-radius: 8px; }";
+    const QString darkPanelStyle =
+        "QFrame { background: #122A1E; border: 1px solid #31533D; "
+        "border-radius: 8px; }";
+    const QString primaryButtonStyle =
+        "QPushButton { background: #2F8F57; color: #FFFFFF; "
+        "border: 1px solid #2F8F57; border-radius: 8px; "
+        "padding: 12px 18px; font-weight: bold; }"
+        "QPushButton:hover { background: #3CA86A; }"
+        "QPushButton:pressed { background: #267346; }"
+        "QPushButton:disabled { background: #DCE5DF; color: #819086; "
+        "border-color: #DCE5DF; }";
+    const QString secondaryButtonStyle =
+        "QPushButton { background: #E6F0E9; color: #173025; "
+        "border: 1px solid #B8D0BF; border-radius: 8px; "
+        "padding: 12px 14px; font-weight: bold; }"
+        "QPushButton:hover { background: #D7E8DC; }"
+        "QPushButton:pressed { background: #C4DACB; }"
+        "QPushButton:disabled { background: #E7ECE8; color: #8B968F; "
+        "border-color: #D6DED8; }";
+    const QString dangerButtonStyle =
+        "QPushButton { background: #B85C5C; color: #FFFFFF; "
+        "border: 1px solid #B85C5C; border-radius: 8px; "
+        "padding: 12px 14px; font-weight: bold; }"
+        "QPushButton:hover { background: #C86F6F; }"
+        "QPushButton:pressed { background: #954747; }"
+        "QPushButton:disabled { background: #E7ECE8; color: #8B968F; "
+        "border-color: #D6DED8; }";
+
     startPage_ = new QWidget(this);
-    startPage_->setStyleSheet("QWidget { background: #F0F4F1; }");
+    startPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* startLayout = new QVBoxLayout(startPage_);
-    startLayout->setContentsMargins(48, 48, 48, 48);
-    startLayout->setSpacing(20);
+    startLayout->setContentsMargins(64, 56, 64, 56);
+    startLayout->setSpacing(24);
     startLayout->addStretch();
 
     auto* startCard = new QFrame(startPage_);
     startCard->setFrameShape(QFrame::StyledPanel);
-    startCard->setMaximumWidth(760);
+    startCard->setMinimumSize(760, 360);
+    startCard->setMaximumWidth(920);
     startCard->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #C8D8CC; "
+        "QFrame { background: #F6FAF7; border: 1px solid #AFC8B8; "
         "border-radius: 8px; }");
 
     auto* startCardLayout = new QVBoxLayout(startCard);
-    startCardLayout->setContentsMargins(28, 24, 28, 24);
-    startCardLayout->setSpacing(14);
+    startCardLayout->setContentsMargins(40, 36, 40, 36);
+    startCardLayout->setSpacing(22);
 
     auto* startTitle = new QLabel(QString::fromUtf8("Тележка свободна"), startCard);
-    startTitle->setFont(QFont("Segoe UI", 24, QFont::Bold));
-    startTitle->setStyleSheet("color: #223027;");
+    startTitle->setFont(QFont("Segoe UI", 34, QFont::Bold));
+    startTitle->setStyleSheet("color: #102217;");
     startTitle->setAlignment(Qt::AlignCenter);
 
     auto* startText = new QLabel(
         QString::fromUtf8("1. Остатков нет.\n2. Тележка свободна. Выберите заказ."),
         startCard);
-    startText->setFont(QFont("Segoe UI", 15));
-    startText->setStyleSheet("color: #4A6653;");
+    startText->setFont(QFont("Segoe UI", 20));
+    startText->setStyleSheet("color: #31533D;");
     startText->setAlignment(Qt::AlignCenter);
     startText->setWordWrap(true);
 
     startImportButton_ =
         new QPushButton(QString::fromUtf8("Выбрать заказ"), startCard);
-    startImportButton_->setFont(QFont("Segoe UI", 12, QFont::Bold));
-    startImportButton_->setMinimumHeight(44);
-    startImportButton_->setStyleSheet(
-        "QPushButton { background: #2E7D4F; color: #FFFFFF; "
-        "border-radius: 4px; padding: 8px 18px; font-weight: bold; }"
-        "QPushButton:hover { background: #3F9362; }"
-        "QPushButton:pressed { background: #24663F; }"
-    );
+    startImportButton_->setFont(QFont("Segoe UI", 18, QFont::Bold));
+    startImportButton_->setMinimumSize(260, 72);
+    startImportButton_->setStyleSheet(primaryButtonStyle);
 
     startCardLayout->addWidget(startTitle);
     startCardLayout->addWidget(startText);
@@ -137,67 +164,66 @@ void WorkerView::setupUi() {
     startLayout->addStretch();
 
     workPage_ = new QWidget(this);
+    workPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* workLayout = new QVBoxLayout(workPage_);
-    workLayout->setContentsMargins(16, 16, 16, 16);
-    workLayout->setSpacing(12);
+    workLayout->setContentsMargins(18, 18, 18, 18);
+    workLayout->setSpacing(14);
 
     rootLayout->addWidget(startPage_);
     rootLayout->addWidget(workPage_);
 
-    // ── Верхняя панель: где мы и что делать дальше ───────────────────────────
+    // ── Верхняя панель: крупная подсказка для оператора ─────────────────────
     auto* statusFrame = new QFrame(workPage_);
     statusFrame->setFrameShape(QFrame::StyledPanel);
-    statusFrame->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #C8D8CC; "
-        "border-radius: 8px; }");
+    statusFrame->setStyleSheet(darkPanelStyle);
 
     auto* statusLayout = new QHBoxLayout(statusFrame);
-    statusLayout->setContentsMargins(16, 12, 16, 12);
-    statusLayout->setSpacing(16);
+    statusLayout->setContentsMargins(22, 18, 22, 18);
+    statusLayout->setSpacing(20);
 
     auto* statusTextLayout = new QVBoxLayout();
-    statusTextLayout->setSpacing(6);
+    statusTextLayout->setSpacing(8);
 
     workflowPillLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"),
                                     statusFrame);
-    workflowPillLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
+    workflowPillLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
     workflowPillLabel_->setStyleSheet(
-        "QLabel { background: #DDEEE2; color: #2E7D4F; "
-        "border: 1px solid #BAD6C2; border-radius: 4px; padding: 4px 8px; }"
+        "QLabel { background: #E6F4EA; color: #1F6F43; "
+        "border: 1px solid #A5D3B4; border-radius: 8px; padding: 6px 12px; }"
     );
 
     stateLabel_ = new QLabel(QString::fromUtf8("Инициализация..."), statusFrame);
-    stateLabel_->setFont(QFont("Segoe UI", 18, QFont::Bold));
-    stateLabel_->setStyleSheet("color: #223027;");
+    stateLabel_->setFont(QFont("Segoe UI", 28, QFont::Bold));
+    stateLabel_->setStyleSheet("color: #FFFFFF;");
 
     messageLabel_ = new QLabel(QString::fromUtf8("Подождите..."), statusFrame);
-    messageLabel_->setFont(QFont("Segoe UI", 11));
-    messageLabel_->setStyleSheet("color: #66736B;");
+    messageLabel_->setFont(QFont("Segoe UI", 15));
+    messageLabel_->setStyleSheet("color: #C8D9CE;");
     messageLabel_->setWordWrap(true);
 
     actionHintLabel_ = new QLabel(
         QString::fromUtf8("Загрузите заказ, чтобы начать подбор материалов"),
         statusFrame);
-    actionHintLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    actionHintLabel_->setFont(QFont("Segoe UI", 17, QFont::Bold));
     actionHintLabel_->setWordWrap(true);
-    actionHintLabel_->setStyleSheet("color: #2E7D4F;");
+    actionHintLabel_->setStyleSheet("color: #8DE4AD;");
 
     stm32StatusLabel_ = new QLabel(QString::fromUtf8("STM32: ожидание связи"),
                                    statusFrame);
-    stm32StatusLabel_->setFont(QFont("Segoe UI", 9));
+    stm32StatusLabel_->setFont(QFont("Segoe UI", 11));
     stm32StatusLabel_->setWordWrap(true);
-    stm32StatusLabel_->setMinimumWidth(360);
+    stm32StatusLabel_->setMinimumWidth(420);
     stm32StatusLabel_->setStyleSheet(
-        "QLabel { background: #F7FAF7; color: #4A6653; "
-        "border: 1px solid #D8E1D9; border-radius: 4px; padding: 6px 8px; }"
+        "QLabel { background: #183928; color: #DDEBE1; "
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 10px 12px; }"
     );
 
     errorLabel_ = new QLabel("", statusFrame);
-    errorLabel_->setFont(QFont("Segoe UI", 10));
+    errorLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
     errorLabel_->setWordWrap(true);
     errorLabel_->setStyleSheet(
-        "QLabel { color: #9B3E3E; background: #F8EAEA; "
-        "border: 1px solid #E2B9B9; border-radius: 4px; padding: 4px 8px; }"
+        "QLabel { color: #FFE8E8; background: #803B3B; "
+        "border: 1px solid #B85C5C; border-radius: 8px; padding: 8px 12px; }"
     );
     errorLabel_->setVisible(false);
 
@@ -212,46 +238,110 @@ void WorkerView::setupUi() {
     workLayout->addWidget(statusFrame);
 
     auto* bodyLayout = new QHBoxLayout();
-    bodyLayout->setSpacing(12);
+    bodyLayout->setSpacing(14);
 
-    auto* leftColumn = new QWidget(workPage_);
-    auto* leftLayout = new QVBoxLayout(leftColumn);
-    leftLayout->setContentsMargins(0, 0, 0, 0);
-    leftLayout->setSpacing(12);
+    // ── Сетка слотов: главный рабочий объект на сенсорном экране ────────────
+    auto* slotFrame = new QFrame(workPage_);
+    slotFrame->setFrameShape(QFrame::StyledPanel);
+    slotFrame->setStyleSheet(panelStyle);
+    auto* slotLayout = new QVBoxLayout(slotFrame);
+    slotLayout->setContentsMargins(18, 16, 18, 18);
+    slotLayout->setSpacing(12);
+
+    auto* slotTitle = new QLabel(QString::fromUtf8("Слоты тележки"), slotFrame);
+    slotTitle->setFont(QFont("Segoe UI", 20, QFont::Bold));
+    slotTitle->setStyleSheet("color: #102217;");
+
+    slotGrid_ = new SlotGridWidget(slotFrame);
+    slotLayout->addWidget(slotTitle);
+    slotLayout->addWidget(slotGrid_, 1);
+
+    auto* rightColumn = new QWidget(workPage_);
+    auto* rightLayout = new QVBoxLayout(rightColumn);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->setSpacing(14);
+
+    // ── Панель ввода штрихкода: крупная зона действия пальцем ───────────────
+    auto* inputFrame = new QFrame(workPage_);
+    inputFrame->setFrameShape(QFrame::StyledPanel);
+    inputFrame->setStyleSheet(panelStyle);
+
+    auto* inputLayout = new QGridLayout(inputFrame);
+    inputLayout->setContentsMargins(16, 14, 16, 16);
+    inputLayout->setHorizontalSpacing(10);
+    inputLayout->setVerticalSpacing(12);
+
+    auto* barcodeLabel = new QLabel(QString::fromUtf8("Сканер"), inputFrame);
+    barcodeLabel->setStyleSheet("color: #102217;");
+    barcodeLabel->setFont(QFont("Segoe UI", 20, QFont::Bold));
+
+    barcodeEdit_ = new QLineEdit(inputFrame);
+    barcodeEdit_->setPlaceholderText(
+        QString::fromUtf8("Отсканируйте или введите вручную..."));
+    barcodeEdit_->setFont(QFont("Segoe UI", 18));
+    barcodeEdit_->setMinimumHeight(62);
+    barcodeEdit_->setMinimumWidth(280);
+    barcodeEdit_->setStyleSheet(
+        "QLineEdit { background: #FFFFFF; color: #102217; "
+        "border: 2px solid #B8D0BF; border-radius: 8px; padding: 10px 14px; }"
+        "QLineEdit:focus { border-color: #2F8F57; }"
+    );
+
+    importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"),
+                                    inputFrame);
+    importButton_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    importButton_->setMinimumHeight(62);
+    importButton_->setStyleSheet(secondaryButtonStyle);
+
+    scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
+    scanButton_->setFont(QFont("Segoe UI", 16, QFont::Bold));
+    scanButton_->setMinimumHeight(70);
+    scanButton_->setStyleSheet(primaryButtonStyle);
+
+    cancelButton_ = new QPushButton(QString::fromUtf8("Отмена"), inputFrame);
+    cancelButton_->setFont(QFont("Segoe UI", 14, QFont::Bold));
+    cancelButton_->setMinimumHeight(62);
+    cancelButton_->setEnabled(false);
+    cancelButton_->setStyleSheet(dangerButtonStyle);
+
+    inputLayout->addWidget(barcodeLabel, 0, 0, 1, 2);
+    inputLayout->addWidget(barcodeEdit_, 1, 0, 1, 2);
+    inputLayout->addWidget(scanButton_, 2, 0, 1, 2);
+    inputLayout->addWidget(importButton_, 3, 0);
+    inputLayout->addWidget(cancelButton_, 3, 1);
+    rightLayout->addWidget(inputFrame);
 
     // ── Заказ и чек-лист ─────────────────────────────────────────────────────
     auto* orderFrame = new QFrame(workPage_);
     orderFrame->setFrameShape(QFrame::StyledPanel);
-    orderFrame->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
-        "border-radius: 8px; }");
+    orderFrame->setStyleSheet(panelStyle);
 
     auto* orderLayout = new QVBoxLayout(orderFrame);
-    orderLayout->setContentsMargins(14, 12, 14, 12);
-    orderLayout->setSpacing(8);
+    orderLayout->setContentsMargins(16, 14, 16, 16);
+    orderLayout->setSpacing(10);
 
     workflowLabel_ = new QLabel(QString::fromUtf8("Заказ"), orderFrame);
-    workflowLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
-    workflowLabel_->setStyleSheet("color: #223027;");
+    workflowLabel_->setFont(QFont("Segoe UI", 20, QFont::Bold));
+    workflowLabel_->setStyleSheet("color: #102217;");
 
     orderLabel_ = new QLabel(QString::fromUtf8("Заказ не загружен"), orderFrame);
-    orderLabel_->setFont(QFont("Segoe UI", 10));
-    orderLabel_->setStyleSheet("color: #223027;");
+    orderLabel_->setFont(QFont("Segoe UI", 13));
+    orderLabel_->setStyleSheet("color: #102217;");
     orderLabel_->setWordWrap(true);
     orderLabel_->setTextFormat(Qt::RichText);
 
     progressLabel_ = new QLabel(QString::fromUtf8("Материалы: 0/0"), orderFrame);
-    progressLabel_->setFont(QFont("Segoe UI", 10, QFont::Bold));
+    progressLabel_->setFont(QFont("Segoe UI", 14, QFont::Bold));
     progressLabel_->setWordWrap(true);
-    progressLabel_->setStyleSheet("color: #4A6653;");
+    progressLabel_->setStyleSheet("color: #31533D;");
 
     checklistText_ = new QTextEdit(orderFrame);
     checklistText_->setReadOnly(true);
-    checklistText_->setMinimumHeight(160);
-    checklistText_->setFont(QFont("Segoe UI", 10));
+    checklistText_->setMinimumHeight(190);
+    checklistText_->setFont(QFont("Segoe UI", 13));
     checklistText_->setStyleSheet(
-        "QTextEdit { background: #F7FAF7; color: #223027; "
-        "border: 1px solid #C9D6CC; border-radius: 4px; padding: 4px; }"
+        "QTextEdit { background: #FFFFFF; color: #102217; "
+        "border: 1px solid #C7D8CC; border-radius: 8px; padding: 8px; }"
     );
     checklistText_->setPlainText(QString::fromUtf8("Загрузите JSON заказа"));
 
@@ -259,103 +349,31 @@ void WorkerView::setupUi() {
     orderLayout->addWidget(orderLabel_);
     orderLayout->addWidget(progressLabel_);
     orderLayout->addWidget(checklistText_, 1);
-    leftLayout->addWidget(orderFrame, 1);
-
-    // ── Панель ввода штрихкода ────────────────────────────────────────────────
-    auto* inputFrame = new QFrame(workPage_);
-    inputFrame->setFrameShape(QFrame::StyledPanel);
-    inputFrame->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
-        "border-radius: 8px; }");
-
-    auto* inputLayout = new QGridLayout(inputFrame);
-    inputLayout->setContentsMargins(14, 12, 14, 12);
-    inputLayout->setHorizontalSpacing(8);
-    inputLayout->setVerticalSpacing(8);
-
-    auto* barcodeLabel = new QLabel(QString::fromUtf8("Сканер"), inputFrame);
-    barcodeLabel->setStyleSheet("color: #223027;");
-    barcodeLabel->setFont(QFont("Segoe UI", 13, QFont::Bold));
-
-    barcodeEdit_ = new QLineEdit(inputFrame);
-    barcodeEdit_->setPlaceholderText(
-        QString::fromUtf8("Отсканируйте или введите вручную..."));
-    barcodeEdit_->setFont(QFont("Segoe UI", 11));
-    barcodeEdit_->setMinimumWidth(280);
-    barcodeEdit_->setStyleSheet(
-        "QLineEdit { background: #F7FAF7; color: #223027; "
-        "border: 1px solid #C9D6CC; border-radius: 4px; padding: 4px 8px; }"
-        "QLineEdit:focus { border-color: #2E7D4F; }"
-    );
-
-    importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"),
-                                    inputFrame);
-    importButton_->setFont(QFont("Segoe UI", 10));
-    importButton_->setStyleSheet(
-        "QPushButton { background: #2E7D4F; color: #FFFFFF; "
-        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #3F9362; }"
-        "QPushButton:pressed { background: #24663F; }"
-    );
-
-    scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
-    scanButton_->setFont(QFont("Segoe UI", 10));
-    scanButton_->setStyleSheet(
-        "QPushButton { background: #4E8F61; color: #FFFFFF; "
-        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #63A875; }"
-        "QPushButton:pressed { background: #3E744E; }"
-    );
-
-    cancelButton_ = new QPushButton(QString::fromUtf8("Отмена"), inputFrame);
-    cancelButton_->setFont(QFont("Segoe UI", 10));
-    cancelButton_->setEnabled(false);
-    cancelButton_->setStyleSheet(
-        "QPushButton { background: #B85C5C; color: #FFFFFF; "
-        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #C66F6F; }"
-        "QPushButton:disabled { background: #D7DED8; color: #8B968F; }"
-    );
-
-    inputLayout->addWidget(barcodeLabel, 0, 0, 1, 3);
-    inputLayout->addWidget(barcodeEdit_, 1, 0, 1, 3);
-    inputLayout->addWidget(importButton_, 2, 0);
-    inputLayout->addWidget(scanButton_, 2, 1);
-    inputLayout->addWidget(cancelButton_, 2, 2);
-    leftLayout->addWidget(inputFrame);
+    rightLayout->addWidget(orderFrame, 1);
 
     // ── Этапы маршрута тележки ───────────────────────────────────────────────
     auto* workflowFrame = new QFrame(workPage_);
     workflowFrame->setFrameShape(QFrame::StyledPanel);
-    workflowFrame->setStyleSheet(
-        "QFrame { background: #EEF5EF; border: 1px solid #D8E1D9; "
-        "border-radius: 8px; }");
+    workflowFrame->setStyleSheet(panelStyle);
 
     auto* workflowRootLayout = new QVBoxLayout(workflowFrame);
-    workflowRootLayout->setContentsMargins(14, 12, 14, 12);
-    workflowRootLayout->setSpacing(8);
+    workflowRootLayout->setContentsMargins(16, 14, 16, 16);
+    workflowRootLayout->setSpacing(10);
 
     auto* routeTitle = new QLabel(QString::fromUtf8("Маршрут тележки"),
                                   workflowFrame);
-    routeTitle->setFont(QFont("Segoe UI", 13, QFont::Bold));
-    routeTitle->setStyleSheet("color: #223027;");
+    routeTitle->setFont(QFont("Segoe UI", 20, QFont::Bold));
+    routeTitle->setStyleSheet("color: #102217;");
 
     auto* workflowLayout = new QGridLayout();
-    workflowLayout->setHorizontalSpacing(8);
-    workflowLayout->setVerticalSpacing(8);
+    workflowLayout->setHorizontalSpacing(10);
+    workflowLayout->setVerticalSpacing(10);
 
-    auto makeWorkflowButton = [workflowFrame](const QString& text) {
+    auto makeWorkflowButton = [workflowFrame, secondaryButtonStyle](const QString& text) {
         auto* button = new QPushButton(text, workflowFrame);
-        button->setFont(QFont("Segoe UI", 10));
-        button->setStyleSheet(
-            "QPushButton { background: #D9EADD; color: #223027; "
-            "border: 1px solid #A9C8B1; border-radius: 4px; "
-            "padding: 6px 10px; font-weight: bold; }"
-            "QPushButton:hover { background: #C8E0CE; }"
-            "QPushButton:pressed { background: #B5D2BD; }"
-            "QPushButton:disabled { background: #E5EBE6; color: #8B968F; "
-            "border-color: #CBD5CE; }"
-        );
+        button->setFont(QFont("Segoe UI", 13, QFont::Bold));
+        button->setMinimumHeight(56);
+        button->setStyleSheet(secondaryButtonStyle);
         return button;
     };
 
@@ -382,42 +400,24 @@ void WorkerView::setupUi() {
 
     workflowLayout->addWidget(arrivedFeederButton_, 0, 0);
     workflowLayout->addWidget(startFeederPrepButton_, 0, 1);
-    workflowLayout->addWidget(feederPrepDoneButton_, 0, 2);
-    workflowLayout->addWidget(arrivedLineButton_, 1, 0);
-    workflowLayout->addWidget(startIssuingButton_, 1, 1);
-    workflowLayout->addWidget(issueButton_, 1, 2);
-    workflowLayout->addWidget(completeIssuingButton_, 2, 0);
-    workflowLayout->addWidget(inspectLeftoversButton_, 2, 1);
-    workflowLayout->addWidget(startReturnButton_, 2, 2);
-    workflowLayout->addWidget(returnLeftoverButton_, 3, 0, 1, 3);
+    workflowLayout->addWidget(feederPrepDoneButton_, 1, 0);
+    workflowLayout->addWidget(arrivedLineButton_, 1, 1);
+    workflowLayout->addWidget(startIssuingButton_, 2, 0);
+    workflowLayout->addWidget(issueButton_, 2, 1);
+    workflowLayout->addWidget(completeIssuingButton_, 3, 0);
+    workflowLayout->addWidget(inspectLeftoversButton_, 3, 1);
+    workflowLayout->addWidget(startReturnButton_, 4, 0);
+    workflowLayout->addWidget(returnLeftoverButton_, 4, 1);
     workflowRootLayout->addWidget(routeTitle);
     workflowRootLayout->addLayout(workflowLayout);
-    leftLayout->addWidget(workflowFrame);
+    rightLayout->addWidget(workflowFrame);
 
-    // ── Сетка слотов ─────────────────────────────────────────────────────────
-    auto* slotFrame = new QFrame(workPage_);
-    slotFrame->setFrameShape(QFrame::StyledPanel);
-    slotFrame->setStyleSheet(
-        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
-        "border-radius: 8px; }");
-    auto* slotLayout = new QVBoxLayout(slotFrame);
-    slotLayout->setContentsMargins(14, 12, 14, 12);
-    slotLayout->setSpacing(8);
-
-    auto* slotTitle = new QLabel(QString::fromUtf8("Слоты тележки"), slotFrame);
-    slotTitle->setFont(QFont("Segoe UI", 13, QFont::Bold));
-    slotTitle->setStyleSheet("color: #223027;");
-
-    slotGrid_ = new SlotGridWidget(slotFrame);
-    slotLayout->addWidget(slotTitle);
-    slotLayout->addWidget(slotGrid_, 1);
-
-    bodyLayout->addWidget(leftColumn, 0);
-    bodyLayout->addWidget(slotFrame, 1);
+    bodyLayout->addWidget(slotFrame, 7);
+    bodyLayout->addWidget(rightColumn, 5);
     workLayout->addLayout(bodyLayout, 1);
 
     setLayout(rootLayout);
-    setStyleSheet("WorkerView { background: #F0F4F1; }");
+    setStyleSheet("WorkerView { background: #102217; }");
 
     // Автофокус на поле ввода при старте
     barcodeEdit_->setFocus();

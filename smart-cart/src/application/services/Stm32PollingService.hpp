@@ -46,6 +46,7 @@ struct BarcodeScanResult {
 struct Stm32ConnectionStatus {
     bool uartOpen{false};
     bool pollingRunning{false};
+    std::vector<int> activeChannels;
     std::string lastEvent{"нет событий"};
     std::string lastEventAt;
     std::string lastSnapshot{"нет snapshot"};
@@ -125,6 +126,7 @@ private:
     std::optional<int> slotIndexForChannel(int channel) const;
     void updateLastEvent(std::string message);
     void updateLastSnapshot(std::string message);
+    void updateActiveChannels(const std::vector<bool>& snapshot);
     void logSafe(std::string_view level,
                  std::string_view code,
                  std::string_view message) const;

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "../../../application/ports/IModuleRepository.hpp"
+#include "../../../application/services/AdminDiagnosticsService.hpp"
 
 namespace smartcart::domain { struct ModuleInfo; }
 
@@ -24,6 +25,7 @@ public:
     // Зависимость приходит снаружи — ViewModel не знает о SQLite
     explicit AdminViewModel(
         smartcart::application::ports::IModuleRepository& repo,
+        smartcart::application::services::AdminDiagnosticsService& diagnosticsSvc,
         QObject* parent = nullptr);
 
     const QVector<ModuleItem>& items() const { return items_; }
@@ -35,9 +37,12 @@ public slots:
     void updateModule(int id, const QString& serial, int slotCount,
                       const QString& firmware, const QString& status);
     void removeModule(int id);
+    void refreshDiagnostics();
+    void resetTestCart();
 
 signals:
     void modulesReset();
+    void diagnosticsUpdated(const QString& text);
     void errorOccurred(const QString& message);
     void infoOccurred(const QString& message);
 
@@ -46,5 +51,6 @@ private:
     int  findIndexById(int id) const;
 
     smartcart::application::ports::IModuleRepository& repo_;
+    smartcart::application::services::AdminDiagnosticsService& diagnosticsSvc_;
     QVector<ModuleItem> items_;
 };
