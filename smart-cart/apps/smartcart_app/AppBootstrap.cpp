@@ -191,6 +191,17 @@ int AppBootstrap::ensureModuleForUid(const std::string& uid) {
 }
 
 void AppBootstrap::buildModuleScopedSession() {
+    if (cfg_.rfidEnabled && activeModuleUid_.empty()) {
+        if (const auto module = moduleRepo_->getById(activeModuleId_);
+            module.has_value() &&
+            module->status != smartcart::domain::ModuleStatus::Offline)
+        {
+            auto updated = *module;
+            updated.status = smartcart::domain::ModuleStatus::Offline;
+            moduleRepo_->update(updated);
+        }
+    }
+
     orderRepo_ = std::make_unique<db::OrderRepositorySqlite>(*conn_, activeModuleId_);
     workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_, activeModuleId_);
 

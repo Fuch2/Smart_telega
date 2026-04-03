@@ -86,7 +86,9 @@ void StartupService::ensureModuleExists() {
     module.serial = "SMARTCART-MODULE-" + std::to_string(config_.moduleId);
     module.slotCount = config_.slotCount;
     module.firmware = "";
-    module.status = domain::ModuleStatus::Online;
+    // Если модуль создаётся как placeholder на старте, по умолчанию он не должен
+    // считаться физически присутствующим. Онлайн/оффлайн задаётся внешней логикой.
+    module.status = domain::ModuleStatus::Offline;
 
     moduleRepo_.add(module);
 }

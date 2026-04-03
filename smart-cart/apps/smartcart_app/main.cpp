@@ -5,6 +5,7 @@
 #include "infrastructure/db/repositories/OrderRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/WorkflowRepositorySqlite.hpp"
+#include "infrastructure/hw/rfid/Rc522RfidProvider.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/OrderImportService.hpp"
 #include "application/services/WorkflowService.hpp"
@@ -15,9 +16,12 @@
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
+#include <iomanip>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <ctime>
 
 // Макросы должны быть определены через CMake target_compile_definitions
 #ifndef CONFIG_DIR
@@ -37,7 +41,62 @@ void printUsage(const char* appName) {
         << "  " << appName << " --import-order /path/order.json\n"
         << "  " << appName << " --workflow-next\n"
         << "  " << appName << " --issue BARCODE\n"
-        << "  " << appName << " --return-leftover BARCODE_OR_SLOT\n";
+        << "  " << appName << " --return-leftover BARCODE_OR_SLOT\n"
+        << "  " << appName << " --rfid-watch\n";
+}
+
+std::string nowText() {
+    const auto now = std::time(nullptr);
+    std::tm localTm{};
+#ifdef _WIN32
+    localtime_s(&localTm, &now);
+#else
+    localtime_r(&now, &localTm);
+#endif
+
+    std::ostringstream out;
+    out << std::put_time(&localTm, "%H:%M:%S");
+    return out.str();
+}
+
+int runRfidWatch(const smartcart::infrastructure::config::AppConfig& config) {
+    if (!config.rfidEnabled) {
+        std::cerr << "RFID is disabled in config.json\n";
+        return 2;
+    }
+
+    smartcart::infrastructure::hw::rfid::Rc522RfidProvider provider(
+        config.rfidSpiDevice);
+
+    std::cout << "RFID watch started on " << config.rfidSpiDevice << "\n";
+    std::cout << "Press Ctrl+C to stop.\n";
+
+    std::optional<std::string> lastUid;
+    bool lastWasNoTag = false;
+
+    while (true) {
+        const auto uid =
+            provider.readOnce(static_cast<int>(config.rfidReadTimeoutMs));
+
+        if (uid.has_value() && !uid->empty()) {
+            if (!lastUid.has_value() || *lastUid != *uid || lastWasNoTag) {
+                std::cout << "[" << nowText() << "] UID: " << *uid << "\n";
+                std::cout.flush();
+            }
+            lastUid = uid;
+            lastWasNoTag = false;
+        } else {
+            if (!lastWasNoTag) {
+                std::cout << "[" << nowText() << "] NO_TAG\n";
+                std::cout.flush();
+            }
+            lastUid.reset();
+            lastWasNoTag = true;
+        }
+
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(config.rfidPollMs));
+    }
 }
 
 void printLatestEvents(sqlite3* db) {
@@ -210,6 +269,10 @@ int main(int argc, char* argv[]) {
         if (command == "--diag") {
             printDiagnostics(conn, orderRepo, reelRepo, workflowRepo);
             return 0;
+        }
+
+        if (command == "--rfid-watch") {
+            return runRfidWatch(config);
         }
 
         if (command == "--import-order") {
