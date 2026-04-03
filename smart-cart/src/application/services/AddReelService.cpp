@@ -1,10 +1,10 @@
 // ===== src/application/services/AddReelService.cpp =====
-// Исправлено: updateStatus без finishedAt (убран лишний аргумент)
 #include "application/services/AddReelService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -102,13 +102,14 @@ int AddReelService::start(const std::string& barcode) {
 
     setSlotLed(slotIndex, 0, 255, 0);
 
-    // ← захват по значению: barcode, slotIndex, opId — всё копируется
-    std::thread([this, opId, slotIndex, barcode]() {
-        std::mutex              mtx;
-        std::condition_variable cv;
-        bool                    confirmed = false;
+    auto mtx       = std::make_shared<std::mutex>();
+    auto cv        = std::make_shared<std::condition_variable>();
+    auto confirmed = std::make_shared<bool>(false);
 
-        link_.setEventCallback([&](const stm32::Frame& evt) {
+    std::thread([this, opId, slotIndex, barcode, mtx, cv, confirmed]() {
+
+        link_.setEventCallback([mtx, cv, confirmed, slotIndex]
+                               (const stm32::Frame& evt) {
             if (evt.type  == stm32::FrameType::Evt &&
                 evt.cmdId == stm32::CommandId::EvtSwitchChanged &&
                 evt.payload.size() >= 2)
@@ -117,18 +118,18 @@ int AddReelService::start(const std::string& barcode) {
                 const bool evtOccupied = evt.payload[1] == 0x01;
 
                 if (evtSlot == slotIndex && evtOccupied) {
-                    std::lock_guard lock(mtx);
-                    confirmed = true;
-                    cv.notify_one();
+                    std::lock_guard lock(*mtx);
+                    *confirmed = true;
+                    cv->notify_one();
                 }
             }
         });
 
-        std::unique_lock lock(mtx);
-        const bool ok = cv.wait_for(
+        std::unique_lock lock(*mtx);
+        const bool ok = cv->wait_for(
             lock,
             std::chrono::milliseconds(config_.stableConfirmMs),
-            [&] { return confirmed || cancelled_.load(); }
+            [&] { return *confirmed || cancelled_.load(); }
         );
 
         link_.setEventCallback(nullptr);
@@ -136,7 +137,7 @@ int AddReelService::start(const std::string& barcode) {
         if (!ok || cancelled_) {
             reelRepo_.setSlotState(config_.moduleId, slotIndex,
                                    domain::SlotState::Free);
-            opRepo_.updateStatus(opId, domain::OperationStatus::Cancelled); // ← без finishedAt
+            opRepo_.updateStatus(opId, domain::OperationStatus::Cancelled);
             clearAllLeds();
             if (onComplete_) onComplete_(opId, domain::OperationStatus::Cancelled);
             return;
@@ -145,7 +146,7 @@ int AddReelService::start(const std::string& barcode) {
         reelRepo_.addRecord(config_.moduleId, slotIndex, barcode);
         reelRepo_.setSlotState(config_.moduleId, slotIndex,
                                domain::SlotState::Occupied);
-        opRepo_.updateStatus(opId, domain::OperationStatus::Completed); // ← без finishedAt
+        opRepo_.updateStatus(opId, domain::OperationStatus::Completed);
         clearAllLeds();
 
         if (onComplete_) onComplete_(opId, domain::OperationStatus::Completed);

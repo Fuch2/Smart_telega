@@ -1,7 +1,4 @@
 // ===== tests/integration/uart_recovery_test.cpp =====
-// Исправлено:
-//   - комментарии на английском
-//   - добавлен тест RemoveReel recovery
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
@@ -21,9 +18,14 @@ protected:
         conn_     = std::make_unique<infrastructure::db::SqliteConnection>(":memory:");
         reelRepo_ = std::make_unique<infrastructure::db::ReelRepositorySqlite>(*conn_);
         opRepo_   = std::make_unique<infrastructure::db::OperationRepositorySqlite>(*conn_);
+
+        // FK: slot_states.module_id → modules.id
+        conn_->execute(
+            "INSERT INTO modules(id,serial,slot_count,firmware,status)"
+            " VALUES(1,'TEST-MODULE',24,'','ONLINE');"
+        );
     }
 
-    // Helper: build a mock that returns a fixed 3-byte snapshot bitmask
     static MockStm32Link::Handler snapshotHandler(uint8_t b0, uint8_t b1, uint8_t b2) {
         return [b0, b1, b2](const Frame& cmd) -> std::optional<Frame> {
             Frame resp;
@@ -45,7 +47,6 @@ protected:
 };
 
 TEST_F(RecoveryFlowTest, AddReel_PhysOccupied_Completes) {
-    // Unfinished AddReel on slot 5
     domain::Operation op;
     op.type      = domain::OperationType::AddReel;
     op.status    = domain::OperationStatus::InProgress;
@@ -56,7 +57,6 @@ TEST_F(RecoveryFlowTest, AddReel_PhysOccupied_Completes) {
 
     reelRepo_->setSlotState(1, 5, domain::SlotState::Reserved);
 
-    // Snapshot: bit 4 = slot 5 occupied (0x10 in byte 0)
     MockStm32Link link(snapshotHandler(0x10, 0x00, 0x00));
     link.open();
 
@@ -84,7 +84,6 @@ TEST_F(RecoveryFlowTest, AddReel_PhysEmpty_Cancels) {
 
     reelRepo_->setSlotState(1, 7, domain::SlotState::Reserved);
 
-    // Snapshot: all slots empty
     MockStm32Link link(snapshotHandler(0x00, 0x00, 0x00));
     link.open();
 
@@ -98,7 +97,7 @@ TEST_F(RecoveryFlowTest, AddReel_PhysEmpty_Cancels) {
     const auto recovered = opRepo_->getById(opId);
     ASSERT_TRUE(recovered.has_value());
     EXPECT_EQ(recovered->status, domain::OperationStatus::Cancelled);
-    // Slot should be freed
+
     const auto slotStates = reelRepo_->getSlotStates(1);
     for (const auto& s : slotStates) {
         if (s.slotIndex == 7)
@@ -107,7 +106,6 @@ TEST_F(RecoveryFlowTest, AddReel_PhysEmpty_Cancels) {
 }
 
 TEST_F(RecoveryFlowTest, RemoveReel_PhysEmpty_Completes) {
-    // Pre-condition: reel in slot 2
     reelRepo_->addRecord(1, 2, "REEL-REMOVE-001");
     reelRepo_->setSlotState(1, 2, domain::SlotState::Occupied);
 
@@ -119,7 +117,6 @@ TEST_F(RecoveryFlowTest, RemoveReel_PhysEmpty_Completes) {
     op.barcode   = "REEL-REMOVE-001";
     const int opId = opRepo_->add(op);
 
-    // Snapshot: slot 2 (bit 1) is physically empty → removal succeeded
     MockStm32Link link(snapshotHandler(0x00, 0x00, 0x00));
     link.open();
 

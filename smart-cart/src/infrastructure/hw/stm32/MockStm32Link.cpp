@@ -1,5 +1,4 @@
 // ===== src/infrastructure/hw/stm32/MockStm32Link.cpp =====
-// Исправлено: ack.frameType → ack.type, ack.commandId → ack.cmdId
 #include "MockStm32Link.hpp"
 
 namespace smartcart::infrastructure::hw::stm32 {
@@ -8,13 +7,14 @@ MockStm32Link::MockStm32Link(Handler handler)
     : handler_(std::move(handler))
 {}
 
+MockStm32Link::~MockStm32Link() { close(); }
+
 bool MockStm32Link::open()  { open_ = true;  return true; }
 void MockStm32Link::close() { open_ = false; }
 bool MockStm32Link::isOpen() const { return open_; }
 
-void MockStm32Link::setEventCallback(
-    application::ports::EventCallback cb)
-{
+void MockStm32Link::setEventCallback(application::ports::EventCallback cb) {
+    std::lock_guard lock(eventCbMtx_);
     eventCb_ = std::move(cb);
 }
 
@@ -24,13 +24,26 @@ std::optional<Frame> MockStm32Link::sendCommand(const Frame& cmd) {
 
     Frame ack;
     ack.protocolVersion = cmd.protocolVersion;
-    ack.type  = FrameType::Ack;   // ← исправлено
+    ack.type  = FrameType::Ack;
     ack.seq   = cmd.seq;
-    ack.cmdId = cmd.cmdId;        // ← исправлено
+    ack.cmdId = cmd.cmdId;
     return ack;
 }
 
+void MockStm32Link::simulateSwitchEvent(int slotIndex, bool occupied) {
+    Frame evt;
+    evt.type    = FrameType::Evt;
+    evt.cmdId   = CommandId::EvtSwitchChanged;
+    // payload[0] = slot 0-based, payload[1] = occupied
+    evt.payload = {
+        static_cast<uint8_t>(slotIndex - 1),
+        static_cast<uint8_t>(occupied ? 0x01 : 0x00)
+    };
+    injectEvent(evt);
+}
+
 void MockStm32Link::injectEvent(const Frame& evt) {
+    std::lock_guard lock(eventCbMtx_);
     if (eventCb_) eventCb_(evt);
 }
 

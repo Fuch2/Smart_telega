@@ -1,7 +1,3 @@
-// ===== src/presentation/qt/viewmodels/WorkerViewModel.hpp =====
-// Исправлено:
-//   - slots() → slotItems()  (избегаем конфликта с Qt-макросом #define slots)
-//   - stateMachine() → stateMachineRef() (на всякий случай — slots был главной)
 #pragma once
 
 #include "application/state/AppStateMachine.hpp"
@@ -10,14 +6,12 @@
 #include "domain/entities/Slot.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
-#include "presentation/qt/widgets/SlotGridWidget.hpp"
+#include "presentation/qt/SlotCellData.hpp"  // ← только DTO, без QWidget
 
+#include <QColor>
 #include <QObject>
 #include <QString>
 #include <QVector>
-#include <QColor>
-
-using SlotItem = SlotCellData;
 
 class WorkerViewModel : public QObject {
     Q_OBJECT
@@ -30,7 +24,7 @@ public:
         QObject*                                             parent = nullptr
     );
 
-    // ИСПРАВЛЕНО: slots() → slotItems() — конфликт с Qt-макросом #define slots
+    // slotItems() — не slots() во избежание конфликта с Qt-макросом
     const QVector<SlotCellData>& slotItems()  const noexcept { return slots_; }
     QString                      stateLabel() const;
 
@@ -52,7 +46,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onStateChanged(smartcart::application::AppState newState);
     void onSlotHighlighted(int slotIndex, QColor color);
-    void onOperationFinished(int operationId,
+    void onOperationFinished(int                              operationId,
                              smartcart::domain::OperationStatus status);
     void onError(smartcart::domain::ErrorCode code, QString message);
 

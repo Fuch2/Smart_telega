@@ -4,7 +4,7 @@
 #include "application/ports/IStm32Link.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IOperationRepository.hpp"
-#include "application/services/AddReelService.hpp"
+#include "application/services/RgbColor.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
@@ -38,10 +38,7 @@ public:
         ReplaceReelConfig            config
     );
 
-    /// Запустить замену катушки по штрихкоду. Возвращает opId или -1 при ошибке.
     int  start(const std::string& newBarcode);
-
-    /// Отменить текущую операцию.
     void cancel();
 
     void setCompletionCallback(CompletionCallback cb)       { onComplete_ = std::move(cb); }

@@ -1,6 +1,4 @@
 // ===== src/application/state/AppStateMachine.cpp =====
-// Исправлено:
-//   - локальная переменная slots → slotList (конфликт с Qt-макросом #define slots)
 #include "application/state/AppStateMachine.hpp"
 
 #include <QMetaObject>
@@ -26,12 +24,14 @@ AppStateMachine::AppStateMachine(
     services::AddReelService&     addReelSvc,
     services::ReplaceReelService& replaceReelSvc,
     services::RecoveryService&    recoverySvc,
+    ports::IReelRepository&       reelRepo,
     QObject*                      parent)
     : QObject(parent)
     , startupSvc_(startupSvc)
     , addReelSvc_(addReelSvc)
     , replaceReelSvc_(replaceReelSvc)
     , recoverySvc_(recoverySvc)
+    , reelRepo_(reelRepo)
 {}
 
 void AppStateMachine::transition(AppState newState) {
@@ -61,7 +61,6 @@ void AppStateMachine::startup() {
         return;
     }
 
-    // ИСПРАВЛЕНО: slots → slotList (конфликт с Qt-макросом #define slots)
     const auto& slotList = std::get<std::vector<Slot>>(startupResult);
     for (const auto& slot : slotList) {
         QColor color;
@@ -92,12 +91,10 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
         transition(AppState::Ready);
     };
 
-    bool replaceStarted = false;
-
     replaceReelSvc_.setCompletionCallback(onComplete);
     replaceReelSvc_.setSlotHighlightCallback(toQColor);
     replaceReelSvc_.setErrorCallback(
-        [this, barcodeStr, toQColor, onComplete, &replaceStarted]
+        [this, barcodeStr, toQColor, onComplete]
         (ErrorCode code, std::string /*msg*/) mutable
         {
             if (code != ErrorCode::ReelNotFound) {
@@ -119,7 +116,8 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
             const int addOpId = addReelSvc_.start(barcodeStr);
             if (addOpId >= 0) {
                 emit operationStarted(addOpId, OperationType::AddReel);
-                replaceStarted = true;
+            } else {
+                transition(AppState::Ready);
             }
         }
     );
@@ -127,6 +125,12 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
     const int replaceOpId = replaceReelSvc_.start(barcodeStr);
     if (replaceOpId >= 0) {
         emit operationStarted(replaceOpId, OperationType::ReplaceReel);
+    } else {
+        // start() вернул -1 синхронно (невалидный баркод отклонён до потока)
+        // onError_ будет вызван из start() — он сам вызовет transition(Ready)
+        // через addReelSvc_ ветку. Но если onError_ не вызван (баркод невалиден
+        // на уровне ReplaceReelService до запуска потока) — возвращаем Ready.
+        transition(AppState::Ready);
     }
 }
 

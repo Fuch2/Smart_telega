@@ -1,4 +1,3 @@
-# ===== CMakeLists.txt =====
 cmake_minimum_required(VERSION 3.22)
 project(smartcart LANGUAGES CXX)
 
@@ -123,6 +122,7 @@ add_custom_command(TARGET smartcart_app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${SMARTCART_MIGRATIONS_DIR}
         $<TARGET_FILE_DIR:smartcart_app>/migrations
+    COMMENT "Copying config and migrations → smartcart_app output"
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -178,10 +178,13 @@ include(GoogleTest)
 gtest_discover_tests(frame_codec_tests)
 gtest_discover_tests(integration_tests)
 
-# ── Qt UI (presentation слой + main_qt.cpp) ───────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# Qt UI — presentation слой
+# main_qt.cpp теперь в apps/smartcart_app/ (П1.5)
+# ══════════════════════════════════════════════════════════════════════════════
 add_subdirectory(src/presentation/qt build_qt)
 
-# ── Копирование config/ в build/ при любом cmake --build ─────────────────────
+# ── Синхронизация config/ в build/ при любом cmake --build ───────────────────
 add_custom_target(copy_config ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/config

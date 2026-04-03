@@ -58,6 +58,7 @@ private:
     std::unique_ptr<AdminViewModel>  adminVm_;
     std::unique_ptr<WorkerViewModel> workerVm_;
     MainWindow*                      mainWindow_ = nullptr;
+    smartcart::infrastructure::hw::stm32::MockStm32Link* mockLink_ = nullptr;
 
     std::vector<int> slotToLedMap_;
     void buildSlotToLedMap();

@@ -1,28 +1,13 @@
-// ===== src/presentation/qt/widgets/SlotGridWidget.hpp =====
-// Исправлено:
-//   - SlotItem вынесен из WorkerViewModel в отдельный заголовок SlotItem.hpp
-//     (разрыв циклической зависимости SlotGridWidget ↔ WorkerViewModel)
-//   - updateSlots принимает QVector<SlotCellData> вместо QVector<SlotItem>
-//     (SlotGridWidget не должен знать о WorkerViewModel)
 #pragma once
 
-#include "domain/entities/Slot.hpp"
+#include "presentation/qt/SlotCellData.hpp"  // ← единственное определение
 
-#include <QWidget>
-#include <QVector>
 #include <QColor>
 #include <QGridLayout>
 #include <QPushButton>
 #include <QString>
-
-/// Данные одной ячейки сетки — не зависит от ViewModel
-struct SlotCellData {
-    int                          slotIndex   = 0;
-    smartcart::domain::SlotState state       = smartcart::domain::SlotState::Free;
-    bool                         highlighted = false;
-    QColor                       color       { 128, 128, 128 };
-    QString                      barcode;
-};
+#include <QVector>
+#include <QWidget>
 
 /// Виджет сетки 6×4 для визуализации 24 слотов модуля.
 /// Каждая ячейка: номер слота + цветовой индикатор + tooltip со штрихкодом.
@@ -42,9 +27,9 @@ public:
     /// Обновить один слот.
     void updateSlot(int slotIndex,
                     smartcart::domain::SlotState state,
-                    bool highlighted,
-                    QColor color = {},
-                    const QString& barcode = {});
+                    bool           highlighted,
+                    QColor         color    = {},
+                    const QString& barcode  = {});
 
 signals:
     /// Оператор кликнул по ячейке слота.
@@ -56,10 +41,10 @@ private:
 
     QPushButton* createCell(int slotIndex);
 
-    void applyStyle(QPushButton* cell,
+    void applyStyle(QPushButton*                 cell,
                     smartcart::domain::SlotState state,
-                    bool highlighted,
-                    QColor color);
+                    bool                         highlighted,
+                    QColor                       color);
 
     static QColor colorForState(smartcart::domain::SlotState state);
 };

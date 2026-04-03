@@ -1,7 +1,4 @@
 // ===== tests/integration/startup_flow_test.cpp =====
-// Исправлено:
-//   - комментарии на английском
-//   - добавлен тест для случая когда физически занят, но БД пуста → Error state
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
@@ -23,7 +20,12 @@ protected:
         moduleRepo_ = std::make_unique<infrastructure::db::ModuleRepositorySqlite>(*conn_);
         reelRepo_   = std::make_unique<infrastructure::db::ReelRepositorySqlite>(*conn_);
 
-        // All 24 slots free initially
+        // FK: slot_states.module_id → modules.id
+        conn_->execute(
+            "INSERT INTO modules(id,serial,slot_count,firmware,status)"
+            " VALUES(1,'TEST-MODULE',24,'','ONLINE');"
+        );
+
         for (int i = 1; i <= 24; ++i)
             reelRepo_->setSlotState(1, i, domain::SlotState::Free);
     }
@@ -40,7 +42,7 @@ TEST_F(StartupFlowTest, AllSlotsFree_ReturnsReadySlots) {
         resp.cmdId = cmd.cmdId;
         if (cmd.cmdId == CommandId::GetSwitchSnapshot) {
             resp.type    = FrameType::Resp;
-            resp.payload = {0x00, 0x00, 0x00}; // all 24 bits = 0 (free)
+            resp.payload = {0x00, 0x00, 0x00};
         } else if (cmd.cmdId == CommandId::GetReadyState) {
             resp.type    = FrameType::Resp;
             resp.payload = {0x01};
@@ -70,7 +72,7 @@ TEST_F(StartupFlowTest, AllSlotsFree_ReturnsReadySlots) {
 
 TEST_F(StartupFlowTest, PingFails_ReturnsError) {
     MockStm32Link link([](const Frame&) -> std::optional<Frame> {
-        return std::nullopt; // no response
+        return std::nullopt;
     });
     link.open();
 
@@ -88,14 +90,13 @@ TEST_F(StartupFlowTest, PingFails_ReturnsError) {
 }
 
 TEST_F(StartupFlowTest, PhysOccupied_DbEmpty_SlotsInErrorState) {
-    // Slot 1 is physically occupied but DB has no reel record → Error state
     MockStm32Link link([](const Frame& cmd) -> std::optional<Frame> {
         Frame resp;
         resp.seq   = cmd.seq;
         resp.cmdId = cmd.cmdId;
         if (cmd.cmdId == CommandId::GetSwitchSnapshot) {
             resp.type    = FrameType::Resp;
-            resp.payload = {0x01, 0x00, 0x00}; // bit 0 = slot 1 occupied
+            resp.payload = {0x01, 0x00, 0x00};
         } else if (cmd.cmdId == CommandId::GetReadyState) {
             resp.type    = FrameType::Resp;
             resp.payload = {0x01};
@@ -118,9 +119,7 @@ TEST_F(StartupFlowTest, PhysOccupied_DbEmpty_SlotsInErrorState) {
     ASSERT_TRUE(std::holds_alternative<std::vector<domain::Slot>>(result));
     const auto& slots = std::get<std::vector<domain::Slot>>(result);
 
-    // Slot 1 should be Error (physical=occupied, db=empty)
     EXPECT_EQ(slots[0].state, domain::SlotState::Error);
-    // Remaining slots should be Free
     for (int i = 1; i < static_cast<int>(slots.size()); ++i)
         EXPECT_EQ(slots[i].state, domain::SlotState::Free);
 }

@@ -1,15 +1,19 @@
-# ===== src/presentation/qt/CMakeLists.txt =====
-# Исправлено:
-#   - используем smartcart_infra вместо дублирования .cpp
-#   - добавлен AppBootstrap
-#   - добавлены SpdlogFileLogger, scanner, rfid провайдеры
+# ══════════════════════════════════════════════════════════════════════════════
+# smart_cart_ui — Qt presentation layer
+#
+# Изменения относительно предыдущей версии:
+#   П1.4  SlotCellData.hpp вынесен в src/presentation/qt/ — добавлен в sources
+#   П1.5  main_qt.cpp перенесён в apps/smartcart_app/ — путь обновлён
+#         AppBootstrap.cpp убран отсюда — он в smartcart_app_qt
+# ══════════════════════════════════════════════════════════════════════════════
 
 add_executable(smart_cart_ui
-    # ── точка входа ──────────────────────────────────────────────────────────
-    ${CMAKE_CURRENT_SOURCE_DIR}/main_qt.cpp
 
-    # ── bootstrap ────────────────────────────────────────────────────────────
-    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/AppBootstrap.hpp
+    # ── точка входа (П1.5: перенесён из src/presentation/qt/) ────────────────
+    ${CMAKE_SOURCE_DIR}/apps/smartcart_app/main_qt.cpp
+
+    # ── presentation: DTO (П1.4: новый файл, разрывает цикл ViewModel↔Widget) ─
+    ${CMAKE_CURRENT_SOURCE_DIR}/SlotCellData.hpp
 
     # ── presentation: main window ─────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.cpp
@@ -51,9 +55,9 @@ set_target_properties(smart_cart_ui PROPERTIES
 )
 
 target_include_directories(smart_cart_ui BEFORE PRIVATE
-    ${CMAKE_SOURCE_DIR}/src        # → #include "infrastructure/..."
-    ${CMAKE_SOURCE_DIR}/apps       # → #include "smartcart_app/AppBootstrap.hpp"
-    ${CMAKE_CURRENT_SOURCE_DIR}    # → #include "MainWindow.hpp" и т.д.
+    ${CMAKE_SOURCE_DIR}/src           # → #include "application/..."
+    ${CMAKE_SOURCE_DIR}/apps          # → #include "smartcart_app/AppBootstrap.hpp"
+    ${CMAKE_CURRENT_SOURCE_DIR}       # → #include "MainWindow.hpp", "SlotCellData.hpp"
 )
 
 target_compile_definitions(smart_cart_ui PRIVATE
@@ -61,7 +65,8 @@ target_compile_definitions(smart_cart_ui PRIVATE
     CONFIG_DIR="${SMARTCART_CONFIG_DIR}"
 )
 
-# smartcart_infra уже тянет SQLite3, spdlog, nlohmann_json
+# smartcart_infra тянет SQLite3, spdlog, nlohmann_json транзитивно
+# smartcart_app_qt тянет AppStateMachine + AppBootstrap + Qt6
 target_link_libraries(smart_cart_ui PRIVATE
     smartcart_infra
     smartcart_app_qt
@@ -76,4 +81,7 @@ add_custom_command(TARGET smart_cart_ui POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${SMARTCART_MIGRATIONS_DIR}
         $<TARGET_FILE_DIR:smart_cart_ui>/migrations
+    COMMENT "Copying config and migrations → smart_cart_ui output"
 )
+
+add_dependencies(smart_cart_ui copy_config)

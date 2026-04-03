@@ -1,9 +1,4 @@
 // ===== tests/integration/add_reel_flow_test.cpp =====
-// Исправлено:
-//   - SetUp инициализирует slot_states через setSlotState (было верно, но
-//     нужно убедиться что moduleId=1 существует в modules — добавлен INSERT)
-//   - явный таймаут теста через GTEST_FLAG или deadline уже есть — ок
-//   - комментарии на английском
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
@@ -26,7 +21,12 @@ protected:
         reelRepo_ = std::make_unique<infrastructure::db::ReelRepositorySqlite>(*conn_);
         opRepo_   = std::make_unique<infrastructure::db::OperationRepositorySqlite>(*conn_);
 
-        // Initialise 24 free slots for module 1
+        // FK: slot_states.module_id → modules.id
+        conn_->execute(
+            "INSERT INTO modules(id,serial,slot_count,firmware,status)"
+            " VALUES(1,'TEST-MODULE',24,'','ONLINE');"
+        );
+
         for (int i = 1; i <= 24; ++i)
             reelRepo_->setSlotState(1, i, domain::SlotState::Free);
     }
@@ -56,17 +56,15 @@ TEST_F(AddReelFlowTest, SuccessfulAdd_CompletesOperation) {
     const int opId = svc.start("BARCODE-001");
     ASSERT_GT(opId, 0);
 
-    // Simulate physical reel insertion after 50 ms
     std::thread([&link]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         Frame evt;
         evt.type    = FrameType::Evt;
         evt.cmdId   = CommandId::EvtSwitchChanged;
-        evt.payload = {0x00, 0x01}; // slot index 0 (0-based) → slot 1, occupied=true
+        evt.payload = {0x00, 0x01};
         link.injectEvent(evt);
     }).detach();
 
-    // Wait for completion (max 500 ms)
     const auto deadline =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
     while (finalStatus == domain::OperationStatus::InProgress &&
@@ -101,7 +99,6 @@ TEST_F(AddReelFlowTest, NoFreeSlots_ReturnsError) {
     MockStm32Link link;
     link.open();
 
-    // Fill all slots
     for (int i = 1; i <= 24; ++i)
         reelRepo_->setSlotState(1, i, domain::SlotState::Occupied);
 

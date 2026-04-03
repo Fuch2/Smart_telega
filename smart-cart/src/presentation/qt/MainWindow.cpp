@@ -1,42 +1,118 @@
 // ===== src/presentation/qt/MainWindow.cpp =====
-// Исправлено:
-//   - убран дубль (файл содержал два определения)
-//   - кириллица в строках заменена на UTF-8 литералы
-//   - WorkerViewModel передаётся в WorkerView
 #include "MainWindow.hpp"
 #include "views/WorkerView.hpp"
 #include "views/AdminView.hpp"
 #include "viewmodels/AdminViewModel.hpp"
 #include "viewmodels/WorkerViewModel.hpp"
+#include "infrastructure/hw/stm32/MockStm32Link.hpp"
 
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QFrame>
+#include <QLabel>
 
 MainWindow::MainWindow(AdminViewModel*  adminVm,
                        WorkerViewModel* workerVm,
-                       QWidget*         parent)
+                       smartcart::infrastructure::hw::stm32::MockStm32Link* mock,
+                       QWidget* parent)
     : QMainWindow(parent)
 {
-    buildUi(adminVm, workerVm);
+    buildUi(adminVm, workerVm, mock);
     wireSignals();
     resize(1600, 900);
 }
 
-void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm) {
+void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
+                         smartcart::infrastructure::hw::stm32::MockStm32Link* mock)
+{
     auto* central = new QWidget(this);
     auto* root    = new QVBoxLayout(central);
 
-    auto* topBar  = new QHBoxLayout();
+    // ── Верхняя панель навигации ───────────────────────────────────────────────
+    auto* topBar = new QHBoxLayout();
     workerBtn_ = new QPushButton(QString::fromUtf8("Рабочий режим"), central);
     adminBtn_  = new QPushButton(QString::fromUtf8("Админ"),         central);
-    workerBtn_->setMinimumHeight(64);
-    adminBtn_->setMinimumHeight(64);
+    workerBtn_->setMinimumHeight(48);
+    adminBtn_->setMinimumHeight(48);
     topBar->addWidget(workerBtn_);
     topBar->addWidget(adminBtn_);
+    topBar->addStretch();
 
+    // ── Тестовая панель кнопок PA1/PA2 (только в demoMode) ────────────────────
+    if (mock) {
+        auto* demoFrame = new QFrame(central);
+        demoFrame->setFrameShape(QFrame::StyledPanel);
+        demoFrame->setStyleSheet(
+            "QFrame { background: #2A2A3E; border: 1px solid #585B70; "
+            "border-radius: 6px; padding: 4px; }");
+
+        auto* demoLayout = new QHBoxLayout(demoFrame);
+        demoLayout->setContentsMargins(8, 4, 8, 4);
+        demoLayout->setSpacing(8);
+
+        auto* demoLabel = new QLabel(QString::fromUtf8("🧪 Demo:"), demoFrame);
+        demoLabel->setStyleSheet("color: #F9E2AF; font-weight: bold;");
+        demoLayout->addWidget(demoLabel);
+
+        // PA1 — вставить катушку (слот 1)
+        auto* pa1InsertBtn = new QPushButton(
+            QString::fromUtf8("PA1: вставить (слот 1)"), demoFrame);
+        pa1InsertBtn->setStyleSheet(
+            "QPushButton { background: #A6E3A1; color: #1E1E2E; "
+            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
+            "QPushButton:pressed { background: #40A02B; }");
+
+        // PA1 — вынуть катушку (слот 1)
+        auto* pa1RemoveBtn = new QPushButton(
+            QString::fromUtf8("PA1: вынуть (слот 1)"), demoFrame);
+        pa1RemoveBtn->setStyleSheet(
+            "QPushButton { background: #F38BA8; color: #1E1E2E; "
+            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
+            "QPushButton:pressed { background: #E64553; }");
+
+        // PA2 — вставить катушку (слот 2)
+        auto* pa2InsertBtn = new QPushButton(
+            QString::fromUtf8("PA2: вставить (слот 2)"), demoFrame);
+        pa2InsertBtn->setStyleSheet(
+            "QPushButton { background: #89B4FA; color: #1E1E2E; "
+            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
+            "QPushButton:pressed { background: #1E66F5; }");
+
+        // PA2 — вынуть катушку (слот 2)
+        auto* pa2RemoveBtn = new QPushButton(
+            QString::fromUtf8("PA2: вынуть (слот 2)"), demoFrame);
+        pa2RemoveBtn->setStyleSheet(
+            "QPushButton { background: #CBA6F7; color: #1E1E2E; "
+            "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
+            "QPushButton:pressed { background: #8839EF; }");
+
+        demoLayout->addWidget(pa1InsertBtn);
+        demoLayout->addWidget(pa1RemoveBtn);
+        demoLayout->addWidget(pa2InsertBtn);
+        demoLayout->addWidget(pa2RemoveBtn);
+        demoLayout->addStretch();
+
+        // Подключаем кнопки к mock
+        connect(pa1InsertBtn, &QPushButton::clicked, [mock]() {
+            mock->simulateSwitchEvent(1, true);
+        });
+        connect(pa1RemoveBtn, &QPushButton::clicked, [mock]() {
+            mock->simulateSwitchEvent(1, false);
+        });
+        connect(pa2InsertBtn, &QPushButton::clicked, [mock]() {
+            mock->simulateSwitchEvent(2, true);
+        });
+        connect(pa2RemoveBtn, &QPushButton::clicked, [mock]() {
+            mock->simulateSwitchEvent(2, false);
+        });
+
+        topBar->addWidget(demoFrame);
+    }
+
+    // ── Стек экранов ───────────────────────────────────────────────────────────
     stack_      = new QStackedWidget(central);
     workerView_ = new WorkerView(*workerVm, central);
     adminView_  = new AdminView(adminVm,    central);
@@ -46,7 +122,7 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm) {
     stack_->setCurrentWidget(workerView_);
 
     root->addLayout(topBar);
-    root->addWidget(stack_);
+    root->addWidget(stack_, 1);
     setCentralWidget(central);
 }
 

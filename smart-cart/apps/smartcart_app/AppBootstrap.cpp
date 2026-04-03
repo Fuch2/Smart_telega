@@ -1,20 +1,14 @@
 // ===== apps/smartcart_app/AppBootstrap.cpp =====
-// Исправлено:
-//   - убраны кириллица-мусор в строках ошибок
-//   - добавлен #include <QMetaObject>
-//   - mainWindow_ создаётся без parent → Qt не удалит его раньше AppBootstrap
 #include "AppBootstrap.hpp"
 
 #include "infrastructure/config/ConfigLoader.hpp"
+#include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "presentation/qt/MainWindow.hpp"
 #include "presentation/qt/viewmodels/AdminViewModel.hpp"
 #include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
 #include <QMetaObject>
 #include <stdexcept>
-
-#include "presentation/qt/viewmodels/AdminViewModel.hpp"
-#include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
 using namespace smartcart;
 using namespace smartcart::infrastructure;
@@ -40,8 +34,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
     // ── 4. STM32 link ─────────────────────────────────────────────────────────
     if (cfg_.demoMode) {
-        // Mock: всегда отвечает Ack; snapshot — все слоты пусты
-        stm32Link_ = std::make_unique<hw::stm32::MockStm32Link>(
+        auto mock = std::make_unique<hw::stm32::MockStm32Link>(
             [](const hw::stm32::Frame& cmd) -> std::optional<hw::stm32::Frame> {
                 hw::stm32::Frame resp;
                 resp.seq   = cmd.seq;
@@ -49,16 +42,18 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
                 if (cmd.cmdId == hw::stm32::CommandId::GetSwitchSnapshot) {
                     resp.type    = hw::stm32::FrameType::Resp;
-                    resp.payload = {0x00, 0x00, 0x00}; // 24 бита = все пусты
+                    resp.payload = {0x00, 0x00, 0x00};
                 } else if (cmd.cmdId == hw::stm32::CommandId::GetReadyState) {
                     resp.type    = hw::stm32::FrameType::Resp;
-                    resp.payload = {0x01};              // ready
+                    resp.payload = {0x01};
                 } else {
                     resp.type = hw::stm32::FrameType::Ack;
                 }
                 return resp;
             }
         );
+        mockLink_  = mock.get();   // сохраняем сырой указатель ДО move
+        stm32Link_ = std::move(mock);
         stm32Link_->open();
     } else {
         auto uart = std::make_unique<hw::stm32::UartStm32Link>(
@@ -68,6 +63,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
             throw std::runtime_error(
                 "AppBootstrap: failed to open UART /dev/ttyUSB0");
         stm32Link_ = std::move(uart);
+        // mockLink_ остаётся nullptr — MainWindow не покажет demo-панель
     }
 
     // ── 5. Services ───────────────────────────────────────────────────────────
@@ -111,7 +107,11 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
     // ── 6. State machine ──────────────────────────────────────────────────────
     stateMachine_ = std::make_unique<AppStateMachine>(
-        *startupSvc_, *addReelSvc_, *replaceReelSvc_, *recoverySvc_
+        *startupSvc_,
+        *addReelSvc_,
+        *replaceReelSvc_,
+        *recoverySvc_,
+        *reelRepo_
     );
 
     // ── 7. ViewModels ─────────────────────────────────────────────────────────
@@ -128,18 +128,16 @@ void AppBootstrap::buildSlotToLedMap() {
         slotToLedMap_ = cfg_.slotToLedMap;
         return;
     }
-    // Дефолт: слот N → LED (N-1)*2
     slotToLedMap_.resize(24);
     for (int i = 0; i < 24; ++i)
         slotToLedMap_[i] = i * 2;
 }
 
 void AppBootstrap::launch() {
-    // mainWindow_ без parent — Qt не удалит его раньше AppBootstrap
-    mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get());
+    // mockLink_ == nullptr в prod-режиме → MainWindow не покажет demo-панель
+    mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
     mainWindow_->show();
 
-    // Запустить инициализацию после показа окна (через event loop)
     QMetaObject::invokeMethod(
         stateMachine_.get(),
         "startup",

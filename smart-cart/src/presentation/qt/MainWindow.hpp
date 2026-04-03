@@ -1,5 +1,4 @@
 // ===== src/presentation/qt/MainWindow.hpp =====
-// Исправлено: файл был пустым (содержал .cpp код) — создан настоящий .hpp
 #pragma once
 
 #include <QMainWindow>
@@ -11,13 +10,19 @@ class AdminView;
 class AdminViewModel;
 class WorkerViewModel;
 
+namespace smartcart::infrastructure::hw::stm32 {
+    class MockStm32Link;
+}
+
 class MainWindow final : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit MainWindow(AdminViewModel*  adminVm,
                         WorkerViewModel* workerVm,
-                        QWidget*         parent = nullptr);
+                        // nullptr в prod-режиме, mock в demoMode
+                        smartcart::infrastructure::hw::stm32::MockStm32Link* mock = nullptr,
+                        QWidget* parent = nullptr);
 
 private:
     QStackedWidget* stack_      = nullptr;
@@ -26,6 +31,7 @@ private:
     QPushButton*    workerBtn_  = nullptr;
     QPushButton*    adminBtn_   = nullptr;
 
-    void buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm);
+    void buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
+                 smartcart::infrastructure::hw::stm32::MockStm32Link* mock);
     void wireSignals();
 };

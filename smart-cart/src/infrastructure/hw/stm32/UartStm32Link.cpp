@@ -1,5 +1,4 @@
 // ===== src/infrastructure/hw/stm32/UartStm32Link.cpp =====
-// Исправлено: frame.frameType → frame.type
 #include "UartStm32Link.hpp"
 
 #include <cerrno>
@@ -72,13 +71,18 @@ bool UartStm32Link::open() {
 void UartStm32Link::close() {
     if (!running_.load()) return;
     running_.store(false);
+
+    // Сначала разблокировать sendCommand (если он ждёт на CV),
+    // потом join — иначе deadlock
+    {
+        std::lock_guard<std::mutex> lk(replyMtx_);
+        replyReady_   = true;
+        pendingReply_ = std::nullopt;
+        replyCv_.notify_all();
+    }
+
     if (rxThread_.joinable()) rxThread_.join();
     if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
-
-    std::lock_guard<std::mutex> lk(replyMtx_);
-    replyReady_   = true;
-    pendingReply_ = std::nullopt;
-    replyCv_.notify_all();
 }
 
 bool UartStm32Link::isOpen() const { return running_.load(); }
@@ -132,7 +136,7 @@ void UartStm32Link::rxThreadFunc() {
 }
 
 void UartStm32Link::handleParsedFrame(Frame frame) {
-    const bool isEvent = (frame.type == FrameType::Evt);  // ← исправлено
+    const bool isEvent = (frame.type == FrameType::Evt);
 
     if (isEvent) {
         if (eventCb_) eventCb_(frame);

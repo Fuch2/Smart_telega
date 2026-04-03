@@ -3,7 +3,7 @@
   "sqlite_path": "./smartcart.db",
   "stm32_poll_ms": 500,
   "debounce_ms": 50,
-  "stable_confirm_ms": 1000,
+  "stable_confirm_ms": 10000,
   "demo_mode": true,
   "led_mapping_path": "config/led_mapping.default.json",
   "module_profile_path": "config/module_profiles/tray24.json",

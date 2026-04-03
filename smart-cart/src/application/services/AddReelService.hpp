@@ -1,28 +1,25 @@
+// ===== src/application/services/AddReelService.hpp =====
 #pragma once
 
 #include "application/ports/IStm32Link.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IOperationRepository.hpp"
+#include "application/services/RgbColor.hpp"
 #include "domain/entities/Slot.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
 namespace smartcart::application::services {
 
-/// RGB-цвет без зависимости от Qt
-struct RgbColor {
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-};
-
-/// Конфигурация сервиса добавления катушки
 struct AddReelConfig {
     int moduleId        = 1;
     int slotCount       = 24;
@@ -30,7 +27,6 @@ struct AddReelConfig {
     std::vector<int> slotToLedMap;
 };
 
-/// Сервис сценария "положить катушку в слот"
 class AddReelService {
 public:
     using CompletionCallback    = std::function<void(int opId,
@@ -51,11 +47,7 @@ public:
     void setSlotHighlightCallback(SlotHighlightCallback cb) { onHighlight_ = std::move(cb); }
     void setErrorCallback(ErrorCallback cb)                 { onError_    = std::move(cb); }
 
-    /// Запустить сценарий. Возвращает operationId или -1 при ошибке.
-    /// Неблокирующий: физическое ожидание — асинхронно.
-    int start(const std::string& barcode);
-
-    /// Отменить текущую операцию.
+    int  start(const std::string& barcode);
     void cancel();
 
 private:

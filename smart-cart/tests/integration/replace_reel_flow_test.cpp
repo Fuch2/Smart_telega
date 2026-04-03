@@ -1,7 +1,4 @@
 // ===== tests/integration/replace_reel_flow_test.cpp =====
-// Исправлено:
-//   - SetUp: addRecord создаёт запись в reels + setSlotState — порядок важен
-//   - комментарии на английском
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
@@ -23,8 +20,12 @@ protected:
         reelRepo_ = std::make_unique<infrastructure::db::ReelRepositorySqlite>(*conn_);
         opRepo_   = std::make_unique<infrastructure::db::OperationRepositorySqlite>(*conn_);
 
-        // Slot 3 is occupied with reel OLD-001
-        // Order matters: addRecord first, then setSlotState
+        // FK: slot_states.module_id → modules.id
+        conn_->execute(
+            "INSERT INTO modules(id,serial,slot_count,firmware,status)"
+            " VALUES(1,'TEST-MODULE',24,'','ONLINE');"
+        );
+
         reelRepo_->addRecord(1, 3, "OLD-001");
         reelRepo_->setSlotState(1, 3, domain::SlotState::Occupied);
     }
@@ -66,22 +67,19 @@ TEST_F(ReplaceReelFlowTest, SuccessfulReplace_CompletesOperation) {
         finalStatus = s;
     });
 
-    // OLD-001 is in slot 3 — start() should find it via findActiveByBarcode
     const int opId = svc.start("OLD-001");
     ASSERT_GT(opId, 0);
 
-    // Step A: operator removes old reel (slot 3, not occupied)
-    // Step B: operator inserts new reel (slot 3, occupied)
     std::thread([&link]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         Frame evt;
         evt.type    = FrameType::Evt;
         evt.cmdId   = CommandId::EvtSwitchChanged;
-        evt.payload = {0x02, 0x00}; // slot index 2 (0-based) = slot 3, occupied=false
+        evt.payload = {0x02, 0x00};
         link.injectEvent(evt);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        evt.payload = {0x02, 0x01}; // slot 3, occupied=true
+        evt.payload = {0x02, 0x01};
         link.injectEvent(evt);
     }).detach();
 
@@ -94,6 +92,5 @@ TEST_F(ReplaceReelFlowTest, SuccessfulReplace_CompletesOperation) {
     }
 
     EXPECT_EQ(finalStatus, domain::OperationStatus::Completed);
-    // Old reel should be marked removed, new record should exist
     EXPECT_TRUE(reelRepo_->hasActiveRecord(1, 3));
 }

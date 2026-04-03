@@ -1,9 +1,7 @@
-// ===== src/presentation/qt/main_qt.cpp =====
-// Исправлено:
-//   - правильный include path для AppBootstrap
-//   - migrationsDir теперь относительно бинарника (копируется POST_BUILD)
-//   - configPath тоже относительно бинарника
-#include "smartcart_app/AppBootstrap.hpp"
+// ===== apps/smartcart_app/main_qt.cpp =====
+// Entry point Qt-приложения SmartCart.
+// Лежит рядом с AppBootstrap — include прямой, без path-магии.
+#include "AppBootstrap.hpp"  // ← теперь корректно: оба файла в apps/smartcart_app/
 
 #include <QApplication>
 #include <QMessageBox>
@@ -16,8 +14,8 @@ int main(int argc, char* argv[]) {
     app.setApplicationVersion("1.0.0");
     app.setOrganizationName("SmartCart");
 
-    // Пути относительно директории бинарника
-    // POST_BUILD копирует config/ и migrations/ рядом с исполняемым файлом
+    // Пути относительно директории бинарника.
+    // POST_BUILD копирует config/ и migrations/ рядом с исполняемым файлом.
     const std::filesystem::path binDir =
         std::filesystem::canonical(argv[0]).parent_path();
 
@@ -32,7 +30,8 @@ int main(int argc, char* argv[]) {
         QMessageBox::critical(
             nullptr,
             QString::fromUtf8("Критическая ошибка"),
-            QString::fromUtf8("Не удалось запустить SmartCart:\n%1").arg(ex.what())
+            QString::fromUtf8("Не удалось запустить SmartCart:\n%1")
+                .arg(QString::fromUtf8(ex.what()))
         );
         return 1;
     }

@@ -1,3 +1,4 @@
+// ===== src/infrastructure/hw/stm32/MockStm32Link.hpp =====
 #pragma once
 
 #include "application/ports/IStm32Link.hpp"
@@ -5,16 +6,18 @@
 
 #include <functional>
 #include <optional>
+#include <atomic>
+#include <thread>
+#include <mutex>
 
 namespace smartcart::infrastructure::hw::stm32 {
 
-// Synchronous mock: caller installs a handler that maps cmd → reply.
-// Useful for unit/integration tests and demoMode.
 class MockStm32Link final : public application::ports::IStm32Link {
 public:
     using Handler = std::function<std::optional<Frame>(const Frame&)>;
 
     explicit MockStm32Link(Handler handler = nullptr);
+    ~MockStm32Link() override;
 
     bool open()  override;
     void close() override;
@@ -23,12 +26,18 @@ public:
     std::optional<Frame> sendCommand(const Frame& cmd) override;
     void setEventCallback(application::ports::EventCallback cb) override;
 
-    // Inject an unsolicited event from test code
+    // Эмулировать нажатие/отпускание кнопки (slot 1-based, occupied=true/false)
+    void simulateSwitchEvent(int slotIndex, bool occupied);
+
+    // Inject произвольный event из тест-кода
     void injectEvent(const Frame& evt);
 
 private:
     Handler   handler_;
-    application::ports::EventCallback eventCb_;
+
+    std::mutex                                eventCbMtx_;
+    application::ports::EventCallback         eventCb_;
+
     bool      open_ {false};
 };
 

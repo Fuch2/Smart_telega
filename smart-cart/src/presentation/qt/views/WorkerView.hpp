@@ -1,11 +1,7 @@
-// ===== src/presentation/qt/views/WorkerView.hpp =====
-// Исправлено:
-//   - include paths относительные
-//   - убраны лишние Qt-заголовки из .hpp (перенесены в .cpp)
 #pragma once
 
-#include "viewmodels/WorkerViewModel.hpp"
-#include "widgets/SlotGridWidget.hpp"
+#include "presentation/qt/viewmodels/WorkerViewModel.hpp"
+#include "presentation/qt/widgets/SlotGridWidget.hpp"  // нужен как виджет
 
 #include <QWidget>
 
@@ -17,11 +13,13 @@ class WorkerView : public QWidget {
     Q_OBJECT
 
 public:
-    explicit WorkerView(WorkerViewModel& viewModel, QWidget* parent = nullptr);
+    explicit WorkerView(WorkerViewModel& viewModel,
+                        QWidget*         parent = nullptr);
 
 private slots:
     void onSlotsUpdated(QVector<SlotCellData> items);
-    void onOperationStateChanged(const QString& state, const QString& message);
+    void onOperationStateChanged(const QString& state,
+                                 const QString& message);
     void onErrorOccurred(const QString& message);
     void onBarcodeSubmitted();
     void onCancelClicked();

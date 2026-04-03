@@ -1,10 +1,10 @@
 // ===== src/application/services/ReplaceReelService.cpp =====
-// Исправлено: updateStatus без finishedAt
 #include "application/services/ReplaceReelService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -62,13 +62,15 @@ void ReplaceReelService::clearAllLeds() {
     link_.sendCommand(applyCmd);
 }
 
+// ✅ ИСПРАВЛЕНО: mtx/cv/confirmed — shared_ptr, захват по значению в лямбде
 bool ReplaceReelService::waitForSlotEvent(int slotIndex,
                                           bool expectedOccupied) {
-    std::mutex              mtx;
-    std::condition_variable cv;
-    bool                    confirmed = false;
+    auto mtx       = std::make_shared<std::mutex>();
+    auto cv        = std::make_shared<std::condition_variable>();
+    auto confirmed = std::make_shared<bool>(false);
 
-    link_.setEventCallback([&](const stm32::Frame& evt) {
+    link_.setEventCallback([mtx, cv, confirmed, slotIndex, expectedOccupied]
+                           (const stm32::Frame& evt) {
         if (evt.type  == stm32::FrameType::Evt &&
             evt.cmdId == stm32::CommandId::EvtSwitchChanged &&
             evt.payload.size() >= 2)
@@ -77,18 +79,18 @@ bool ReplaceReelService::waitForSlotEvent(int slotIndex,
             const bool evtOccupied = evt.payload[1] == 0x01;
 
             if (evtSlot == slotIndex && evtOccupied == expectedOccupied) {
-                std::lock_guard lock(mtx);
-                confirmed = true;
-                cv.notify_one();
+                std::lock_guard lock(*mtx);
+                *confirmed = true;
+                cv->notify_one();
             }
         }
     });
 
-    std::unique_lock lock(mtx);
-    const bool ok = cv.wait_for(
+    std::unique_lock lock(*mtx);
+    const bool ok = cv->wait_for(
         lock,
         std::chrono::milliseconds(config_.stableConfirmMs),
-        [&] { return confirmed || cancelled_.load(); }
+        [&] { return *confirmed || cancelled_.load(); }
     );
 
     link_.setEventCallback(nullptr);
@@ -122,7 +124,6 @@ int ReplaceReelService::start(const std::string& newBarcode) {
 
     const int opId = opRepo_.add(op);
 
-    // ← захват по значению
     std::thread([this, opId, slotIndex, newBarcode]() {
 
         setSlotLed(slotIndex, 255, 0, 0);
