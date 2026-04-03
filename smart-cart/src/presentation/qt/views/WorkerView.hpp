@@ -31,6 +31,7 @@ private slots:
                            bool showStartPage);
     void onWorkflowControlsUpdated(const QString& stateKey);
     void onStm32StatusUpdated(const QString& status);
+    void onActiveModuleUpdated(const QString& moduleSummary);
     void onErrorOccurred(const QString& message);
     void onImportOrderClicked();
     void onBarcodeSubmitted();
@@ -55,6 +56,7 @@ private:
     QLabel*         stateLabel_   = nullptr;
     QLabel*         messageLabel_ = nullptr;
     QLabel*         stm32StatusLabel_ = nullptr;
+    QLabel*         activeModuleLabel_ = nullptr;
     QLabel*         workflowLabel_ = nullptr;
     QLabel*         workflowPillLabel_ = nullptr;
     QLabel*         actionHintLabel_ = nullptr;

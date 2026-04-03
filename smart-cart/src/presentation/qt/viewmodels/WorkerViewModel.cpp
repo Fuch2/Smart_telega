@@ -16,6 +16,7 @@ using namespace smartcart::application;
 using namespace smartcart::domain;
 
 WorkerViewModel::WorkerViewModel(
+    ports::IModuleRepository&    moduleRepo,
     ports::IReelRepository&      reelRepo,
     ports::IOperationRepository& opRepo,
     ports::IOrderRepository&     orderRepo,
@@ -25,6 +26,7 @@ WorkerViewModel::WorkerViewModel(
     AppStateMachine&             stateMachine,
     QObject*                     parent)
     : QObject(parent)
+    , moduleRepo_(moduleRepo)
     , reelRepo_(reelRepo)
     , opRepo_(opRepo)
     , orderRepo_(orderRepo)
@@ -181,6 +183,7 @@ void WorkerViewModel::reload() {
     rebuildSlots();
     rebuildWorkflowSummary();
     rebuildStm32Status();
+    rebuildModuleStatus();
 }
 
 void WorkerViewModel::onStateChanged(AppState newState) {
@@ -266,8 +269,9 @@ SlotCellData* WorkerViewModel::findSlot(int slotIndex) {
 }
 
 void WorkerViewModel::rebuildSlots() {
-    const auto domainSlots = reelRepo_.getSlotStates(1);
-    const auto activeReels = reelRepo_.getActiveByModule(1);
+    const auto workflow = workflowRepo_.get();
+    const auto domainSlots = reelRepo_.getSlotStates(workflow.moduleId);
+    const auto activeReels = reelRepo_.getActiveByModule(workflow.moduleId);
 
     std::unordered_map<int, QString> barcodeBySlot;
     for (const auto& reel : activeReels)
@@ -303,7 +307,7 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     const bool showLeftovers =
         workflow.state == CartWorkflowState::LeftoversDetected ||
         workflow.state == CartWorkflowState::ReturningLeftovers;
-    const auto leftovers = reelRepo_.getActiveByModule(1);
+    const auto leftovers = reelRepo_.getActiveByModule(workflow.moduleId);
     const bool showStartPage =
         workflow.state == CartWorkflowState::Free &&
         !workflow.currentOrderId.has_value() &&
@@ -436,6 +440,44 @@ void WorkerViewModel::rebuildStm32Status() {
                  QString::fromStdString(status.lastSnapshot),
                  snapshotAt)
     );
+}
+
+void WorkerViewModel::rebuildModuleStatus() {
+    const auto workflow = workflowRepo_.get();
+    const auto module = moduleRepo_.getById(workflow.moduleId);
+
+    if (!module.has_value()) {
+        emit activeModuleUpdated(
+            QString::fromUtf8("Активный модуль: #%1 · запись не найдена")
+                .arg(workflow.moduleId));
+        return;
+    }
+
+    QString statusText;
+    QString statusColor;
+    switch (module->status) {
+        case ModuleStatus::Online:
+            statusText = QString::fromUtf8("онлайн");
+            statusColor = QStringLiteral("#8DE4AD");
+            break;
+        case ModuleStatus::Offline:
+            statusText = QString::fromUtf8("офлайн");
+            statusColor = QStringLiteral("#C6CFCA");
+            break;
+        case ModuleStatus::Maint:
+            statusText = QString::fromUtf8("обслуживание");
+            statusColor = QStringLiteral("#F0C66B");
+            break;
+    }
+
+    emit activeModuleUpdated(
+        QString::fromUtf8(
+            "Активный модуль: <b>#%1</b> · %2 · "
+            "<span style=\"color:%3; font-weight:700;\">● %4</span>")
+            .arg(module->id)
+            .arg(QString::fromStdString(module->serial).toHtmlEscaped())
+            .arg(statusColor)
+            .arg(statusText));
 }
 
 void WorkerViewModel::handleWorkflowResult(

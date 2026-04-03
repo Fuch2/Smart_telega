@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <string>
 #include <thread>
 
@@ -21,6 +22,8 @@ struct RfidModuleMonitorConfig {
 
 class RfidModuleMonitorService {
 public:
+    using ModuleSwitchCallback = std::function<void(std::string uid)>;
+
     RfidModuleMonitorService(ports::IRfidProvider& rfidProvider,
                              ports::IModuleRepository& moduleRepo,
                              ports::IEventLogger& eventLogger,
@@ -33,6 +36,7 @@ public:
     void start();
     void stop();
     bool isRunning() const noexcept { return running_.load(); }
+    void setModuleSwitchCallback(ModuleSwitchCallback cb);
 
 private:
     ports::IRfidProvider& rfidProvider_;
@@ -45,6 +49,9 @@ private:
     bool moduleOnline_{false};
     std::chrono::steady_clock::time_point lastSeen_{};
     std::string lastUnexpectedUid_;
+    std::chrono::steady_clock::time_point lastUnexpectedSeen_{};
+    std::string notifiedSwitchUid_;
+    ModuleSwitchCallback switchCb_;
 
     void monitorLoop();
     void setModuleOnline(bool online);

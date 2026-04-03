@@ -30,6 +30,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 
 class MainWindow;
@@ -86,4 +87,9 @@ private:
     void buildSlotToLedMap();
     int resolveActiveModuleId();
     void syncModuleStatuses();
+    int ensureModuleForUid(const std::string& uid);
+    void buildModuleScopedSession();
+    void destroyModuleScopedSession();
+    void showMainWindow();
+    void switchToModuleUid(const std::string& uid);
 };

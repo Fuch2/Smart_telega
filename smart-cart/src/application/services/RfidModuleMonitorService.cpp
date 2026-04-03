@@ -35,6 +35,10 @@ void RfidModuleMonitorService::start() {
     thread_ = std::thread(&RfidModuleMonitorService::monitorLoop, this);
 }
 
+void RfidModuleMonitorService::setModuleSwitchCallback(ModuleSwitchCallback cb) {
+    switchCb_ = std::move(cb);
+}
+
 void RfidModuleMonitorService::stop() {
     if (!running_.exchange(false)) {
         return;
@@ -54,15 +58,28 @@ void RfidModuleMonitorService::monitorLoop() {
             if (uid == config_.expectedUid) {
                 lastSeen_ = now;
                 lastUnexpectedUid_.clear();
+                notifiedSwitchUid_.clear();
                 if (!moduleOnline_) {
                     setModuleOnline(true);
                 }
             } else if (*uid != lastUnexpectedUid_) {
                 lastUnexpectedUid_ = *uid;
+                lastUnexpectedSeen_ = now;
                 logSafe("WARN",
                         "RfidUnexpectedModule",
                         "Обнаружена чужая RFID-метка: uid=" + *uid +
                         ", ожидается uid=" + config_.expectedUid);
+            } else {
+                const auto seenFor =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        now - lastUnexpectedSeen_);
+                if (switchCb_ &&
+                    *uid != notifiedSwitchUid_ &&
+                    seenFor.count() >= 800)
+                {
+                    notifiedSwitchUid_ = *uid;
+                    switchCb_(*uid);
+                }
             }
         } else if (moduleOnline_) {
             const auto offlineFor =

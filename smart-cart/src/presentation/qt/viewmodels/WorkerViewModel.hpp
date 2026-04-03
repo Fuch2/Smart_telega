@@ -5,6 +5,7 @@
 #include "application/ports/IOperationRepository.hpp"
 #include "application/ports/IOrderRepository.hpp"
 #include "application/ports/IWorkflowRepository.hpp"
+#include "application/ports/IModuleRepository.hpp"
 #include "application/services/OrderImportService.hpp"
 #include "application/services/WorkflowService.hpp"
 #include "domain/entities/CartWorkflow.hpp"
@@ -23,6 +24,7 @@ class WorkerViewModel : public QObject {
 
 public:
     explicit WorkerViewModel(
+        smartcart::application::ports::IModuleRepository&    moduleRepo,
         smartcart::application::ports::IReelRepository&      reelRepo,
         smartcart::application::ports::IOperationRepository& opRepo,
         smartcart::application::ports::IOrderRepository&     orderRepo,
@@ -50,6 +52,7 @@ signals:
                          bool showStartPage);
     void workflowControlsUpdated(QString stateKey);
     void stm32StatusUpdated(QString status);
+    void activeModuleUpdated(QString moduleSummary);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
 
@@ -81,6 +84,7 @@ private Q_SLOTS:
     void onError(smartcart::domain::ErrorCode code, QString message);
 
 private:
+    smartcart::application::ports::IModuleRepository&    moduleRepo_;
     smartcart::application::ports::IReelRepository&      reelRepo_;
     smartcart::application::ports::IOperationRepository& opRepo_;
     smartcart::application::ports::IOrderRepository&     orderRepo_;
@@ -95,6 +99,7 @@ private:
     void           rebuildSlots();
     void           rebuildWorkflowSummary();
     void           rebuildStm32Status();
+    void           rebuildModuleStatus();
     void           handleWorkflowResult(
         const smartcart::application::services::WorkflowActionResult& result);
     static QString errorMessage(smartcart::domain::ErrorCode code);

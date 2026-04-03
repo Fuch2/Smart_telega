@@ -8,6 +8,7 @@
 #include "presentation/qt/viewmodels/AdminViewModel.hpp"
 #include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
+#include <QApplication>
 #include <QMetaObject>
 #include <QObject>
 #include <stdexcept>
@@ -28,6 +29,9 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     conn_->runMigrations(migrationsDir);
 
     moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
+    reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
+    opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
+    diagnosticsRepo_ = std::make_unique<db::DiagnosticsRepositorySqlite>(*conn_);
     eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
 
     if (cfg_.rfidEnabled) {
@@ -38,12 +42,6 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
     activeModuleId_ = resolveActiveModuleId();
     syncModuleStatuses();
-
-    reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
-    opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
-    orderRepo_  = std::make_unique<db::OrderRepositorySqlite>(*conn_, activeModuleId_);
-    workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_, activeModuleId_);
-    diagnosticsRepo_ = std::make_unique<db::DiagnosticsRepositorySqlite>(*conn_);
 
     // ── 3. LED map ────────────────────────────────────────────────────────────
     buildSlotToLedMap();
@@ -82,152 +80,11 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         // mockLink_ остаётся nullptr — MainWindow не покажет demo-панель
     }
 
-    // ── 5. Services ───────────────────────────────────────────────────────────
-    StartupConfig startupCfg;
-    startupCfg.moduleId       = activeModuleId_;
-    startupCfg.slotCount      = 24;
-    startupCfg.readyTimeoutMs = 5000;
-    startupCfg.slotToLedMap   = slotToLedMap_;
-    startupCfg.ignoredChannels = cfg_.switchIgnoredChannels;
-    startupCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
-
-    startupSvc_ = std::make_unique<StartupService>(
-        *stm32Link_, *reelRepo_, *moduleRepo_, startupCfg
-    );
-
-    AddReelConfig addCfg;
-    addCfg.moduleId        = activeModuleId_;
-    addCfg.slotCount       = 24;
-    addCfg.stableConfirmMs = cfg_.stableConfirmMs;
-    addCfg.slotToLedMap    = slotToLedMap_;
-
-    addReelSvc_ = std::make_unique<AddReelService>(
-        *stm32Link_, *reelRepo_, *opRepo_, addCfg
-    );
-
-    ReplaceReelConfig replaceCfg;
-    replaceCfg.moduleId        = activeModuleId_;
-    replaceCfg.stableConfirmMs = cfg_.stableConfirmMs;
-    replaceCfg.slotToLedMap    = slotToLedMap_;
-
-    replaceReelSvc_ = std::make_unique<ReplaceReelService>(
-        *stm32Link_, *reelRepo_, *opRepo_, replaceCfg
-    );
-
-    RecoveryConfig recoveryCfg;
-    recoveryCfg.moduleId     = activeModuleId_;
-    recoveryCfg.slotCount    = 24;
-    recoveryCfg.slotToLedMap = slotToLedMap_;
-
-    recoverySvc_ = std::make_unique<RecoveryService>(
-        *opRepo_, *reelRepo_, *stm32Link_, recoveryCfg
-    );
-
-    workflowSvc_ = std::make_unique<WorkflowService>(
-        *orderRepo_,
-        *workflowRepo_,
-        *reelRepo_,
-        *eventLogger_,
-        activeModuleId_
-    );
-
-    Stm32PollingConfig pollingCfg;
-    pollingCfg.moduleId  = activeModuleId_;
-    pollingCfg.slotCount = 24;
-    pollingCfg.pollMs    = static_cast<int>(cfg_.stm32PollMs);
-    pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
-    pollingCfg.snapshotFallbackMs =
-        static_cast<int>(cfg_.stableConfirmMs + cfg_.stm32PollMs);
-    pollingCfg.trackedChannels = cfg_.switchTrackedChannels;
-    pollingCfg.ignoredChannels = cfg_.switchIgnoredChannels;
-    pollingCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
-
-    pollingSvc_ = std::make_unique<Stm32PollingService>(
-        *stm32Link_,
-        *reelRepo_,
-        *opRepo_,
-        *orderRepo_,
-        *workflowRepo_,
-        *workflowSvc_,
-        *eventLogger_,
-        pollingCfg
-    );
-
-    OrderImportConfig orderImportCfg;
-    orderImportCfg.moduleId = activeModuleId_;
-    orderImportSvc_ = std::make_unique<OrderImportService>(
-        *orderRepo_,
-        *workflowRepo_,
-        *reelRepo_,
-        *eventLogger_,
-        orderImportCfg
-    );
-
-    AdminDiagnosticsConfig adminDiagnosticsCfg;
-    adminDiagnosticsCfg.moduleId = activeModuleId_;
-    adminDiagnosticsCfg.trackedChannels = cfg_.switchTrackedChannels;
-    adminDiagnosticsCfg.ignoredChannels = cfg_.switchIgnoredChannels;
-    adminDiagnosticsCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
-    adminDiagnosticsSvc_ = std::make_unique<AdminDiagnosticsService>(
-        *pollingSvc_,
-        *diagnosticsRepo_,
-        adminDiagnosticsCfg
-    );
-
-    if (cfg_.rfidEnabled &&
-        rfidProvider_ &&
-        !activeModuleUid_.empty())
-    {
-        RfidModuleMonitorConfig monitorCfg;
-        monitorCfg.moduleId = activeModuleId_;
-        monitorCfg.pollMs = static_cast<int>(cfg_.rfidPollMs);
-        monitorCfg.readTimeoutMs = static_cast<int>(cfg_.rfidReadTimeoutMs);
-        monitorCfg.offlineTimeoutMs =
-            static_cast<int>(cfg_.rfidOfflineTimeoutMs);
-        monitorCfg.expectedUid = activeModuleUid_;
-
-        rfidMonitorSvc_ = std::make_unique<RfidModuleMonitorService>(
-            *rfidProvider_,
-            *moduleRepo_,
-            *eventLogger_,
-            monitorCfg
-        );
-    }
-
-    // ── 6. State machine ──────────────────────────────────────────────────────
-    stateMachine_ = std::make_unique<AppStateMachine>(
-        *startupSvc_,
-        *addReelSvc_,
-        *replaceReelSvc_,
-        *recoverySvc_,
-        *reelRepo_,
-        *pollingSvc_
-    );
-
-    // ── 7. ViewModels ─────────────────────────────────────────────────────────
-    adminVm_  = std::make_unique<AdminViewModel>(*moduleRepo_,
-                                                 *adminDiagnosticsSvc_);
-    workerVm_ = std::make_unique<WorkerViewModel>(
-        *reelRepo_,
-        *opRepo_,
-        *orderRepo_,
-        *workflowRepo_,
-        *orderImportSvc_,
-        *workflowSvc_,
-        *stateMachine_
-    );
+    buildModuleScopedSession();
 }
 
 AppBootstrap::~AppBootstrap() {
-    if (stm32Link_) {
-        stm32Link_->setEventCallback({});
-    }
-    if (rfidMonitorSvc_) {
-        rfidMonitorSvc_->stop();
-    }
-    if (pollingSvc_) {
-        pollingSvc_->stop();
-    }
+    destroyModuleScopedSession();
 }
 
 void AppBootstrap::buildSlotToLedMap() {
@@ -312,8 +169,176 @@ void AppBootstrap::syncModuleStatuses() {
     }
 }
 
-void AppBootstrap::launch() {
-    // mockLink_ == nullptr в prod-режиме → MainWindow не покажет demo-панель
+int AppBootstrap::ensureModuleForUid(const std::string& uid) {
+    const std::string serial = "RFID-" + uid;
+
+    for (const auto& module : moduleRepo_->getAll()) {
+        if (module.serial == serial) {
+            return module.id;
+        }
+    }
+
+    smartcart::domain::ModuleInfo module;
+    module.serial = serial;
+    module.slotCount = 24;
+    module.firmware = "rfid-auto";
+    module.status = smartcart::domain::ModuleStatus::Offline;
+
+    return moduleRepo_->add(module);
+}
+
+void AppBootstrap::buildModuleScopedSession() {
+    orderRepo_ = std::make_unique<db::OrderRepositorySqlite>(*conn_, activeModuleId_);
+    workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_, activeModuleId_);
+
+    StartupConfig startupCfg;
+    startupCfg.moduleId = activeModuleId_;
+    startupCfg.slotCount = 24;
+    startupCfg.readyTimeoutMs = 5000;
+    startupCfg.slotToLedMap = slotToLedMap_;
+    startupCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    startupCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
+    startupSvc_ = std::make_unique<StartupService>(
+        *stm32Link_, *reelRepo_, *moduleRepo_, startupCfg);
+
+    AddReelConfig addCfg;
+    addCfg.moduleId = activeModuleId_;
+    addCfg.slotCount = 24;
+    addCfg.stableConfirmMs = cfg_.stableConfirmMs;
+    addCfg.slotToLedMap = slotToLedMap_;
+    addReelSvc_ = std::make_unique<AddReelService>(
+        *stm32Link_, *reelRepo_, *opRepo_, addCfg);
+
+    ReplaceReelConfig replaceCfg;
+    replaceCfg.moduleId = activeModuleId_;
+    replaceCfg.stableConfirmMs = cfg_.stableConfirmMs;
+    replaceCfg.slotToLedMap = slotToLedMap_;
+    replaceReelSvc_ = std::make_unique<ReplaceReelService>(
+        *stm32Link_, *reelRepo_, *opRepo_, replaceCfg);
+
+    RecoveryConfig recoveryCfg;
+    recoveryCfg.moduleId = activeModuleId_;
+    recoveryCfg.slotCount = 24;
+    recoveryCfg.slotToLedMap = slotToLedMap_;
+    recoverySvc_ = std::make_unique<RecoveryService>(
+        *opRepo_, *reelRepo_, *stm32Link_, recoveryCfg);
+
+    workflowSvc_ = std::make_unique<WorkflowService>(
+        *orderRepo_, *workflowRepo_, *reelRepo_, *eventLogger_, activeModuleId_);
+
+    Stm32PollingConfig pollingCfg;
+    pollingCfg.moduleId = activeModuleId_;
+    pollingCfg.slotCount = 24;
+    pollingCfg.pollMs = static_cast<int>(cfg_.stm32PollMs);
+    pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
+    pollingCfg.snapshotFallbackMs =
+        static_cast<int>(cfg_.stableConfirmMs + cfg_.stm32PollMs);
+    pollingCfg.trackedChannels = cfg_.switchTrackedChannels;
+    pollingCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    pollingCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
+    pollingSvc_ = std::make_unique<Stm32PollingService>(
+        *stm32Link_,
+        *reelRepo_,
+        *opRepo_,
+        *orderRepo_,
+        *workflowRepo_,
+        *workflowSvc_,
+        *eventLogger_,
+        pollingCfg);
+
+    OrderImportConfig orderImportCfg;
+    orderImportCfg.moduleId = activeModuleId_;
+    orderImportSvc_ = std::make_unique<OrderImportService>(
+        *orderRepo_, *workflowRepo_, *reelRepo_, *eventLogger_, orderImportCfg);
+
+    AdminDiagnosticsConfig adminDiagnosticsCfg;
+    adminDiagnosticsCfg.moduleId = activeModuleId_;
+    adminDiagnosticsCfg.trackedChannels = cfg_.switchTrackedChannels;
+    adminDiagnosticsCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    adminDiagnosticsCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
+    adminDiagnosticsSvc_ = std::make_unique<AdminDiagnosticsService>(
+        *pollingSvc_, *diagnosticsRepo_, adminDiagnosticsCfg);
+
+    if (cfg_.rfidEnabled &&
+        rfidProvider_ &&
+        !activeModuleUid_.empty())
+    {
+        RfidModuleMonitorConfig monitorCfg;
+        monitorCfg.moduleId = activeModuleId_;
+        monitorCfg.pollMs = static_cast<int>(cfg_.rfidPollMs);
+        monitorCfg.readTimeoutMs = static_cast<int>(cfg_.rfidReadTimeoutMs);
+        monitorCfg.offlineTimeoutMs =
+            static_cast<int>(cfg_.rfidOfflineTimeoutMs);
+        monitorCfg.expectedUid = activeModuleUid_;
+
+        rfidMonitorSvc_ = std::make_unique<RfidModuleMonitorService>(
+            *rfidProvider_, *moduleRepo_, *eventLogger_, monitorCfg);
+        rfidMonitorSvc_->setModuleSwitchCallback([this](std::string uid) {
+            if (uid.empty() || uid == activeModuleUid_) {
+                return;
+            }
+            QMetaObject::invokeMethod(
+                qApp,
+                [this, uid = std::move(uid)]() {
+                    switchToModuleUid(uid);
+                },
+                Qt::QueuedConnection
+            );
+        });
+    }
+
+    stateMachine_ = std::make_unique<AppStateMachine>(
+        *startupSvc_,
+        *addReelSvc_,
+        *replaceReelSvc_,
+        *recoverySvc_,
+        *reelRepo_,
+        *pollingSvc_);
+
+    adminVm_ = std::make_unique<AdminViewModel>(*moduleRepo_, *adminDiagnosticsSvc_);
+    workerVm_ = std::make_unique<WorkerViewModel>(
+        *moduleRepo_,
+        *reelRepo_,
+        *opRepo_,
+        *orderRepo_,
+        *workflowRepo_,
+        *orderImportSvc_,
+        *workflowSvc_,
+        *stateMachine_);
+}
+
+void AppBootstrap::destroyModuleScopedSession() {
+    if (stm32Link_) {
+        stm32Link_->setEventCallback({});
+    }
+    if (rfidMonitorSvc_) {
+        rfidMonitorSvc_->stop();
+    }
+    if (pollingSvc_) {
+        pollingSvc_->stop();
+    }
+    if (mainWindow_) {
+        delete mainWindow_;
+        mainWindow_ = nullptr;
+    }
+
+    workerVm_.reset();
+    adminVm_.reset();
+    stateMachine_.reset();
+    adminDiagnosticsSvc_.reset();
+    orderImportSvc_.reset();
+    workflowSvc_.reset();
+    pollingSvc_.reset();
+    rfidMonitorSvc_.reset();
+    recoverySvc_.reset();
+    replaceReelSvc_.reset();
+    addReelSvc_.reset();
+    startupSvc_.reset();
+    workflowRepo_.reset();
+    orderRepo_.reset();
+}
+
+void AppBootstrap::showMainWindow() {
     mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
     mainWindow_->show();
 
@@ -342,4 +367,32 @@ void AppBootstrap::launch() {
         "startup",
         Qt::QueuedConnection
     );
+}
+
+void AppBootstrap::switchToModuleUid(const std::string& uid) {
+    if (uid.empty() || uid == activeModuleUid_) {
+        return;
+    }
+
+    const int newModuleId = ensureModuleForUid(uid);
+    if (newModuleId <= 0) {
+        return;
+    }
+
+    eventLogger_->log("INFO",
+                      "RfidModuleSwitch",
+                      "uid=" + uid +
+                      " from_module_id=" + std::to_string(activeModuleId_) +
+                      " to_module_id=" + std::to_string(newModuleId));
+
+    destroyModuleScopedSession();
+    activeModuleUid_ = uid;
+    activeModuleId_ = newModuleId;
+    syncModuleStatuses();
+    buildModuleScopedSession();
+    showMainWindow();
+}
+
+void AppBootstrap::launch() {
+    showMainWindow();
 }

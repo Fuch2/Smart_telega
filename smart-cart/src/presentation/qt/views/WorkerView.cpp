@@ -208,6 +208,16 @@ void WorkerView::setupUi() {
     actionHintLabel_->setWordWrap(true);
     actionHintLabel_->setStyleSheet("color: #8DE4AD;");
 
+    activeModuleLabel_ = new QLabel(
+        QString::fromUtf8("Активный модуль: определяем..."),
+        statusFrame);
+    activeModuleLabel_->setFont(QFont("Segoe UI", 13, QFont::Bold));
+    activeModuleLabel_->setWordWrap(true);
+    activeModuleLabel_->setStyleSheet(
+        "QLabel { color: #DDF3E4; background: #1A3B2A; "
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 8px 12px; }"
+    );
+
     stm32StatusLabel_ = new QLabel(QString::fromUtf8("STM32: ожидание связи"),
                                    statusFrame);
     stm32StatusLabel_->setFont(QFont("Segoe UI", 11));
@@ -231,6 +241,7 @@ void WorkerView::setupUi() {
     statusTextLayout->addWidget(stateLabel_);
     statusTextLayout->addWidget(messageLabel_);
     statusTextLayout->addWidget(actionHintLabel_);
+    statusTextLayout->addWidget(activeModuleLabel_);
     statusTextLayout->addWidget(errorLabel_);
 
     statusLayout->addLayout(statusTextLayout, 1);
@@ -434,6 +445,8 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onWorkflowControlsUpdated);
     connect(&viewModel_, &WorkerViewModel::stm32StatusUpdated,
             this, &WorkerView::onStm32StatusUpdated);
+    connect(&viewModel_, &WorkerViewModel::activeModuleUpdated,
+            this, &WorkerView::onActiveModuleUpdated);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
             this, &WorkerView::onErrorOccurred);
 
@@ -523,6 +536,12 @@ void WorkerView::onWorkflowUpdated(const QString& workflow,
 
 void WorkerView::onStm32StatusUpdated(const QString& status) {
     stm32StatusLabel_->setText(QString::fromUtf8("STM32: ") + status);
+}
+
+void WorkerView::onActiveModuleUpdated(const QString& moduleSummary) {
+    if (activeModuleLabel_) {
+        activeModuleLabel_->setText(moduleSummary);
+    }
 }
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
