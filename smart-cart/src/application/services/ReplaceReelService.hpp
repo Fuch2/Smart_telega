@@ -41,7 +41,7 @@ private:
     /// Создать модуль в БД если не существует.
     void ensureModuleExists();
 
-    /// Инициализировать все слоты как FREE если их неет в slot_states.
+    /// Инициализировать все слоты как FREE есdли их неет в slot_states.
     void ensureSlotsInitialized();
 
     bool              ping();
