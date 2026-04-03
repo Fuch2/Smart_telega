@@ -10,7 +10,8 @@ if not BOT_TOKEN:
 
 TIMEZONE = "Europe/Moscow"
 
-DB_PATH = "meet_bot.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "meet_bot.db")
 
 SCHEDULER_INTERVAL = 60  # секунды между проверками дедлайнов
 
