@@ -20,7 +20,7 @@ public:
     // Returns std::nullopt if frame invalid (SOF/length/CRC).
     static std::optional<Frame> decode(const uint8_t* data, size_t size);
 
-    // --- Streaming parser (suitable for UART byte stream / STM32 style feed) ---
+    // --- Streaming parser (sucitable for UART byte stream / STM32 style feed) ---
     enum class ParseEventType : uint8_t {
         None,
         FrameReady,
