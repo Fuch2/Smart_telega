@@ -180,3 +180,13 @@ gtest_discover_tests(integration_tests)
 
 # ── Qt UI (presentation слой + main_qt.cpp) ───────────────────────────────────
 add_subdirectory(src/presentation/qt build_qt)
+
+# ── Копирование config/ в build/ при любом cmake --build ─────────────────────
+add_custom_target(copy_config ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/config
+        ${CMAKE_BINARY_DIR}/config
+    COMMENT "Syncing config/ → build/config/"
+)
+add_dependencies(smartcart_app     copy_config)
+add_dependencies(integration_tests copy_config)

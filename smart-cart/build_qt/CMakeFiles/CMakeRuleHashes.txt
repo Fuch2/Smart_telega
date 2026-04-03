@@ -1,5 +1,0 @@
-# Hashes of file build rules.
-e829c5b8a97257d2bb0085246824bc4e CMakeFiles/smartcart_app_qt_autogen
-4841ad11a8e842af2ca6c55a9f2696a8 build_qt/CMakeFiles/smart_cart_ui_autogen
-25a657a3224db2f4fb8f17c86859bba4 build_qt/smart_cart_ui_autogen/timestamp
-d9e87ed6661a5fddf5c3624930dd99bf smartcart_app_qt_autogen/timestamp

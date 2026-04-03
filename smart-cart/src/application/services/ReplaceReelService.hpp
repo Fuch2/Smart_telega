@@ -1,53 +1,69 @@
-// ===== src/application/services/StartupService.hpp =====
+// ===== src/application/services/ReplaceReelService.hpp =====
 #pragma once
 
 #include "application/ports/IStm32Link.hpp"
-#include "application/ports/IModuleRepository.hpp"
 #include "application/ports/IReelRepository.hpp"
-#include "domain/entities/Slot.hpp"
+#include "application/ports/IOperationRepository.hpp"
+#include "application/services/AddReelService.hpp"
+#include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
+#include <atomic>
+#include <cstdint>
+#include <functional>
+#include <string>
 #include <vector>
-#include <variant>
 
 namespace smartcart::application::services {
 
-struct StartupConfig {
-    int moduleId         = 1;
-    int slotCount        = 24;
-    int readyTimeoutMs   = 5000;
+struct ReplaceReelConfig {
+    int              moduleId        = 1;
+    int              stableConfirmMs = 5000;
     std::vector<int> slotToLedMap;
 };
 
-using StartupResult = std::variant<std::vector<domain::Slot>, domain::ErrorCode>;
-
-class StartupService {
+class ReplaceReelService {
 public:
-    StartupService(
-        ports::IStm32Link&         link,
-        ports::IReelRepository&    reelRepo,
-        ports::IModuleRepository&  moduleRepo,
-        StartupConfig              config
+    using CompletionCallback    = std::function<void(int opId,
+                                                     domain::OperationStatus)>;
+    using SlotHighlightCallback = std::function<void(int slotIndex,
+                                                     RgbColor color)>;
+    using ErrorCallback         = std::function<void(domain::ErrorCode,
+                                                     std::string)>;
+
+    ReplaceReelService(
+        ports::IStm32Link&           link,
+        ports::IReelRepository&      reelRepo,
+        ports::IOperationRepository& opRepo,
+        ReplaceReelConfig            config
     );
 
-    StartupResult run();
+    /// Запустить замену катушки по штрихкоду. Возвращает opId или -1 при ошибке.
+    int  start(const std::string& newBarcode);
+
+    /// Отменить текущую операцию.
+    void cancel();
+
+    void setCompletionCallback(CompletionCallback cb)       { onComplete_ = std::move(cb); }
+    void setSlotHighlightCallback(SlotHighlightCallback cb) { onHighlight_ = std::move(cb); }
+    void setErrorCallback(ErrorCallback cb)                 { onError_     = std::move(cb); }
 
 private:
-    ports::IStm32Link&        link_;
-    ports::IReelRepository&   reelRepo_;
-    ports::IModuleRepository& moduleRepo_;
-    StartupConfig             config_;
+    ports::IStm32Link&           link_;
+    ports::IReelRepository&      reelRepo_;
+    ports::IOperationRepository& opRepo_;
+    ReplaceReelConfig            config_;
 
-    /// Создать модуль в БД если не существует.
-    void ensureModuleExists();
+    std::atomic<bool> cancelled_{false};
 
-    /// Инициализировать все слsоты как FREE есdли их неет в slot_states.
-    void ensureSlotsInitialized();
+    CompletionCallback    onComplete_;
+    SlotHighlightCallback onHighlight_;
+    ErrorCallback         onError_;
 
-    bool              ping();
-    bool              waitReady();
-    std::vector<bool> getSnapshot();
-    std::vector<domain::Slot> reconcile(const std::vector<bool>& physical);
+    static bool isValidBarcode(const std::string& barcode);
+    void        setSlotLed(int slotIndex, uint8_t r, uint8_t g, uint8_t b);
+    void        clearAllLeds();
+    bool        waitForSlotEvent(int slotIndex, bool expectedOccupied);
 };
 
 } // namespace smartcart::application::services

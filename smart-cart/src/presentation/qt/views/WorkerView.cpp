@@ -111,6 +111,9 @@ void WorkerView::setupUi() {
 
     setLayout(rootLayout);
     setStyleSheet("WorkerView { background: #181825; }");
+
+    // Автофокус на поле ввода при старте
+    barcodeEdit_->setFocus();
 }
 
 void WorkerView::connectSignals() {
@@ -137,6 +140,7 @@ void WorkerView::connectSignals() {
                 cancelButton_->setEnabled(operating);
                 scanButton_->setEnabled(!operating);
                 barcodeEdit_->setEnabled(!operating);
+                if (!operating) barcodeEdit_->setFocus();  // фокус после завершения операции
                 // Скрываем ошибку при переходе в рабочее состояние
                 if (state == smartcart::application::AppState::Ready ||
                     state == smartcart::application::AppState::Operating)
@@ -167,6 +171,7 @@ void WorkerView::onBarcodeSubmitted() {
     if (barcode.isEmpty()) return;
     barcodeEdit_->clear();
     viewModel_.onBarcodeScanned(barcode);
+    barcodeEdit_->setFocus();  // возвращаем фокус после скана
 }
 
 void WorkerView::onCancelClicked() {

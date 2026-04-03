@@ -1,6 +1,3 @@
-// ===== config/config.json =====
-// Исправлено: переименован из appsettings.json → config.json
-// (ConfigLoader ищет именно этот файл)
 {
   "log_file": "./smartcart.log",
   "sqlite_path": "./smartcart.db",
