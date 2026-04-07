@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
+cd /Users/fuch/Document/Smart_Telega/smart-cart && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --target smart_cart_ui -j$(nproc)
 
-rm -rf build/build_qt
-cmake --build build -j$(nproc) --target smart_cart_ui
 
 
