@@ -23,6 +23,9 @@ struct AppConfig {
     std::string moduleProfilePath{"config/module_profiles/tray24.json"};
 
     std::vector<int> slotToLedMap;
+    std::vector<int> switchTrackedChannels{1, 3};
+    std::vector<int> switchIgnoredChannels{11};
+    std::vector<int> switchChannelToSlotMap;
 };
 
 } // namespace smartcart::infrastructure::config

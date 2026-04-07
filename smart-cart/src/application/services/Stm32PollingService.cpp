@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <ctime>
 #include <exception>
 #include <sstream>
 #include <string>
@@ -47,6 +48,24 @@ std::string trimCopy(const std::string& value) {
         return {};
     }
     return std::string(begin, end);
+}
+
+std::string currentTimeText() {
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t rawTime = std::chrono::system_clock::to_time_t(now);
+
+    std::tm localTime{};
+#if defined(_WIN32)
+    localtime_s(&localTime, &rawTime);
+#else
+    localtime_r(&rawTime, &localTime);
+#endif
+
+    char buffer[16]{};
+    if (std::strftime(buffer, sizeof(buffer), "%H:%M:%S", &localTime) == 0) {
+        return {};
+    }
+    return buffer;
 }
 
 } // namespace
@@ -108,16 +127,20 @@ void Stm32PollingService::pollOnce() {
     try {
         const auto snapshot = requestSnapshot();
         if (!snapshot.has_value()) {
+            updateLastSnapshot("snapshot недоступен");
             logSafe("WARN",
                     "Stm32SnapshotUnavailable",
                     "Не удалось получить snapshot STM32");
             return;
         }
 
+        updateLastSnapshot("snapshot получен");
         applySnapshot(*snapshot);
     } catch (const std::exception& ex) {
+        updateLastSnapshot(std::string("ошибка snapshot: ") + ex.what());
         logSafe("ERROR", "Stm32PollingError", ex.what());
     } catch (...) {
+        updateLastSnapshot("ошибка snapshot");
         logSafe("ERROR", "Stm32PollingError", "Неизвестная ошибка polling");
     }
 }
@@ -129,15 +152,22 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
         }
 
         if (frame.cmdId == stm32::CommandId::EvtReady) {
+            updateLastEvent("EvtReady");
             logSafe("INFO", "Stm32EvtReady", "STM32 готов");
             return;
         }
 
         if (frame.cmdId != stm32::CommandId::EvtSwitchChanged) {
+            std::ostringstream msg;
+            msg << "Evt cmd=0x"
+                << std::hex
+                << static_cast<int>(frame.cmdId);
+            updateLastEvent(msg.str());
             return;
         }
 
         if (frame.payload.size() < 2) {
+            updateLastEvent("EvtSwitchChanged: короткий payload");
             logSafe("WARN",
                     "Stm32EventBadPayload",
                     "EvtSwitchChanged payload слишком короткий");
@@ -146,6 +176,13 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
 
         const int channel = static_cast<int>(frame.payload[0]);
         const bool occupied = frame.payload[1] != 0;
+        const auto slotIndex = slotIndexForChannel(channel);
+
+        std::ostringstream evtMsg;
+        evtMsg << "EvtSwitchChanged channel=" << channel
+               << " slot=" << (slotIndex.has_value() ? *slotIndex : 0)
+               << " occupied=" << (occupied ? "true" : "false");
+        updateLastEvent(evtMsg.str());
 
         if (channel < 0 || channel >= config_.slotCount) {
             std::ostringstream msg;
@@ -154,7 +191,10 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
             return;
         }
 
-        if (!isTrackedChannel(channel) || isIgnoredChannel(channel)) {
+        if (!isTrackedChannel(channel) ||
+            isIgnoredChannel(channel) ||
+            !slotIndex.has_value())
+        {
             return;
         }
 
@@ -190,6 +230,14 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
     } catch (...) {
         logSafe("ERROR", "Stm32EventHandleFailed", "Неизвестная ошибка event");
     }
+}
+
+Stm32ConnectionStatus Stm32PollingService::connectionStatus() const {
+    std::lock_guard lock(statusMtx_);
+    auto status = status_;
+    status.uartOpen = link_.isOpen();
+    status.pollingRunning = running_.load();
+    return status;
 }
 
 BarcodeScanResult Stm32PollingService::recordBarcodeScan(
@@ -318,7 +366,10 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
         rawChangedAt_.assign(snapshot.size(), now);
 
         for (int channel = 0; channel < static_cast<int>(snapshot.size()); ++channel) {
-            if (!isTrackedChannel(channel) || isIgnoredChannel(channel)) {
+            if (!isTrackedChannel(channel) ||
+                isIgnoredChannel(channel) ||
+                !slotIndexForChannel(channel).has_value())
+            {
                 continue;
             }
 
@@ -344,7 +395,10 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
     }
 
     for (int channel = 0; channel < static_cast<int>(snapshot.size()); ++channel) {
-        if (!isTrackedChannel(channel) || isIgnoredChannel(channel)) {
+        if (!isTrackedChannel(channel) ||
+            isIgnoredChannel(channel) ||
+            !slotIndexForChannel(channel).has_value())
+        {
             continue;
         }
 
@@ -377,7 +431,11 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
 void Stm32PollingService::applyChannelStateLocked(int channel,
                                                   bool occupied,
                                                   std::string_view source) {
-    const int slotIndex = channel + 1;
+    const auto mappedSlot = slotIndexForChannel(channel);
+    if (!mappedSlot.has_value()) {
+        return;
+    }
+    const int slotIndex = *mappedSlot;
     const bool saved = reelRepo_.setSlotState(
         config_.moduleId,
         slotIndex,
@@ -389,6 +447,12 @@ void Stm32PollingService::applyChannelStateLocked(int channel,
         << " slot=" << slotIndex
         << " occupied=" << (occupied ? "true" : "false")
         << " source=" << source;
+
+    if (source == "snapshot") {
+        updateLastSnapshot(msg.str());
+    } else if (source == "event") {
+        updateLastEvent(msg.str());
+    }
 
     logSafe(saved ? "INFO" : "ERROR",
             saved ? "SwitchChanged" : "SwitchStateSaveFailed",
@@ -507,6 +571,34 @@ bool Stm32PollingService::isTrackedChannel(int channel) const {
     return std::find(config_.trackedChannels.begin(),
                      config_.trackedChannels.end(),
                      channel) != config_.trackedChannels.end();
+}
+
+std::optional<int> Stm32PollingService::slotIndexForChannel(int channel) const {
+    if (channel < 0 || channel >= config_.slotCount) {
+        return std::nullopt;
+    }
+
+    if (channel < static_cast<int>(config_.channelToSlotMap.size())) {
+        const int slotIndex = config_.channelToSlotMap[channel];
+        if (slotIndex > 0 && slotIndex <= config_.slotCount) {
+            return slotIndex;
+        }
+        return std::nullopt;
+    }
+
+    return channel + 1;
+}
+
+void Stm32PollingService::updateLastEvent(std::string message) {
+    std::lock_guard lock(statusMtx_);
+    status_.lastEvent = std::move(message);
+    status_.lastEventAt = currentTimeText();
+}
+
+void Stm32PollingService::updateLastSnapshot(std::string message) {
+    std::lock_guard lock(statusMtx_);
+    status_.lastSnapshot = std::move(message);
+    status_.lastSnapshotAt = currentTimeText();
 }
 
 void Stm32PollingService::logSafe(std::string_view level,

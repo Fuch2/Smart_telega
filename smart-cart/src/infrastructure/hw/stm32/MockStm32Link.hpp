@@ -26,8 +26,8 @@ public:
     std::optional<Frame> sendCommand(const Frame& cmd) override;
     void setEventCallback(application::ports::EventCallback cb) override;
 
-    // Эмулировать нажатие/отпускание кнопки (slot 1-based, occupied=true/false)
-    void simulateSwitchEvent(int slotIndex, bool occupied);
+    // Эмулировать нажатие/отпускание кнопки (channel 0-based, occupied=true/false)
+    void simulateSwitchEvent(int channel, bool occupied);
 
     // Inject произвольный event из тест-кода
     void injectEvent(const Frame& evt);

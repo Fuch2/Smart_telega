@@ -30,6 +30,7 @@ struct Stm32PollingConfig {
     // На текущей плате реально подключены PA1/PA2.
     std::vector<int> trackedChannels {1, 3};
     std::vector<int> ignoredChannels {11};
+    std::vector<int> channelToSlotMap;
 };
 
 struct BarcodeScanResult {
@@ -40,6 +41,15 @@ struct BarcodeScanResult {
     std::string message;
 
     explicit operator bool() const noexcept { return success; }
+};
+
+struct Stm32ConnectionStatus {
+    bool uartOpen{false};
+    bool pollingRunning{false};
+    std::string lastEvent{"нет событий"};
+    std::string lastEventAt;
+    std::string lastSnapshot{"нет snapshot"};
+    std::string lastSnapshotAt;
 };
 
 class Stm32PollingService {
@@ -64,6 +74,7 @@ public:
     void pollOnce();
     bool isRunning() const noexcept { return running_.load(); }
     void handleEventFrame(const smartcart::infrastructure::hw::stm32::Frame& frame);
+    Stm32ConnectionStatus connectionStatus() const;
 
     BarcodeScanResult recordBarcodeScan(const std::string& barcode);
 
@@ -91,6 +102,8 @@ private:
     std::optional<std::vector<bool>> rawSnapshot_;
     std::vector<std::chrono::steady_clock::time_point> rawChangedAt_;
     std::mutex stateMtx_;
+    mutable std::mutex statusMtx_;
+    Stm32ConnectionStatus status_;
     std::mutex pendingMtx_;
     std::optional<PendingScan> pendingScan_;
 
@@ -109,6 +122,9 @@ private:
 
     bool isIgnoredChannel(int channel) const;
     bool isTrackedChannel(int channel) const;
+    std::optional<int> slotIndexForChannel(int channel) const;
+    void updateLastEvent(std::string message);
+    void updateLastSnapshot(std::string message);
     void logSafe(std::string_view level,
                  std::string_view code,
                  std::string_view message) const;

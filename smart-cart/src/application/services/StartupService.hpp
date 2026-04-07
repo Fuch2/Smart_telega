@@ -17,6 +17,8 @@ struct StartupConfig {
     int slotCount        = 24;
     int readyTimeoutMs   = 5000;
     std::vector<int> slotToLedMap;
+    std::vector<int> ignoredChannels{11};
+    std::vector<int> channelToSlotMap;
 };
 
 using StartupResult = std::variant<std::vector<domain::Slot>, domain::ErrorCode>;
@@ -47,6 +49,7 @@ private:
     bool              ping();
     bool              waitReady();
     std::vector<bool> getSnapshot();
+    int               slotIndexForChannel(int channel) const;
     std::vector<domain::Slot> reconcile(const std::vector<bool>& physical);
 };
 

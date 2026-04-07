@@ -48,6 +48,7 @@ public:
     );
 
     AppState currentState() const noexcept { return state_; }
+    services::Stm32ConnectionStatus stm32ConnectionStatus() const;
 
 public slots:
     void startup();

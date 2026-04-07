@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 #include <variant>
+#include <vector>
 
 using namespace smartcart;
 using namespace smartcart::infrastructure::hw::stm32;
@@ -122,4 +123,45 @@ TEST_F(StartupFlowTest, PhysOccupied_DbEmpty_SlotsInErrorState) {
     EXPECT_EQ(slots[0].state, domain::SlotState::Error);
     for (int i = 1; i < static_cast<int>(slots.size()); ++i)
         EXPECT_EQ(slots[i].state, domain::SlotState::Free);
+}
+
+TEST_F(StartupFlowTest, ChannelMappingRoutesPa1ToFirstSlot) {
+    MockStm32Link link([](const Frame& cmd) -> std::optional<Frame> {
+        Frame resp;
+        resp.seq   = cmd.seq;
+        resp.cmdId = cmd.cmdId;
+        if (cmd.cmdId == CommandId::GetSwitchSnapshot) {
+            resp.type    = FrameType::Resp;
+            resp.payload = {0x02, 0x00, 0x00}; // channel 1 active
+        } else if (cmd.cmdId == CommandId::GetReadyState) {
+            resp.type    = FrameType::Resp;
+            resp.payload = {0x01};
+        } else {
+            resp.type = FrameType::Ack;
+        }
+        return resp;
+    });
+    link.open();
+
+    StartupConfig cfg;
+    cfg.moduleId       = 1;
+    cfg.slotCount      = 24;
+    cfg.readyTimeoutMs = 1000;
+    cfg.slotToLedMap   = {};
+    cfg.channelToSlotMap = {
+        3, 1, 4, 2, 5, 6, 7, 8,
+        9, 10, 11, 0, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23
+    };
+
+    StartupService svc(link, *reelRepo_, *moduleRepo_, cfg);
+    const auto result = svc.run();
+
+    ASSERT_TRUE(std::holds_alternative<std::vector<domain::Slot>>(result));
+    const auto& slots = std::get<std::vector<domain::Slot>>(result);
+
+    EXPECT_EQ(slots[0].slotIndex, 1);
+    EXPECT_EQ(slots[0].state, domain::SlotState::Error);
+    EXPECT_EQ(slots[1].slotIndex, 2);
+    EXPECT_EQ(slots[1].state, domain::SlotState::Free);
 }

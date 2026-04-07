@@ -36,6 +36,10 @@ AppStateMachine::AppStateMachine(
     , pollingSvc_(pollingSvc)
 {}
 
+services::Stm32ConnectionStatus AppStateMachine::stm32ConnectionStatus() const {
+    return pollingSvc_.connectionStatus();
+}
+
 void AppStateMachine::transition(AppState newState) {
     if (state_ == newState) return;
     state_ = newState;

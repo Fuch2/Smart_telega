@@ -28,6 +28,7 @@ private slots:
                            const QString& order,
                            const QString& checklist);
     void onWorkflowControlsUpdated(const QString& stateKey);
+    void onStm32StatusUpdated(const QString& status);
     void onErrorOccurred(const QString& message);
     void onImportOrderClicked();
     void onBarcodeSubmitted();
@@ -49,6 +50,7 @@ private:
     SlotGridWidget* slotGrid_     = nullptr;
     QLabel*         stateLabel_   = nullptr;
     QLabel*         messageLabel_ = nullptr;
+    QLabel*         stm32StatusLabel_ = nullptr;
     QLabel*         workflowLabel_ = nullptr;
     QLabel*         orderLabel_   = nullptr;
     QTextEdit*      checklistText_ = nullptr;

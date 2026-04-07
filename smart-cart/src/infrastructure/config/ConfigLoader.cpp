@@ -35,6 +35,9 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "led_mapping_path",    cfg.ledMappingPath);
     readOptional(j, "module_profile_path", cfg.moduleProfilePath);
     readOptional(j, "slot_to_led_map",     cfg.slotToLedMap);
+    readOptional(j, "switch_tracked_channels", cfg.switchTrackedChannels);
+    readOptional(j, "switch_ignored_channels", cfg.switchIgnoredChannels);
+    readOptional(j, "switch_channel_to_slot_map", cfg.switchChannelToSlotMap);
 
     validate(cfg);
     return cfg;
@@ -57,6 +60,30 @@ void ConfigLoader::validate(AppConfig& cfg) {
     if (!cfg.slotToLedMap.empty() && cfg.slotToLedMap.size() != 24)
         throw std::runtime_error(
             "ConfigLoader: slot_to_led_map must contain 24 entries");
+    if (cfg.switchTrackedChannels.empty())
+        throw std::runtime_error(
+            "ConfigLoader: switch_tracked_channels must not be empty");
+    for (const int channel : cfg.switchTrackedChannels) {
+        if (channel < 0 || channel >= 24)
+            throw std::runtime_error(
+                "ConfigLoader: switch_tracked_channels values must be 0..23");
+    }
+    for (const int channel : cfg.switchIgnoredChannels) {
+        if (channel < 0 || channel >= 24)
+            throw std::runtime_error(
+                "ConfigLoader: switch_ignored_channels values must be 0..23");
+    }
+    if (!cfg.switchChannelToSlotMap.empty() &&
+        cfg.switchChannelToSlotMap.size() != 24)
+    {
+        throw std::runtime_error(
+            "ConfigLoader: switch_channel_to_slot_map must contain 24 entries");
+    }
+    for (const int slotIndex : cfg.switchChannelToSlotMap) {
+        if (slotIndex < 0 || slotIndex > 24)
+            throw std::runtime_error(
+                "ConfigLoader: switch_channel_to_slot_map values must be 0..24");
+    }
 }
 
 } // namespace smartcart::infrastructure::config

@@ -31,13 +31,13 @@ std::optional<Frame> MockStm32Link::sendCommand(const Frame& cmd) {
     return ack;
 }
 
-void MockStm32Link::simulateSwitchEvent(int slotIndex, bool occupied) {
+void MockStm32Link::simulateSwitchEvent(int channel, bool occupied) {
     Frame evt;
     evt.type    = FrameType::Evt;
     evt.cmdId   = CommandId::EvtSwitchChanged;
-    // payload[0] = slot 0-based, payload[1] = occupied
+    // payload[0] = channel 0-based, payload[1] = occupied
     evt.payload = {
-        static_cast<uint8_t>(slotIndex - 1),
+        static_cast<uint8_t>(channel),
         static_cast<uint8_t>(occupied ? 0x01 : 0x00)
     };
     injectEvent(evt);

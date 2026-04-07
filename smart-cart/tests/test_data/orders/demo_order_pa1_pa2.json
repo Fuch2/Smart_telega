@@ -7,12 +7,12 @@
     {
       "barcode": "R-150 10%",
       "material_type": "reel",
-      "target_slot": 2
+      "target_slot": 1
     },
     {
       "barcode": "R-250 20%",
       "material_type": "reel",
-      "target_slot": 4
+      "target_slot": 2
     }
   ]
 }

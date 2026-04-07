@@ -45,6 +45,7 @@ signals:
     void slotsUpdated(QVector<SlotCellData> slots);
     void workflowUpdated(QString workflow, QString order, QString checklist);
     void workflowControlsUpdated(QString stateKey);
+    void stm32StatusUpdated(QString status);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
 
@@ -89,6 +90,7 @@ private:
     SlotCellData*  findSlot(int slotIndex);
     void           rebuildSlots();
     void           rebuildWorkflowSummary();
+    void           rebuildStm32Status();
     void           handleWorkflowResult(
         const smartcart::application::services::WorkflowActionResult& result);
     static QString errorMessage(smartcart::domain::ErrorCode code);

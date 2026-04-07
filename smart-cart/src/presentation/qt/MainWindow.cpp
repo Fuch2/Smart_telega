@@ -111,10 +111,10 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
             mock->simulateSwitchEvent(1, false);
         });
         connect(pa2InsertBtn, &QPushButton::clicked, [mock]() {
-            mock->simulateSwitchEvent(2, true);
+            mock->simulateSwitchEvent(3, true);
         });
         connect(pa2RemoveBtn, &QPushButton::clicked, [mock]() {
-            mock->simulateSwitchEvent(2, false);
+            mock->simulateSwitchEvent(3, false);
         });
 
         topBar->addWidget(demoFrame);

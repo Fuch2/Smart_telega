@@ -5,6 +5,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <exception>
+#include <algorithm>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -197,16 +198,30 @@ std::vector<domain::Slot> StartupService::reconcile(
     std::vector<domain::Slot> slots;
     slots.reserve(static_cast<size_t>(config_.slotCount));
 
+    std::vector<bool> physicallyOccupiedBySlot(
+        static_cast<size_t>(config_.slotCount + 1),
+        false
+    );
+    for (int channel = 0; channel < static_cast<int>(physical.size()); ++channel) {
+        if (std::find(config_.ignoredChannels.begin(),
+                      config_.ignoredChannels.end(),
+                      channel) != config_.ignoredChannels.end())
+        {
+            continue;
+        }
+
+        const int slotIndex = slotIndexForChannel(channel);
+        if (slotIndex <= 0 || slotIndex > config_.slotCount) {
+            continue;
+        }
+
+        physicallyOccupiedBySlot[static_cast<size_t>(slotIndex)] = physical[channel];
+    }
+
     for (int slotIndex = 1; slotIndex <= config_.slotCount; ++slotIndex) {
         const int channel = slotIndex - 1;
-        bool physicallyOccupied =
-            channel >= 0 &&
-            channel < static_cast<int>(physical.size()) &&
-            physical[channel];
-
-        if (channel == 11) {
-            physicallyOccupied = false;
-        }
+        const bool physicallyOccupied =
+            physicallyOccupiedBySlot[static_cast<size_t>(slotIndex)];
 
         const bool hasRecord =
             activeSlots.find(slotIndex) != activeSlots.end();
@@ -236,6 +251,18 @@ std::vector<domain::Slot> StartupService::reconcile(
     }
 
     return slots;
+}
+
+int StartupService::slotIndexForChannel(int channel) const {
+    if (channel < 0 || channel >= config_.slotCount) {
+        return 0;
+    }
+
+    if (channel < static_cast<int>(config_.channelToSlotMap.size())) {
+        return config_.channelToSlotMap[channel];
+    }
+
+    return channel + 1;
 }
 
 } // namespace smartcart::application::services

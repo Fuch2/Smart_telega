@@ -102,6 +102,15 @@ void WorkerView::setupUi() {
     messageLabel_->setFont(QFont("Segoe UI", 10));
     messageLabel_->setStyleSheet("color: #66736B;");
 
+    stm32StatusLabel_ = new QLabel(QString::fromUtf8("STM32: ожидание связи"),
+                                   statusFrame);
+    stm32StatusLabel_->setFont(QFont("Segoe UI", 10));
+    stm32StatusLabel_->setWordWrap(true);
+    stm32StatusLabel_->setStyleSheet(
+        "QLabel { background: #F7FAF7; color: #4A6653; "
+        "border: 1px solid #D8E1D9; border-radius: 4px; padding: 4px 6px; }"
+    );
+
     errorLabel_ = new QLabel("", statusFrame);
     errorLabel_->setFont(QFont("Segoe UI", 10));
     errorLabel_->setStyleSheet("color: #B84A4A;");
@@ -109,6 +118,7 @@ void WorkerView::setupUi() {
 
     statusLayout->addWidget(stateLabel_);
     statusLayout->addWidget(messageLabel_);
+    statusLayout->addWidget(stm32StatusLabel_);
     statusLayout->addWidget(errorLabel_);
     rootLayout->addWidget(statusFrame);
 
@@ -288,6 +298,8 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onWorkflowUpdated);
     connect(&viewModel_, &WorkerViewModel::workflowControlsUpdated,
             this, &WorkerView::onWorkflowControlsUpdated);
+    connect(&viewModel_, &WorkerViewModel::stm32StatusUpdated,
+            this, &WorkerView::onStm32StatusUpdated);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
             this, &WorkerView::onErrorOccurred);
 
@@ -362,6 +374,10 @@ void WorkerView::onWorkflowUpdated(const QString& workflow,
     workflowLabel_->setText(workflow);
     orderLabel_->setText(order);
     checklistText_->setPlainText(checklist);
+}
+
+void WorkerView::onStm32StatusUpdated(const QString& status) {
+    stm32StatusLabel_->setText(QString::fromUtf8("STM32: ") + status);
 }
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {

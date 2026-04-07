@@ -19,6 +19,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <vector>
 
 using namespace smartcart;
 using namespace smartcart::infrastructure::hw::stm32;
@@ -38,6 +39,14 @@ int countEvents(sqlite3* db, const std::string& code) {
     }
     sqlite3_finalize(stmt);
     return count;
+}
+
+std::vector<int> pa1Pa2SlotMap() {
+    return {
+        3, 1, 4, 2, 5, 6, 7, 8,
+        9, 10, 11, 0, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23
+    };
 }
 
 } // namespace
@@ -245,8 +254,9 @@ TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperatio
     cfg.slotCount = 24;
     cfg.pollMs = 10;
     cfg.debounceMs = 50;
-    cfg.trackedChannels = {1, 3};
+    cfg.trackedChannels = {0, 1, 2, 3};
     cfg.ignoredChannels = {11};
+    cfg.channelToSlotMap = pa1Pa2SlotMap();
 
     domain::OrderInfo order;
     order.externalOrderId = "ORDER-EVT-PA1";
@@ -257,7 +267,7 @@ TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperatio
     item.orderId = orderId;
     item.barcode = "REEL-EVT-PA1";
     item.materialType = "reel";
-    item.targetSlot = 2;
+    item.targetSlot = 1;
     orderRepo_->addItem(item);
     workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
 
@@ -271,27 +281,83 @@ TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperatio
                             cfg);
     const auto scan = svc.recordBarcodeScan("REEL-EVT-PA1");
     ASSERT_TRUE(scan.success);
-    EXPECT_EQ(scan.targetSlot, 2);
+    EXPECT_EQ(scan.targetSlot, 1);
 
     Frame evt;
     evt.type = FrameType::Evt;
     evt.cmdId = CommandId::EvtSwitchChanged;
-    evt.payload = {0x01, 0x01}; // channel 1 -> domain slot 2
+    evt.payload = {0x01, 0x01}; // PA1: channel 1 -> domain slot 1
     svc.handleEventFrame(evt);
 
-    const auto reel = reelRepo_->getBySlot(1, 2);
+    const auto reel = reelRepo_->getBySlot(1, 1);
     ASSERT_TRUE(reel.has_value());
     EXPECT_EQ(reel->barcode, "REEL-EVT-PA1");
 
     const auto op = opRepo_->getById(scan.operationId);
     ASSERT_TRUE(op.has_value());
-    EXPECT_EQ(op->slotIndex, 2);
+    EXPECT_EQ(op->slotIndex, 1);
     EXPECT_EQ(op->status, domain::OperationStatus::Completed);
 
     const auto placed = orderRepo_->findItemByBarcode(orderId, "REEL-EVT-PA1");
     ASSERT_TRUE(placed.has_value());
     EXPECT_EQ(placed->status, domain::OrderItemStatus::Placed);
     EXPECT_EQ(countEvents(conn_->handle(), "MaterialPlaced"), 1);
+
+    const auto status = svc.connectionStatus();
+    EXPECT_TRUE(status.uartOpen);
+    EXPECT_NE(status.lastEvent.find("channel=1"), std::string::npos);
+    EXPECT_NE(status.lastEvent.find("slot=1"), std::string::npos);
+}
+
+TEST_F(AddReelFlowTest, SwitchChannelMapRoutesPa2ToSecondSlot) {
+    MockStm32Link link;
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.debounceMs = 50;
+    cfg.trackedChannels = {0, 1, 2, 3};
+    cfg.ignoredChannels = {11};
+    cfg.channelToSlotMap = pa1Pa2SlotMap();
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            workflowSvc,
+                            logger,
+                            cfg);
+
+    Frame evt;
+    evt.type = FrameType::Evt;
+    evt.cmdId = CommandId::EvtSwitchChanged;
+    evt.payload = {0x03, 0x01}; // PA2: channel 3 -> domain slot 2
+    svc.handleEventFrame(evt);
+
+    const auto slots = reelRepo_->getSlotStates(1);
+    auto findState = [&slots](int slotIndex) {
+        for (const auto& slot : slots) {
+            if (slot.slotIndex == slotIndex) {
+                return slot.state;
+            }
+        }
+        return domain::SlotState::Error;
+    };
+
+    EXPECT_EQ(findState(2), domain::SlotState::Occupied);
+    EXPECT_EQ(findState(4), domain::SlotState::Free);
 }
 
 TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
@@ -329,8 +395,9 @@ TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
     cfg.pollMs = 10;
     cfg.debounceMs = 0;
     cfg.snapshotFallbackMs = 1000;
-    cfg.trackedChannels = {1, 3};
+    cfg.trackedChannels = {0, 1, 2, 3};
     cfg.ignoredChannels = {11};
+    cfg.channelToSlotMap = pa1Pa2SlotMap();
 
     domain::OrderInfo order;
     order.externalOrderId = "ORDER-EVT-PREFERRED";
@@ -341,7 +408,7 @@ TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
     item.orderId = orderId;
     item.barcode = "REEL-EVT-PREFERRED";
     item.materialType = "reel";
-    item.targetSlot = 2;
+    item.targetSlot = 1;
     orderRepo_->addItem(item);
     workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
 
@@ -359,15 +426,17 @@ TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
     svc.pollOnce();
     mask0.store(0x02); // snapshot увидел PA1, но ждёт fallback-окно
     svc.pollOnce();
-    EXPECT_FALSE(reelRepo_->getBySlot(1, 2).has_value());
+    EXPECT_FALSE(reelRepo_->getBySlot(1, 1).has_value());
+    EXPECT_NE(svc.connectionStatus().lastSnapshot.find("snapshot"),
+              std::string::npos);
 
     Frame evt;
     evt.type = FrameType::Evt;
     evt.cmdId = CommandId::EvtSwitchChanged;
-    evt.payload = {0x01, 0x01}; // channel 1 -> domain slot 2
+    evt.payload = {0x01, 0x01}; // PA1: channel 1 -> domain slot 1
     svc.handleEventFrame(evt);
 
-    const auto reel = reelRepo_->getBySlot(1, 2);
+    const auto reel = reelRepo_->getBySlot(1, 1);
     ASSERT_TRUE(reel.has_value());
     EXPECT_EQ(reel->barcode, "REEL-EVT-PREFERRED");
 

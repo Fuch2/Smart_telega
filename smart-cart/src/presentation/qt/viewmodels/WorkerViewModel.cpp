@@ -178,6 +178,7 @@ void WorkerViewModel::markLeftoverReturned(const QString& barcodeOrSlot) {
 void WorkerViewModel::reload() {
     rebuildSlots();
     rebuildWorkflowSummary();
+    rebuildStm32Status();
 }
 
 void WorkerViewModel::onStateChanged(AppState newState) {
@@ -328,6 +329,34 @@ void WorkerViewModel::rebuildWorkflowSummary() {
                          checklistText);
     emit workflowControlsUpdated(
         QString::fromStdString(std::string(toString(workflow.state))));
+}
+
+void WorkerViewModel::rebuildStm32Status() {
+    const auto status = stateMachine_.stm32ConnectionStatus();
+
+    const QString uartText = status.uartOpen
+        ? QString::fromUtf8("UART открыт")
+        : QString::fromUtf8("UART закрыт");
+    const QString pollingText = status.pollingRunning
+        ? QString::fromUtf8("обмен активен")
+        : QString::fromUtf8("обмен ожидает старта");
+
+    const QString eventAt = status.lastEventAt.empty()
+        ? QString::fromUtf8("нет времени")
+        : QString::fromStdString(status.lastEventAt);
+    const QString snapshotAt = status.lastSnapshotAt.empty()
+        ? QString::fromUtf8("нет времени")
+        : QString::fromStdString(status.lastSnapshotAt);
+
+    emit stm32StatusUpdated(
+        QString::fromUtf8("%1 · %2\nEVT: %3 (%4)\nsnapshot: %5 (%6)")
+            .arg(uartText,
+                 pollingText,
+                 QString::fromStdString(status.lastEvent),
+                 eventAt,
+                 QString::fromStdString(status.lastSnapshot),
+                 snapshotAt)
+    );
 }
 
 void WorkerViewModel::handleWorkflowResult(

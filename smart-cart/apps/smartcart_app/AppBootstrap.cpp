@@ -76,6 +76,8 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     startupCfg.slotCount      = 24;
     startupCfg.readyTimeoutMs = 5000;
     startupCfg.slotToLedMap   = slotToLedMap_;
+    startupCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    startupCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
 
     startupSvc_ = std::make_unique<StartupService>(
         *stm32Link_, *reelRepo_, *moduleRepo_, startupCfg
@@ -124,8 +126,9 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
     pollingCfg.snapshotFallbackMs =
         static_cast<int>(cfg_.stableConfirmMs + cfg_.stm32PollMs);
-    pollingCfg.trackedChannels = {1, 3};
-    pollingCfg.ignoredChannels = {11};
+    pollingCfg.trackedChannels = cfg_.switchTrackedChannels;
+    pollingCfg.ignoredChannels = cfg_.switchIgnoredChannels;
+    pollingCfg.channelToSlotMap = cfg_.switchChannelToSlotMap;
 
     pollingSvc_ = std::make_unique<Stm32PollingService>(
         *stm32Link_,
