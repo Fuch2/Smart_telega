@@ -1,9 +1,12 @@
 #pragma once
 
 #include "application/ports/IEventLogger.hpp"
+#include "application/ports/IOrderRepository.hpp"
 #include "application/ports/IOperationRepository.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IStm32Link.hpp"
+#include "application/ports/IWorkflowRepository.hpp"
+#include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
 #include <mutex>
@@ -25,12 +28,24 @@ struct Stm32PollingConfig {
     std::vector<int> ignoredChannels {11};
 };
 
+struct BarcodeScanResult {
+    bool success{false};
+    int operationId{0};
+    int targetSlot{0};
+    domain::ErrorCode error{domain::ErrorCode::None};
+    std::string message;
+
+    explicit operator bool() const noexcept { return success; }
+};
+
 class Stm32PollingService {
 public:
     Stm32PollingService(
         ports::IStm32Link&      link,
         ports::IReelRepository& reelRepo,
         ports::IOperationRepository& opRepo,
+        ports::IOrderRepository& orderRepo,
+        ports::IWorkflowRepository& workflowRepo,
         ports::IEventLogger&    eventLogger,
         Stm32PollingConfig      config
     );
@@ -44,17 +59,21 @@ public:
     void pollOnce();
     bool isRunning() const noexcept { return running_.load(); }
 
-    std::optional<int> recordBarcodeScan(const std::string& barcode);
+    BarcodeScanResult recordBarcodeScan(const std::string& barcode);
 
 private:
     struct PendingScan {
         std::string barcode;
         int operationId = 0;
+        int orderItemId = 0;
+        int targetSlot = 0;
     };
 
     ports::IStm32Link&      link_;
     ports::IReelRepository& reelRepo_;
     ports::IOperationRepository& opRepo_;
+    ports::IOrderRepository& orderRepo_;
+    ports::IWorkflowRepository& workflowRepo_;
     ports::IEventLogger&    eventLogger_;
     Stm32PollingConfig      config_;
 
@@ -71,6 +90,9 @@ private:
     void handleOccupiedSlot(int channel, int slotIndex);
     void handleFreedSlot(int channel, int slotIndex);
     std::optional<PendingScan> consumePendingScan();
+    BarcodeScanResult rejectBarcode(domain::ErrorCode code,
+                                    std::string message,
+                                    std::string_view logCode) const;
 
     bool isIgnoredChannel(int channel) const;
     bool isTrackedChannel(int channel) const;

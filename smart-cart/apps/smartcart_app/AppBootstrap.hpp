@@ -10,6 +10,8 @@
 #include "infrastructure/db/repositories/ModuleRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/OperationRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/OrderRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/WorkflowRepositorySqlite.hpp"
 #include "infrastructure/hw/stm32/UartStm32Link.hpp"
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "application/services/StartupService.hpp"
@@ -17,6 +19,7 @@
 #include "application/services/ReplaceReelService.hpp"
 #include "application/services/RecoveryService.hpp"
 #include "application/services/Stm32PollingService.hpp"
+#include "application/services/OrderImportService.hpp"
 #include "application/state/AppStateMachine.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 
@@ -47,6 +50,8 @@ private:
     std::unique_ptr<smartcart::infrastructure::db::ModuleRepositorySqlite>    moduleRepo_;
     std::unique_ptr<smartcart::infrastructure::db::ReelRepositorySqlite>      reelRepo_;
     std::unique_ptr<smartcart::infrastructure::db::OperationRepositorySqlite> opRepo_;
+    std::unique_ptr<smartcart::infrastructure::db::OrderRepositorySqlite>     orderRepo_;
+    std::unique_ptr<smartcart::infrastructure::db::WorkflowRepositorySqlite>  workflowRepo_;
     std::unique_ptr<smartcart::infrastructure::logging::SqliteEventLogger>    eventLogger_;
 
     std::unique_ptr<smartcart::application::ports::IStm32Link>                stm32Link_;
@@ -56,6 +61,7 @@ private:
     std::unique_ptr<smartcart::application::services::ReplaceReelService>     replaceReelSvc_;
     std::unique_ptr<smartcart::application::services::RecoveryService>        recoverySvc_;
     std::unique_ptr<smartcart::application::services::Stm32PollingService>    pollingSvc_;
+    std::unique_ptr<smartcart::application::services::OrderImportService>     orderImportSvc_;
 
     std::unique_ptr<smartcart::application::AppStateMachine>                  stateMachine_;
 

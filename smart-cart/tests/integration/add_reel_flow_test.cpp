@@ -3,9 +3,12 @@
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/OperationRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/OrderRepositorySqlite.hpp"
+#include "infrastructure/db/repositories/WorkflowRepositorySqlite.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/AddReelService.hpp"
 #include "application/services/Stm32PollingService.hpp"
+#include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Operation.hpp"
 
 #include <gtest/gtest.h>
@@ -23,6 +26,8 @@ protected:
         conn_     = std::make_unique<infrastructure::db::SqliteConnection>(":memory:");
         reelRepo_ = std::make_unique<infrastructure::db::ReelRepositorySqlite>(*conn_);
         opRepo_   = std::make_unique<infrastructure::db::OperationRepositorySqlite>(*conn_);
+        orderRepo_ = std::make_unique<infrastructure::db::OrderRepositorySqlite>(*conn_);
+        workflowRepo_ = std::make_unique<infrastructure::db::WorkflowRepositorySqlite>(*conn_);
 
         // FK: slot_states.module_id → modules.id
         conn_->execute(
@@ -37,6 +42,8 @@ protected:
     std::unique_ptr<infrastructure::db::SqliteConnection>          conn_;
     std::unique_ptr<infrastructure::db::ReelRepositorySqlite>      reelRepo_;
     std::unique_ptr<infrastructure::db::OperationRepositorySqlite> opRepo_;
+    std::unique_ptr<infrastructure::db::OrderRepositorySqlite>     orderRepo_;
+    std::unique_ptr<infrastructure::db::WorkflowRepositorySqlite>  workflowRepo_;
 };
 
 TEST_F(AddReelFlowTest, SuccessfulAdd_CompletesOperation) {
@@ -148,9 +155,29 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     cfg.trackedChannels = {1, 3};
     cfg.ignoredChannels = {11};
 
-    Stm32PollingService svc(link, *reelRepo_, *opRepo_, logger, cfg);
-    const auto opId = svc.recordBarcodeScan("REEL-PA1");
-    ASSERT_TRUE(opId.has_value());
+    domain::OrderInfo order;
+    order.externalOrderId = "ORDER-PA1";
+    order.title = "PA1 order";
+    const int orderId = orderRepo_->addOrder(order);
+
+    domain::OrderItem item;
+    item.orderId = orderId;
+    item.barcode = "REEL-PA1";
+    item.materialType = "reel";
+    item.targetSlot = 2;
+    orderRepo_->addItem(item);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            logger,
+                            cfg);
+    const auto scan = svc.recordBarcodeScan("REEL-PA1");
+    ASSERT_TRUE(scan.success);
+    EXPECT_EQ(scan.targetSlot, 2);
 
     mask0.store(0x02); // channel 1 -> domain slot 2
     svc.pollOnce();
@@ -159,8 +186,82 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     ASSERT_TRUE(reel.has_value());
     EXPECT_EQ(reel->barcode, "REEL-PA1");
 
-    const auto op = opRepo_->getById(*opId);
+    const auto op = opRepo_->getById(scan.operationId);
     ASSERT_TRUE(op.has_value());
     EXPECT_EQ(op->slotIndex, 2);
     EXPECT_EQ(op->status, domain::OperationStatus::Completed);
+
+    const auto placed = orderRepo_->findItemByBarcode(orderId, "REEL-PA1");
+    ASSERT_TRUE(placed.has_value());
+    EXPECT_EQ(placed->status, domain::OrderItemStatus::Placed);
+}
+
+TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
+    std::atomic<uint8_t> mask0{0x00};
+
+    MockStm32Link link([&mask0](const Frame& cmd) -> std::optional<Frame> {
+        Frame resp;
+        resp.seq   = cmd.seq;
+        resp.cmdId = cmd.cmdId;
+
+        if (cmd.cmdId == CommandId::GetSwitchSnapshot ||
+            static_cast<uint8_t>(cmd.cmdId) == 0x04)
+        {
+            resp.type    = FrameType::Resp;
+            resp.payload = {mask0.load(), 0x00, 0x00};
+        } else {
+            resp.type = FrameType::Ack;
+        }
+        return resp;
+    });
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.trackedChannels = {1, 3};
+    cfg.ignoredChannels = {11};
+
+    domain::OrderInfo order;
+    order.externalOrderId = "ORDER-WRONG-SLOT";
+    order.title = "Wrong slot order";
+    const int orderId = orderRepo_->addOrder(order);
+
+    domain::OrderItem item;
+    item.orderId = orderId;
+    item.barcode = "REEL-WRONG";
+    item.materialType = "reel";
+    item.targetSlot = 2;
+    orderRepo_->addItem(item);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            logger,
+                            cfg);
+    const auto scan = svc.recordBarcodeScan("REEL-WRONG");
+    ASSERT_TRUE(scan.success);
+    EXPECT_EQ(scan.targetSlot, 2);
+
+    mask0.store(0x08); // channel 3 -> domain slot 4
+    svc.pollOnce();
+
+    EXPECT_FALSE(reelRepo_->getBySlot(1, 4).has_value());
+
+    const auto op = opRepo_->getById(scan.operationId);
+    ASSERT_TRUE(op.has_value());
+    EXPECT_EQ(op->slotIndex, 4);
+    EXPECT_EQ(op->status, domain::OperationStatus::Failed);
+
+    const auto placed = orderRepo_->findItemByBarcode(orderId, "REEL-WRONG");
+    ASSERT_TRUE(placed.has_value());
+    ASSERT_TRUE(placed->currentSlot.has_value());
+    EXPECT_EQ(*placed->currentSlot, 4);
+    EXPECT_EQ(placed->status, domain::OrderItemStatus::WrongSlot);
 }

@@ -1,5 +1,6 @@
 #include "application/services/Stm32PollingService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
+#include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/entities/Slot.hpp"
 
@@ -54,11 +55,15 @@ Stm32PollingService::Stm32PollingService(
     ports::IStm32Link&      link,
     ports::IReelRepository& reelRepo,
     ports::IOperationRepository& opRepo,
+    ports::IOrderRepository& orderRepo,
+    ports::IWorkflowRepository& workflowRepo,
     ports::IEventLogger&    eventLogger,
     Stm32PollingConfig      config)
     : link_(link)
     , reelRepo_(reelRepo)
     , opRepo_(opRepo)
+    , orderRepo_(orderRepo)
+    , workflowRepo_(workflowRepo)
     , eventLogger_(eventLogger)
     , config_(std::move(config))
 {}
@@ -115,20 +120,49 @@ void Stm32PollingService::pollOnce() {
     }
 }
 
-std::optional<int> Stm32PollingService::recordBarcodeScan(
-    const std::string& barcode)
-{
+BarcodeScanResult Stm32PollingService::recordBarcodeScan(
+    const std::string& barcode) {
     const std::string normalized = trimCopy(barcode);
     if (normalized.empty()) {
-        logSafe("WARN", "BarcodeIgnored", "Пустой штрихкод проигнорирован");
-        return std::nullopt;
+        return rejectBarcode(domain::ErrorCode::InvalidBarcode,
+                             "Пустой штрихкод проигнорирован",
+                             "BarcodeIgnored");
+    }
+
+    const auto workflow = workflowRepo_.get();
+    if (!workflow.currentOrderId.has_value()) {
+        return rejectBarcode(domain::ErrorCode::Unknown,
+                             "Нет активного заказа",
+                             "BarcodeRejected");
+    }
+    if (workflow.state != domain::CartWorkflowState::OrderLoaded &&
+        workflow.state != domain::CartWorkflowState::PickingMaterials)
+    {
+        return rejectBarcode(domain::ErrorCode::Unknown,
+                             "Заказ сейчас не находится на этапе подбора",
+                             "BarcodeRejected");
+    }
+
+    const auto item =
+        orderRepo_.findItemByBarcode(*workflow.currentOrderId, normalized);
+    if (!item.has_value()) {
+        return rejectBarcode(domain::ErrorCode::ReelNotFound,
+                             "Материал не найден в текущем заказе: " + normalized,
+                             "BarcodeRejected");
+    }
+    if (item->status == domain::OrderItemStatus::Placed ||
+        item->status == domain::OrderItemStatus::Issued)
+    {
+        return rejectBarcode(domain::ErrorCode::SlotOccupied,
+                             "Материал уже обработан: " + normalized,
+                             "BarcodeAlreadyPlaced");
     }
 
     domain::Operation op;
     op.type = domain::OperationType::AddReel;
     op.status = domain::OperationStatus::InProgress;
     op.moduleId = config_.moduleId;
-    op.slotIndex = 0;
+    op.slotIndex = item->targetSlot;
     op.barcode = normalized;
 
     try {
@@ -139,14 +173,34 @@ std::optional<int> Stm32PollingService::recordBarcodeScan(
                 opRepo_.updateStatus(pendingScan_->operationId,
                                      domain::OperationStatus::Cancelled);
             }
-            pendingScan_ = PendingScan{normalized, opId};
+            pendingScan_ = PendingScan{
+                normalized,
+                opId,
+                item->id,
+                item->targetSlot
+            };
         }
 
-        logSafe("INFO", "BarcodeScanned", normalized);
-        return opId;
+        workflowRepo_.setState(domain::CartWorkflowState::PickingMaterials);
+
+        std::ostringstream accepted;
+        accepted << "barcode=" << normalized
+                 << " target_slot=" << item->targetSlot
+                 << " operation_id=" << opId;
+        logSafe("INFO", "BarcodeAccepted", accepted.str());
+        logSafe("INFO", "TargetSlotSuggested", accepted.str());
+
+        return BarcodeScanResult{
+            true,
+            opId,
+            item->targetSlot,
+            domain::ErrorCode::None,
+            "Скан принят"
+        };
     } catch (const std::exception& ex) {
-        logSafe("ERROR", "BarcodeScanSaveFailed", ex.what());
-        return std::nullopt;
+        return rejectBarcode(domain::ErrorCode::PersistenceError,
+                             ex.what(),
+                             "BarcodeScanSaveFailed");
     }
 }
 
@@ -231,6 +285,28 @@ void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {
     }
 
     try {
+        if (slotIndex != pending->targetSlot) {
+            orderRepo_.updateItemPlacement(
+                pending->orderItemId,
+                slotIndex,
+                domain::OrderItemStatus::WrongSlot);
+            reelRepo_.setSlotState(config_.moduleId,
+                                   slotIndex,
+                                   domain::SlotState::Error);
+            opRepo_.updateSlot(pending->operationId, config_.moduleId, slotIndex);
+            opRepo_.updateStatus(pending->operationId,
+                                 domain::OperationStatus::Failed);
+
+            std::ostringstream msg;
+            msg << "channel=" << channel
+                << " expected_slot=" << pending->targetSlot
+                << " actual_slot=" << slotIndex
+                << " barcode=" << pending->barcode
+                << " operation_id=" << pending->operationId;
+            logSafe("ERROR", "WrongSlotInteraction", msg.str());
+            return;
+        }
+
         if (reelRepo_.hasActiveRecord(config_.moduleId, slotIndex)) {
             reelRepo_.markRemovedBySlot(config_.moduleId, slotIndex);
         }
@@ -239,6 +315,9 @@ void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {
         reelRepo_.setSlotState(config_.moduleId,
                                slotIndex,
                                domain::SlotState::Occupied);
+        orderRepo_.updateItemPlacement(pending->orderItemId,
+                                       slotIndex,
+                                       domain::OrderItemStatus::Placed);
         opRepo_.updateSlot(pending->operationId, config_.moduleId, slotIndex);
         opRepo_.updateStatus(pending->operationId,
                              domain::OperationStatus::Completed);
@@ -249,6 +328,7 @@ void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {
             << " barcode=" << pending->barcode
             << " operation_id=" << pending->operationId;
         logSafe("INFO", "ReelPlacedBySwitch", msg.str());
+        logSafe("INFO", "MaterialPlaced", msg.str());
     } catch (const std::exception& ex) {
         opRepo_.updateStatus(pending->operationId,
                              domain::OperationStatus::Failed);
@@ -279,6 +359,15 @@ Stm32PollingService::consumePendingScan() {
     auto pending = pendingScan_;
     pendingScan_.reset();
     return pending;
+}
+
+BarcodeScanResult Stm32PollingService::rejectBarcode(
+    domain::ErrorCode code,
+    std::string message,
+    std::string_view logCode) const
+{
+    logSafe("ERROR", logCode, message);
+    return BarcodeScanResult{false, 0, 0, code, std::move(message)};
 }
 
 bool Stm32PollingService::isIgnoredChannel(int channel) const {

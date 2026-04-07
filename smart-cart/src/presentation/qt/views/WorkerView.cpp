@@ -6,8 +6,11 @@
 #include "WorkerView.hpp"
 
 #include <QFont>
+#include <QFileDialog>
 #include <QFrame>
 #include <QSizePolicy>
+#include <QTextEdit>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -56,6 +59,39 @@ void WorkerView::setupUi() {
     statusLayout->addWidget(errorLabel_);
     rootLayout->addWidget(statusFrame);
 
+    // ── Заказ и чек-лист ──────────────────────────────────────────────────────
+    auto* orderFrame = new QFrame(this);
+    orderFrame->setFrameShape(QFrame::StyledPanel);
+    orderFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
+
+    auto* orderLayout = new QVBoxLayout(orderFrame);
+    orderLayout->setContentsMargins(12, 8, 12, 8);
+    orderLayout->setSpacing(6);
+
+    workflowLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"), orderFrame);
+    workflowLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
+    workflowLabel_->setStyleSheet("color: #A6E3A1;");
+
+    orderLabel_ = new QLabel(QString::fromUtf8("Заказ не загружен"), orderFrame);
+    orderLabel_->setFont(QFont("Segoe UI", 10));
+    orderLabel_->setStyleSheet("color: #CDD6F4;");
+    orderLabel_->setWordWrap(true);
+
+    checklistText_ = new QTextEdit(orderFrame);
+    checklistText_->setReadOnly(true);
+    checklistText_->setFixedHeight(92);
+    checklistText_->setFont(QFont("Segoe UI", 10));
+    checklistText_->setStyleSheet(
+        "QTextEdit { background: #313244; color: #CDD6F4; "
+        "border: 1px solid #585B70; border-radius: 4px; padding: 4px; }"
+    );
+    checklistText_->setPlainText(QString::fromUtf8("Загрузите JSON заказа"));
+
+    orderLayout->addWidget(workflowLabel_);
+    orderLayout->addWidget(orderLabel_);
+    orderLayout->addWidget(checklistText_);
+    rootLayout->addWidget(orderFrame);
+
     // ── Сетка слотов ───────────────────────────────────────────────────────────
     slotGrid_ = new SlotGridWidget(this);
     rootLayout->addWidget(slotGrid_, /*stretch=*/1);
@@ -84,6 +120,15 @@ void WorkerView::setupUi() {
         "QLineEdit:focus { border-color: #89B4FA; }"
     );
 
+    importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"), inputFrame);
+    importButton_->setFont(QFont("Segoe UI", 10));
+    importButton_->setStyleSheet(
+        "QPushButton { background: #A6E3A1; color: #1E1E2E; "
+        "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
+        "QPushButton:hover { background: #94E2D5; }"
+        "QPushButton:pressed { background: #40A02B; }"
+    );
+
     scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
     scanButton_->setFont(QFont("Segoe UI", 10));
     scanButton_->setStyleSheet(
@@ -105,6 +150,7 @@ void WorkerView::setupUi() {
 
     inputLayout->addWidget(barcodeLabel);
     inputLayout->addWidget(barcodeEdit_, /*stretch=*/1);
+    inputLayout->addWidget(importButton_);
     inputLayout->addWidget(scanButton_);
     inputLayout->addWidget(cancelButton_);
     rootLayout->addWidget(inputFrame);
@@ -121,9 +167,13 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onSlotsUpdated);
     connect(&viewModel_, &WorkerViewModel::operationStateChanged,
             this, &WorkerView::onOperationStateChanged);
+    connect(&viewModel_, &WorkerViewModel::workflowUpdated,
+            this, &WorkerView::onWorkflowUpdated);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
             this, &WorkerView::onErrorOccurred);
 
+    connect(importButton_, &QPushButton::clicked,
+            this, &WorkerView::onImportOrderClicked);
     connect(scanButton_,  &QPushButton::clicked,
             this, &WorkerView::onBarcodeSubmitted);
     connect(barcodeEdit_, &QLineEdit::returnPressed,
@@ -149,6 +199,11 @@ void WorkerView::connectSignals() {
                     errorLabel_->clear();
                 }
             });
+
+    auto* reloadTimer = new QTimer(this);
+    connect(reloadTimer, &QTimer::timeout,
+            &viewModel_, &WorkerViewModel::reload);
+    reloadTimer->start(1000);
 }
 
 void WorkerView::onSlotsUpdated(QVector<SlotCellData> items) {
@@ -161,9 +216,30 @@ void WorkerView::onOperationStateChanged(const QString& state,
     messageLabel_->setText(message);
 }
 
+void WorkerView::onWorkflowUpdated(const QString& workflow,
+                                   const QString& order,
+                                   const QString& checklist) {
+    workflowLabel_->setText(workflow);
+    orderLabel_->setText(order);
+    checklistText_->setPlainText(checklist);
+}
+
 void WorkerView::onErrorOccurred(const QString& message) {
     errorLabel_->setText("⚠ " + message);
     errorLabel_->setVisible(true);
+}
+
+void WorkerView::onImportOrderClicked() {
+    const QString path = QFileDialog::getOpenFileName(
+        this,
+        QString::fromUtf8("Выберите JSON заказа"),
+        QString(),
+        QString::fromUtf8("JSON (*.json);;Все файлы (*)")
+    );
+    if (path.isEmpty()) {
+        return;
+    }
+    viewModel_.importOrderFromFile(path);
 }
 
 void WorkerView::onBarcodeSubmitted() {

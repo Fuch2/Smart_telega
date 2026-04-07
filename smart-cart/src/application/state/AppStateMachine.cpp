@@ -85,14 +85,15 @@ void AppStateMachine::scanBarcode(const QString& barcode) {
         return;
     }
 
-    const auto opId = pollingSvc_.recordBarcodeScan(trimmedBarcode.toStdString());
-    if (!opId.has_value()) {
-        emit errorOccurred(ErrorCode::PersistenceError,
-                           "Не удалось записать сканирование в БД");
+    const auto result = pollingSvc_.recordBarcodeScan(trimmedBarcode.toStdString());
+    if (!result) {
+        emit errorOccurred(result.error,
+                           QString::fromStdString(result.message));
         return;
     }
 
-    emit operationStarted(*opId, OperationType::AddReel);
+    emit slotHighlighted(result.targetSlot, QColor(0, 255, 0));
+    emit operationStarted(result.operationId, OperationType::AddReel);
 }
 
 void AppStateMachine::cancelCurrentOperation() {

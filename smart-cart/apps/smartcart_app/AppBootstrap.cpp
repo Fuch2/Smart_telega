@@ -29,6 +29,8 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
     reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
     opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
+    orderRepo_  = std::make_unique<db::OrderRepositorySqlite>(*conn_);
+    workflowRepo_ = std::make_unique<db::WorkflowRepositorySqlite>(*conn_);
     eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
 
     // ── 3. LED map ────────────────────────────────────────────────────────────
@@ -115,7 +117,23 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     pollingCfg.ignoredChannels = {11};
 
     pollingSvc_ = std::make_unique<Stm32PollingService>(
-        *stm32Link_, *reelRepo_, *opRepo_, *eventLogger_, pollingCfg
+        *stm32Link_,
+        *reelRepo_,
+        *opRepo_,
+        *orderRepo_,
+        *workflowRepo_,
+        *eventLogger_,
+        pollingCfg
+    );
+
+    OrderImportConfig orderImportCfg;
+    orderImportCfg.moduleId = 1;
+    orderImportSvc_ = std::make_unique<OrderImportService>(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        *eventLogger_,
+        orderImportCfg
     );
 
     // ── 6. State machine ──────────────────────────────────────────────────────
@@ -131,7 +149,12 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     // ── 7. ViewModels ─────────────────────────────────────────────────────────
     adminVm_  = std::make_unique<AdminViewModel>(*moduleRepo_);
     workerVm_ = std::make_unique<WorkerViewModel>(
-        *reelRepo_, *opRepo_, *stateMachine_
+        *reelRepo_,
+        *opRepo_,
+        *orderRepo_,
+        *workflowRepo_,
+        *orderImportSvc_,
+        *stateMachine_
     );
 }
 

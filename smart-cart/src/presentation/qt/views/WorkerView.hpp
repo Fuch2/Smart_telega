@@ -8,6 +8,7 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QTextEdit;
 
 class WorkerView : public QWidget {
     Q_OBJECT
@@ -20,7 +21,11 @@ private slots:
     void onSlotsUpdated(QVector<SlotCellData> items);
     void onOperationStateChanged(const QString& state,
                                  const QString& message);
+    void onWorkflowUpdated(const QString& workflow,
+                           const QString& order,
+                           const QString& checklist);
     void onErrorOccurred(const QString& message);
+    void onImportOrderClicked();
     void onBarcodeSubmitted();
     void onCancelClicked();
 
@@ -30,8 +35,12 @@ private:
     SlotGridWidget* slotGrid_     = nullptr;
     QLabel*         stateLabel_   = nullptr;
     QLabel*         messageLabel_ = nullptr;
+    QLabel*         workflowLabel_ = nullptr;
+    QLabel*         orderLabel_   = nullptr;
+    QTextEdit*      checklistText_ = nullptr;
     QLabel*         errorLabel_   = nullptr;
     QLineEdit*      barcodeEdit_  = nullptr;
+    QPushButton*    importButton_ = nullptr;
     QPushButton*    scanButton_   = nullptr;
     QPushButton*    cancelButton_ = nullptr;
 

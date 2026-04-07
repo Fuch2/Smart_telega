@@ -6,6 +6,7 @@
 //   - onStateChanged: все строки через QString::fromUtf8
 #include "WorkerViewModel.hpp"
 
+#include <QStringList>
 #include <unordered_map>
 
 using namespace smartcart::application;
@@ -14,23 +15,31 @@ using namespace smartcart::domain;
 WorkerViewModel::WorkerViewModel(
     ports::IReelRepository&      reelRepo,
     ports::IOperationRepository& opRepo,
+    ports::IOrderRepository&     orderRepo,
+    ports::IWorkflowRepository&  workflowRepo,
+    services::OrderImportService& orderImportSvc,
     AppStateMachine&             stateMachine,
     QObject*                     parent)
     : QObject(parent)
     , reelRepo_(reelRepo)
     , opRepo_(opRepo)
+    , orderRepo_(orderRepo)
+    , workflowRepo_(workflowRepo)
+    , orderImportSvc_(orderImportSvc)
     , stateMachine_(stateMachine)
 {
     connect(&stateMachine_, &AppStateMachine::stateChanged,
             this, &WorkerViewModel::onStateChanged);
     connect(&stateMachine_, &AppStateMachine::slotHighlighted,
             this, &WorkerViewModel::onSlotHighlighted);
+    connect(&stateMachine_, &AppStateMachine::operationStarted,
+            this, &WorkerViewModel::onOperationStarted);
     connect(&stateMachine_, &AppStateMachine::operationFinished,
             this, &WorkerViewModel::onOperationFinished);
     connect(&stateMachine_, &AppStateMachine::errorOccurred,
             this, &WorkerViewModel::onError);
 
-    rebuildSlots();
+    reload();
 }
 
 QString WorkerViewModel::stateLabel() const {
@@ -50,6 +59,7 @@ void WorkerViewModel::onBarcodeScanned(const QString& barcode) {
         return;
     }
     stateMachine_.scanBarcode(barcode.trimmed());
+    rebuildWorkflowSummary();
 }
 
 void WorkerViewModel::onSlotPhysicalChange(int slotIndex, bool occupied) {
@@ -64,7 +74,27 @@ void WorkerViewModel::cancelCurrentOperation() {
     stateMachine_.cancelCurrentOperation();
 }
 
-void WorkerViewModel::reload() { rebuildSlots(); }
+void WorkerViewModel::importOrderFromFile(const QString& path) {
+    if (path.trimmed().isEmpty()) {
+        return;
+    }
+
+    const auto result = orderImportSvc_.importFromFile(path.toStdString());
+    if (!result) {
+        emit errorOccurred(QString::fromStdString(result.message));
+        reload();
+        return;
+    }
+
+    emit operationStateChanged(QString::fromUtf8("Заказ загружен"),
+                               QString::fromStdString(result.message));
+    reload();
+}
+
+void WorkerViewModel::reload() {
+    rebuildSlots();
+    rebuildWorkflowSummary();
+}
 
 void WorkerViewModel::onStateChanged(AppState newState) {
     QString label, message;
@@ -101,6 +131,17 @@ void WorkerViewModel::onSlotHighlighted(int slotIndex, QColor color) {
     item->highlighted    = !isOff;
     item->color          = isOff ? QColor(128, 128, 128) : color;
     emit slotsUpdated(slots_);
+}
+
+void WorkerViewModel::onOperationStarted(int operationId, OperationType) {
+    QString message = QString::fromUtf8("Скан принят. Нажмите целевую ячейку");
+    const auto op = opRepo_.getById(operationId);
+    if (op.has_value() && op->slotIndex > 0) {
+        message = QString::fromUtf8("Скан принят. Положите в слот %1")
+                      .arg(op->slotIndex);
+    }
+    emit operationStateChanged(QString::fromUtf8("Подбор материалов"), message);
+    rebuildWorkflowSummary();
 }
 
 void WorkerViewModel::onOperationFinished(int, OperationStatus status) {
@@ -167,6 +208,42 @@ void WorkerViewModel::rebuildSlots() {
     emit slotsUpdated(slots_);
 }
 
+void WorkerViewModel::rebuildWorkflowSummary() {
+    const auto workflow = workflowRepo_.get();
+    QString orderText = QString::fromUtf8("Заказ не загружен");
+    QString checklistText = QString::fromUtf8("Загрузите JSON заказа");
+
+    if (workflow.currentOrderId.has_value()) {
+        const auto order = orderRepo_.getOrderById(*workflow.currentOrderId);
+        if (order.has_value()) {
+            orderText = QString::fromUtf8("%1 — %2, приоритет: %3")
+                            .arg(QString::fromStdString(order->externalOrderId),
+                                 QString::fromStdString(order->title),
+                                 QString::fromStdString(order->priority));
+
+            const auto items = orderRepo_.getItems(order->id);
+            QStringList lines;
+            for (const auto& item : items) {
+                QString line = QString::fromUtf8("%1 → слот %2 [%3]")
+                    .arg(QString::fromStdString(item.barcode))
+                    .arg(item.targetSlot)
+                    .arg(itemStatusLabel(item.status));
+                if (item.currentSlot.has_value()) {
+                    line += QString::fromUtf8(" факт: %1").arg(*item.currentSlot);
+                }
+                lines << line;
+            }
+            checklistText = lines.isEmpty()
+                ? QString::fromUtf8("В заказе нет позиций")
+                : lines.join('\n');
+        }
+    }
+
+    emit workflowUpdated(workflowLabel(workflow.state),
+                         orderText,
+                         checklistText);
+}
+
 QString WorkerViewModel::errorMessage(ErrorCode code) {
     switch (code) {
         case ErrorCode::None:                    return QString::fromUtf8("Нет ошибки");
@@ -186,4 +263,32 @@ QString WorkerViewModel::errorMessage(ErrorCode code) {
         case ErrorCode::Unknown:                 return QString::fromUtf8("Неизвестная ошибка");
     }
     return QString::fromUtf8("Неизвестная ошибка");
+}
+
+QString WorkerViewModel::workflowLabel(CartWorkflowState state) {
+    switch (state) {
+        case CartWorkflowState::Free:               return QString::fromUtf8("Тележка свободна");
+        case CartWorkflowState::OrderLoaded:        return QString::fromUtf8("Заказ загружен");
+        case CartWorkflowState::PickingMaterials:   return QString::fromUtf8("Подбор материалов");
+        case CartWorkflowState::ReadyForFeederPrep: return QString::fromUtf8("Готова к подготовке питателей");
+        case CartWorkflowState::FeederPrep:         return QString::fromUtf8("Подготовка питателей");
+        case CartWorkflowState::ReadyForLine:       return QString::fromUtf8("Готова к передаче на линию");
+        case CartWorkflowState::IssuingToLine:      return QString::fromUtf8("Выдача на линию");
+        case CartWorkflowState::OrderCompleted:     return QString::fromUtf8("Заказ завершён");
+        case CartWorkflowState::LeftoversDetected:  return QString::fromUtf8("Обнаружены остатки");
+        case CartWorkflowState::ReturningLeftovers: return QString::fromUtf8("Возврат остатков");
+    }
+    return QString::fromUtf8("Неизвестно");
+}
+
+QString WorkerViewModel::itemStatusLabel(OrderItemStatus status) {
+    switch (status) {
+        case OrderItemStatus::Pending:   return QString::fromUtf8("ожидает");
+        case OrderItemStatus::Placed:    return QString::fromUtf8("размещён");
+        case OrderItemStatus::Issued:    return QString::fromUtf8("выдан");
+        case OrderItemStatus::Returned:  return QString::fromUtf8("возвращён");
+        case OrderItemStatus::Missing:   return QString::fromUtf8("не найден");
+        case OrderItemStatus::WrongSlot: return QString::fromUtf8("неверный слот");
+    }
+    return QString::fromUtf8("неизвестно");
 }

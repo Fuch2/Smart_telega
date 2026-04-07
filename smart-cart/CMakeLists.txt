@@ -28,6 +28,8 @@ add_library(smartcart_infra OBJECT
     src/infrastructure/db/repositories/ModuleRepositorySqlite.cpp
     src/infrastructure/db/repositories/ReelRepositorySqlite.cpp
     src/infrastructure/db/repositories/OperationRepositorySqlite.cpp
+    src/infrastructure/db/repositories/OrderRepositorySqlite.cpp
+    src/infrastructure/db/repositories/WorkflowRepositorySqlite.cpp
 
     # ── infrastructure: hw/stm32 ──────────────────────────────────────────────
     src/infrastructure/hw/stm32/FrameCodec.cpp
@@ -54,6 +56,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/ReplaceReelService.cpp
     src/application/services/RecoveryService.cpp
     src/application/services/Stm32PollingService.cpp
+    src/application/services/OrderImportService.cpp
 )
 
 target_include_directories(smartcart_infra PUBLIC
@@ -149,12 +152,30 @@ target_link_libraries(frame_codec_tests PRIVATE
 smartcart_set_warnings(frame_codec_tests)
 smartcart_enable_sanitizers(frame_codec_tests)
 
+# ── Unit tests: Domain (без БД, без Qt) ───────────────────────────────────────
+add_executable(domain_tests
+    tests/unit/domain/cart_workflow_test.cpp
+)
+
+target_include_directories(domain_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+target_link_libraries(domain_tests PRIVATE
+    GTest::gtest_main
+)
+
+smartcart_set_warnings(domain_tests)
+smartcart_enable_sanitizers(domain_tests)
+
 # ── Integration tests (без Qt — только smartcart_infra) ───────────────────────
 add_executable(integration_tests
     tests/integration/startup_flow_test.cpp
     tests/integration/add_reel_flow_test.cpp
     tests/integration/replace_reel_flow_test.cpp
     tests/integration/uart_recovery_test.cpp
+    tests/integration/order_workflow_repository_test.cpp
+    tests/integration/order_import_service_test.cpp
 )
 
 target_include_directories(integration_tests PRIVATE
@@ -177,6 +198,7 @@ smartcart_enable_sanitizers(integration_tests)
 
 include(GoogleTest)
 gtest_discover_tests(frame_codec_tests)
+gtest_discover_tests(domain_tests)
 gtest_discover_tests(integration_tests)
 
 # ══════════════════════════════════════════════════════════════════════════════

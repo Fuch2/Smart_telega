@@ -1,0 +1,18 @@
+{
+  "order_id": "DEMO-PA1-PA2-001",
+  "title": "Тестовый заказ PA1/PA2",
+  "priority": "normal",
+  "duration_minutes": 120,
+  "items": [
+    {
+      "barcode": "R-150 10%",
+      "material_type": "reel",
+      "target_slot": 2
+    },
+    {
+      "barcode": "R-250 20%",
+      "material_type": "reel",
+      "target_slot": 4
+    }
+  ]
+}
