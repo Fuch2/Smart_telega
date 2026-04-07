@@ -8,5 +8,5 @@ WorkerPresenter::WorkerPresenter(WorkerViewModel* vm, QObject* parent)
 {}
 
 void WorkerPresenter::injectBarcode(const QString& barcode) {
-    if (vm_) vm_->onBarcodeScanned(barcode);
+    if (vm_) vm_->submitBarcode(barcode);
 }
