@@ -11,8 +11,13 @@ SOF1 = 0x55
 VERSION = 0x01
 FRAME_TYPE_CMD  = 0x01
 FRAME_TYPE_RESP = 0x02
+FRAME_TYPE_EVT  = 0x05
 
-CMD_GET_SWITCH_STATE = 0x04
+CMD_GET_SWITCH_SNAPSHOT = 0x10
+CMD_GET_SWITCH_STATE_LEGACY = 0x04
+EVT_READY = 0xE0
+EVT_SWITCH_CHANGED = 0xE2
+MAX_PAYLOAD = 128
 
 
 def crc16_ccitt_false(data: bytes) -> int:
@@ -41,69 +46,116 @@ def build_frame(cmd_id: int, seq: int = 0, payload: bytes = b'') -> bytes:
     return bytes([SOF0, SOF1]) + body + struct.pack('<H', crc)
 
 
-def read_frame(ser, timeout: float = 1.0) -> bytes:
-    """Читает до тех пор пока данные перестают поступать или вышел таймаут."""
+def read_exact(ser, size: int, timeout: float) -> bytes:
     deadline = time.time() + timeout
     buf = b''
-    while time.time() < deadline:
-        chunk = ser.read(ser.in_waiting or 1)
+    while len(buf) < size and time.time() < deadline:
+        chunk = ser.read(size - len(buf))
         if chunk:
             buf += chunk
-            if len(buf) >= 10:
-                break
         else:
             time.sleep(0.005)
     return buf
 
 
-def parse_response(data: bytes):
-    idx = -1
-    for i in range(len(data) - 1):
-        if data[i] == SOF0 and data[i+1] == SOF1:
-            idx = i + 2
-            break
-    if idx < 0:
-        print("SOF не найден")
-        return None
+def read_frame(ser, timeout: float = 1.0):
+    """Читает один полный protocol frame, пропуская мусор до SOF."""
+    deadline = time.time() + timeout
 
-    if len(data) - idx < 8:
-        print("Фрейм слишком короткий")
-        return None
+    while time.time() < deadline:
+        b = ser.read(1)
+        if not b:
+            continue
+        if b[0] != SOF0:
+            continue
 
-    ver, ftype, seq, cmd, plen = struct.unpack_from('<BBBBH', data, idx)
-    payload_start = idx + 6
-    payload_end   = payload_start + plen
-    crc_end       = payload_end + 2
+        b = ser.read(1)
+        if not b:
+            return None
+        if b[0] != SOF1:
+            continue
 
-    if len(data) < crc_end:
-        print("Данных не хватает для полного фрейма")
-        return None
+        header = read_exact(ser, 6, max(0.0, deadline - time.time()))
+        if len(header) != 6:
+            print("Фрейм слишком короткий")
+            return None
 
-    body     = data[idx : payload_end]
-    rx_crc   = struct.unpack_from('<H', data, payload_end)[0]
-    calc_crc = crc16_ccitt_false(body)
+        ver, ftype, seq, cmd, plen = struct.unpack('<BBBBH', header)
+        if plen > MAX_PAYLOAD:
+            print(f"Некорректная длина payload: {plen}")
+            return None
 
-    if rx_crc != calc_crc:
-        print(f"CRC ошибка: rx=0x{rx_crc:04X} calc=0x{calc_crc:04X}")
-        return None
+        tail = read_exact(ser, plen + 2, max(0.0, deadline - time.time()))
+        if len(tail) != plen + 2:
+            print("Данных не хватает для полного фрейма")
+            return None
 
-    payload = data[payload_start:payload_end]
-    return {'ver': ver, 'type': ftype, 'seq': seq, 'cmd': cmd, 'payload': payload}
+        payload = tail[:plen]
+        rx_crc = struct.unpack_from('<H', tail, plen)[0]
+        calc_crc = crc16_ccitt_false(header + payload)
+        if rx_crc != calc_crc:
+            print(f"CRC ошибка: rx=0x{rx_crc:04X} calc=0x{calc_crc:04X}")
+            return None
+
+        return {'ver': ver, 'type': ftype, 'seq': seq, 'cmd': cmd, 'payload': payload}
+
+    print("SOF не найден")
+    return None
 
 
-def get_switch_state(ser, prev_bits=[None]):
-    frame = build_frame(CMD_GET_SWITCH_STATE, seq=1)
+def print_event(frame):
+    if frame['cmd'] == EVT_READY:
+        print(f"[{time.strftime('%H:%M:%S')}] EVT_READY")
+        return
+
+    if frame['cmd'] == EVT_SWITCH_CHANGED and len(frame['payload']) >= 2:
+        channel = frame['payload'][0]
+        state = bool(frame['payload'][1])
+        print(f"[{time.strftime('%H:%M:%S')}] EVT_SWITCH_CHANGED: channel={channel} occupied={state}")
+        return
+
+    print(f"[{time.strftime('%H:%M:%S')}] EVT cmd=0x{frame['cmd']:02X} payload={frame['payload'].hex()}")
+
+
+def wait_response(ser, cmd_id: int, seq: int, timeout: float = 1.0):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        frame = read_frame(ser, max(0.0, deadline - time.time()))
+        if frame is None:
+            continue
+
+        if frame['type'] == FRAME_TYPE_EVT:
+            print_event(frame)
+            continue
+
+        if frame['type'] == FRAME_TYPE_RESP and frame['seq'] == seq and frame['cmd'] == cmd_id:
+            return frame
+
+    return None
+
+
+def get_switch_state(ser, prev_bits=[None], seq_box=[0]):
+    seq_box[0] = (seq_box[0] + 1) & 0xFF
+    seq = seq_box[0]
+
+    frame = build_frame(CMD_GET_SWITCH_SNAPSHOT, seq=seq)
     ser.write(frame)
-    resp = read_frame(ser)
+    resp = wait_response(ser, CMD_GET_SWITCH_SNAPSHOT, seq, timeout=0.5)
 
-    parsed = parse_response(resp)
-    if parsed is None:
+    if resp is None or len(resp['payload']) < 3:
+        # Совместимость со старой прошивкой, где snapshot был на 0x04.
+        seq_box[0] = (seq_box[0] + 1) & 0xFF
+        seq = seq_box[0]
+        ser.write(build_frame(CMD_GET_SWITCH_STATE_LEGACY, seq=seq))
+        resp = wait_response(ser, CMD_GET_SWITCH_STATE_LEGACY, seq, timeout=0.5)
+
+    if resp is None:
+        return None
+
+    if resp['type'] != FRAME_TYPE_RESP:
         return
 
-    if parsed['type'] != FRAME_TYPE_RESP:
-        return
-
-    p = parsed['payload']
+    p = resp['payload']
     if len(p) >= 3:
         bits = p[0] | (p[1] << 8) | (p[2] << 16)
         if bits != prev_bits[0]:  # печатаем только при изменении
@@ -113,9 +165,13 @@ def get_switch_state(ser, prev_bits=[None]):
 
 
 if __name__ == '__main__':
-    with serial.Serial(PORT, BAUDRATE, timeout=1) as ser:
-        time.sleep(0.2)
-        ser.reset_input_buffer()
-        while True:
-            get_switch_state(ser)
-            time.sleep(0.05)  # 20 Hz опросw
+    try:
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as ser:
+            time.sleep(0.2)
+            ser.reset_input_buffer()
+            while True:
+                get_switch_state(ser)
+                time.sleep(0.05)  # 20 Hz опрос
+    except serial.SerialException as ex:
+        print(f"UART ошибка: {ex}")
+        print("Проверь, что smart_cart_ui закрыт и порт /dev/ttyAMA0 не занят другим процессом.")

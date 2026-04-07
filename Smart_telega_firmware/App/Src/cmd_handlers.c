@@ -11,8 +11,8 @@
 #define FW_VERSION_PATCH   (0u)
 #define FW_VERSION_BUILD   (1u)
 
-/* READY state (integration with main loop will come later) */
-#define READY_STATE_NOT_READY (0u)
+/* После app_mainloop_init() прикладной слой готов принимать команды. */
+#define READY_STATE_READY (1u)
 
 static void result_set(cmd_handler_result_t *r, cmd_result_code_t code)
 {
@@ -77,7 +77,7 @@ static void handle_get_ready_state(const uint8_t *req_payload, uint16_t req_len,
 
     /* payload: ready_state(1 byte) */
     r->result = CMD_RESULT_OK;
-    r->resp_payload[0] = READY_STATE_NOT_READY;
+    r->resp_payload[0] = READY_STATE_READY;
     r->resp_payload_len = 1u;
 }
 

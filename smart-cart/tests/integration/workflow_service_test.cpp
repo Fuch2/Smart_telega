@@ -106,6 +106,7 @@ protected:
         cfg.moduleId = 1;
         cfg.slotCount = 24;
         cfg.pollMs = 10;
+        cfg.debounceMs = 0;
         cfg.trackedChannels = {1, 3};
         cfg.ignoredChannels = {11};
         return cfg;

@@ -121,6 +121,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     pollingCfg.moduleId  = 1;
     pollingCfg.slotCount = 24;
     pollingCfg.pollMs    = static_cast<int>(cfg_.stm32PollMs);
+    pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
     pollingCfg.trackedChannels = {1, 3};
     pollingCfg.ignoredChannels = {11};
 

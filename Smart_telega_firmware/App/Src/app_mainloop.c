@@ -21,6 +21,8 @@ typedef struct {
     uint32_t last_switch_scan_ms;
     uint32_t last_debounce_ms;
     uint32_t last_heartbeat_ms;
+    uint32_t last_debounced_bits;
+    bool has_switch_snapshot;
     protocol_stream_parser_t rx_parser;
 } app_mainloop_state_t;
 
@@ -32,22 +34,95 @@ static bool period_elapsed(uint32_t now, uint32_t last, uint32_t period_ms)
     return (uint32_t)(now - last) >= period_ms;
 }
 
-/*
- * MVP-minimal READY emission:
- * - фиксируем факт отправки EVT_READY в диагностике (tx_frames++)
- * - без локального fake CMD-dispatch
- *
- * В полной интеграции здесь должен быть encode+uart tx реального EVT_READY кадра.
- */
+static bool send_event_frame(uint8_t event_id,
+                             const uint8_t *payload,
+                             uint16_t payload_len)
+{
+    protocol_frame_t evt;
+    uint8_t tx_buf[PROTOCOL_MAX_FRAME_SIZE + 2u];
+    size_t encoded_len = 0u;
+    protocol_status_t st;
+
+    if (payload_len > PROTOCOL_MAX_PAYLOAD) {
+        return false;
+    }
+
+    memset(&evt, 0, sizeof(evt));
+    evt.protocol_version = PROTOCOL_VERSION_V1;
+    evt.frame_type = PROTOCOL_FRAME_TYPE_EVT;
+    evt.seq = 0u;
+    evt.command_id = event_id;
+    evt.payload_length = payload_len;
+
+    if ((payload != NULL) && (payload_len > 0u)) {
+        memcpy(evt.payload, payload, payload_len);
+    }
+
+    tx_buf[0] = PROTOCOL_SOF0;
+    tx_buf[1] = PROTOCOL_SOF1;
+    st = protocol_frame_encode(&evt, &tx_buf[2], sizeof(tx_buf) - 2u, &encoded_len);
+    if (st != PROTOCOL_STATUS_OK) {
+        return false;
+    }
+
+    hw_uart_if_tx(tx_buf, (uint16_t)(encoded_len + 2u));
+    diag_inc_tx_frames();
+    return true;
+}
+
 static void send_ready_event_once(void)
 {
     if (g_ml.ready_sent) {
         return;
     }
 
-    /* seq/cmd_id для READY в MVP host-check не критичны, важен факт TX */
-    diag_inc_tx_frames();
-    g_ml.ready_sent = true;
+    if (send_event_frame(PROTOCOL_EVT_READY, NULL, 0u)) {
+        g_ml.ready_sent = true;
+    }
+}
+
+static void send_switch_changed_events(uint32_t changed_bits,
+                                       uint32_t debounced_bits)
+{
+    uint8_t channel;
+
+    for (channel = 0u; channel < SWITCH_CHANNEL_COUNT; channel++) {
+        const uint32_t bit = (1u << channel);
+        uint8_t payload[2];
+
+        if ((changed_bits & bit) == 0u) {
+            continue;
+        }
+
+        payload[0] = channel;
+        payload[1] = ((debounced_bits & bit) != 0u) ? 1u : 0u;
+        (void)send_event_frame(PROTOCOL_EVT_SWITCH_CHANGED,
+                               payload,
+                               (uint16_t)sizeof(payload));
+    }
+}
+
+static void emit_switch_events_from_snapshot(void)
+{
+    switch_snapshot_t snap;
+    uint32_t changed_bits;
+
+    switch_debounce_get_snapshot(&snap);
+
+    if (!g_ml.has_switch_snapshot) {
+        g_ml.last_debounced_bits = snap.debounced_bits;
+        g_ml.has_switch_snapshot = true;
+        return;
+    }
+
+    changed_bits = (g_ml.last_debounced_bits ^ snap.debounced_bits) &
+                   SWITCH_CHANNEL_MASK24;
+    if (changed_bits == 0u) {
+        return;
+    }
+
+    g_ml.last_debounced_bits = snap.debounced_bits;
+    send_switch_changed_events(changed_bits, snap.debounced_bits);
 }
 
 static void finalize_longop_if_due(uint32_t now)
@@ -85,6 +160,8 @@ void app_mainloop_init(const app_mainloop_cfg_t *cfg)
     g_ml.last_switch_scan_ms = now;
     g_ml.last_debounce_ms = now;
     g_ml.last_heartbeat_ms = now;
+    g_ml.last_debounced_bits = 0u;
+    g_ml.has_switch_snapshot = false;
 
     switch_scan_init();
     switch_debounce_init();
@@ -156,6 +233,7 @@ void app_mainloop_step(void)
         g_ml.last_switch_scan_ms = now;
         uint32_t raw = switch_scan_get_raw_mask();
         switch_debounce_process(raw, now);
+        emit_switch_events_from_snapshot();
     }
 
     if (period_elapsed(now, g_ml.last_heartbeat_ms, g_ml.cfg.heartbeat_period_ms)) {

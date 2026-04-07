@@ -41,6 +41,11 @@ extern "C" {
 
 #define PROTOCOL_CMD_SET_POLL_HINT       (0x40u)
 #define PROTOCOL_CMD_NOP                 (0x7Fu)
+
+/* Unsolicited events from STM32 to host */
+#define PROTOCOL_EVT_READY               (0xE0u)
+#define PROTOCOL_EVT_FAULT               (0xE1u)
+#define PROTOCOL_EVT_SWITCH_CHANGED      (0xE2u)
 #define PROTOCOL_MAX_PAYLOAD           (128u)
 
 /* Header fields from protocol */

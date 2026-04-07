@@ -239,20 +239,84 @@ std::optional<std::vector<bool>> Stm32PollingService::requestSnapshot() {
 }
 
 void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
+    const auto now = std::chrono::steady_clock::now();
+
+    if (!lastSnapshot_.has_value()) {
+        lastSnapshot_ = snapshot;
+        rawSnapshot_ = snapshot;
+        rawChangedAt_.assign(snapshot.size(), now);
+
+        for (int channel = 0; channel < static_cast<int>(snapshot.size()); ++channel) {
+            if (!isTrackedChannel(channel) || isIgnoredChannel(channel)) {
+                continue;
+            }
+
+            const bool occupied = snapshot[channel];
+            const int slotIndex = channel + 1;
+            const bool saved = reelRepo_.setSlotState(
+                config_.moduleId,
+                slotIndex,
+                occupied ? domain::SlotState::Occupied : domain::SlotState::Free
+            );
+
+            std::ostringstream msg;
+            msg << "channel=" << channel
+                << " slot=" << slotIndex
+                << " occupied=" << (occupied ? "true" : "false");
+
+            logSafe(saved ? "INFO" : "ERROR",
+                    saved ? "SwitchChanged" : "SwitchStateSaveFailed",
+                    msg.str());
+
+            if (occupied) {
+                handleOccupiedSlot(channel, slotIndex);
+            } else {
+                handleFreedSlot(channel, slotIndex);
+            }
+        }
+        return;
+    }
+
+    if (lastSnapshot_->size() != snapshot.size()) {
+        lastSnapshot_ = snapshot;
+        rawSnapshot_ = snapshot;
+        rawChangedAt_.assign(snapshot.size(), now);
+        return;
+    }
+
+    if (!rawSnapshot_.has_value() || rawSnapshot_->size() != snapshot.size()) {
+        rawSnapshot_ = *lastSnapshot_;
+        rawChangedAt_.assign(snapshot.size(), now);
+    }
+    if (rawChangedAt_.size() != snapshot.size()) {
+        rawChangedAt_.assign(snapshot.size(), now);
+    }
+
     for (int channel = 0; channel < static_cast<int>(snapshot.size()); ++channel) {
         if (!isTrackedChannel(channel) || isIgnoredChannel(channel)) {
             continue;
         }
 
         const bool occupied = snapshot[channel];
-        const bool changed =
-            !lastSnapshot_.has_value() ||
-            channel >= static_cast<int>(lastSnapshot_->size()) ||
-            occupied != (*lastSnapshot_)[channel];
+        if (occupied != (*rawSnapshot_)[channel]) {
+            (*rawSnapshot_)[channel] = occupied;
+            rawChangedAt_[channel] = now;
+        }
 
+        const bool changed = channel >= static_cast<int>(lastSnapshot_->size()) ||
+            occupied != (*lastSnapshot_)[channel];
         if (!changed) {
             continue;
         }
+
+        const auto stableFor = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - rawChangedAt_[channel]
+        ).count();
+        if (config_.debounceMs > 0 && stableFor < config_.debounceMs) {
+            continue;
+        }
+
+        (*lastSnapshot_)[channel] = occupied;
 
         const int slotIndex = channel + 1;
         const bool saved = reelRepo_.setSlotState(
@@ -276,8 +340,6 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
             handleFreedSlot(channel, slotIndex);
         }
     }
-
-    lastSnapshot_ = snapshot;
 }
 
 void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {

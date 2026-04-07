@@ -181,6 +181,7 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     cfg.moduleId = 1;
     cfg.slotCount = 24;
     cfg.pollMs = 10;
+    cfg.debounceMs = 0;
     cfg.trackedChannels = {1, 3};
     cfg.ignoredChannels = {11};
 
@@ -259,6 +260,7 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     cfg.moduleId = 1;
     cfg.slotCount = 24;
     cfg.pollMs = 10;
+    cfg.debounceMs = 0;
     cfg.trackedChannels = {1, 3};
     cfg.ignoredChannels = {11};
 
@@ -303,4 +305,73 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     EXPECT_EQ(*placed->currentSlot, 4);
     EXPECT_EQ(placed->status, domain::OrderItemStatus::WrongSlot);
     EXPECT_EQ(countEvents(conn_->handle(), "WrongSlotInteraction"), 1);
+}
+
+TEST_F(AddReelFlowTest, PollingDebounce_IgnoresFastReleaseBounce) {
+    std::atomic<uint8_t> mask0{0x02}; // channel 1 -> domain slot 2
+
+    MockStm32Link link([&mask0](const Frame& cmd) -> std::optional<Frame> {
+        Frame resp;
+        resp.seq   = cmd.seq;
+        resp.cmdId = cmd.cmdId;
+
+        if (cmd.cmdId == CommandId::GetSwitchSnapshot ||
+            static_cast<uint8_t>(cmd.cmdId) == 0x04)
+        {
+            resp.type    = FrameType::Resp;
+            resp.payload = {mask0.load(), 0x00, 0x00};
+        } else {
+            resp.type = FrameType::Ack;
+        }
+        return resp;
+    });
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.debounceMs = 50;
+    cfg.trackedChannels = {1, 3};
+    cfg.ignoredChannels = {11};
+
+    reelRepo_->addRecord(1, 2, "REEL-STABLE");
+    reelRepo_->setSlotState(1, 2, domain::SlotState::Occupied);
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            workflowSvc,
+                            logger,
+                            cfg);
+
+    svc.pollOnce();
+    ASSERT_TRUE(reelRepo_->getBySlot(1, 2).has_value());
+
+    mask0.store(0x00);
+    svc.pollOnce();
+    mask0.store(0x02);
+    svc.pollOnce();
+
+    EXPECT_TRUE(reelRepo_->getBySlot(1, 2).has_value());
+    EXPECT_EQ(countEvents(conn_->handle(), "ReelRemovedBySwitch"), 0);
+
+    mask0.store(0x00);
+    svc.pollOnce();
+    std::this_thread::sleep_for(std::chrono::milliseconds(70));
+    svc.pollOnce();
+
+    EXPECT_FALSE(reelRepo_->getBySlot(1, 2).has_value());
+    EXPECT_EQ(countEvents(conn_->handle(), "ReelRemovedBySwitch"), 1);
 }

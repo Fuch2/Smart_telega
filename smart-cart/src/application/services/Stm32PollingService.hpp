@@ -10,6 +10,7 @@
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -23,6 +24,7 @@ struct Stm32PollingConfig {
     int moduleId  = 1;
     int slotCount = 24;
     int pollMs    = 500;
+    int debounceMs = 50;
 
     // На текущей плате реально подключены PA1/PA2.
     std::vector<int> trackedChannels {1, 3};
@@ -84,6 +86,8 @@ private:
     std::thread       thread_;
 
     std::optional<std::vector<bool>> lastSnapshot_;
+    std::optional<std::vector<bool>> rawSnapshot_;
+    std::vector<std::chrono::steady_clock::time_point> rawChangedAt_;
     std::mutex pendingMtx_;
     std::optional<PendingScan> pendingScan_;
 
