@@ -135,6 +135,12 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *eventLogger_,
         pollingCfg
     );
+    stm32Link_->setEventCallback([svc = pollingSvc_.get()](
+                                     const hw::stm32::Frame& frame) {
+        if (svc) {
+            svc->handleEventFrame(frame);
+        }
+    });
 
     OrderImportConfig orderImportCfg;
     orderImportCfg.moduleId = 1;
@@ -169,7 +175,14 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     );
 }
 
-AppBootstrap::~AppBootstrap() = default;
+AppBootstrap::~AppBootstrap() {
+    if (stm32Link_) {
+        stm32Link_->setEventCallback({});
+    }
+    if (pollingSvc_) {
+        pollingSvc_->stop();
+    }
+}
 
 void AppBootstrap::buildSlotToLedMap() {
     if (!cfg_.slotToLedMap.empty()) {

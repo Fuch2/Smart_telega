@@ -227,6 +227,73 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     EXPECT_EQ(placed->status, domain::OrderItemStatus::Placed);
 }
 
+TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperation) {
+    MockStm32Link link;
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.debounceMs = 50;
+    cfg.trackedChannels = {1, 3};
+    cfg.ignoredChannels = {11};
+
+    domain::OrderInfo order;
+    order.externalOrderId = "ORDER-EVT-PA1";
+    order.title = "Event PA1 order";
+    const int orderId = orderRepo_->addOrder(order);
+
+    domain::OrderItem item;
+    item.orderId = orderId;
+    item.barcode = "REEL-EVT-PA1";
+    item.materialType = "reel";
+    item.targetSlot = 2;
+    orderRepo_->addItem(item);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            workflowSvc,
+                            logger,
+                            cfg);
+    const auto scan = svc.recordBarcodeScan("REEL-EVT-PA1");
+    ASSERT_TRUE(scan.success);
+    EXPECT_EQ(scan.targetSlot, 2);
+
+    Frame evt;
+    evt.type = FrameType::Evt;
+    evt.cmdId = CommandId::EvtSwitchChanged;
+    evt.payload = {0x01, 0x01}; // channel 1 -> domain slot 2
+    svc.handleEventFrame(evt);
+
+    const auto reel = reelRepo_->getBySlot(1, 2);
+    ASSERT_TRUE(reel.has_value());
+    EXPECT_EQ(reel->barcode, "REEL-EVT-PA1");
+
+    const auto op = opRepo_->getById(scan.operationId);
+    ASSERT_TRUE(op.has_value());
+    EXPECT_EQ(op->slotIndex, 2);
+    EXPECT_EQ(op->status, domain::OperationStatus::Completed);
+
+    const auto placed = orderRepo_->findItemByBarcode(orderId, "REEL-EVT-PA1");
+    ASSERT_TRUE(placed.has_value());
+    EXPECT_EQ(placed->status, domain::OrderItemStatus::Placed);
+    EXPECT_EQ(countEvents(conn_->handle(), "MaterialPlaced"), 1);
+}
+
 TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     std::atomic<uint8_t> mask0{0x00};
 

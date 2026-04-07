@@ -62,6 +62,7 @@ public:
     void stop();
     void pollOnce();
     bool isRunning() const noexcept { return running_.load(); }
+    void handleEventFrame(const smartcart::infrastructure::hw::stm32::Frame& frame);
 
     BarcodeScanResult recordBarcodeScan(const std::string& barcode);
 
@@ -88,12 +89,16 @@ private:
     std::optional<std::vector<bool>> lastSnapshot_;
     std::optional<std::vector<bool>> rawSnapshot_;
     std::vector<std::chrono::steady_clock::time_point> rawChangedAt_;
+    std::mutex stateMtx_;
     std::mutex pendingMtx_;
     std::optional<PendingScan> pendingScan_;
 
     void pollLoop();
     std::optional<std::vector<bool>> requestSnapshot();
     void applySnapshot(const std::vector<bool>& snapshot);
+    void applyChannelStateLocked(int channel,
+                                 bool occupied,
+                                 std::string_view source);
     void handleOccupiedSlot(int channel, int slotIndex);
     void handleFreedSlot(int channel, int slotIndex);
     std::optional<PendingScan> consumePendingScan();
