@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace smartcart::application::services {
@@ -129,15 +131,27 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
                           "OrderImportRejected");
         }
 
-        if (!reelRepo_.getActiveByModule(config_.moduleId).empty()) {
-            return reject(domain::ErrorCode::Unknown,
-                          "В тележке есть остатки, новый заказ запрещён",
-                          "OrderImportRejected");
-        }
-
         const json j = readJsonFile(jsonPath);
         domain::OrderInfo order = parseOrder(j);
         std::vector<domain::OrderItem> items = parseItems(j);
+
+        std::unordered_set<std::string> orderBarcodes;
+        for (const auto& item : items) {
+            orderBarcodes.insert(item.barcode);
+        }
+
+        std::unordered_map<std::string, int> activeSlotByBarcode;
+        for (const auto& reel : reelRepo_.getActiveByModule(config_.moduleId)) {
+            if (orderBarcodes.find(reel.barcode) == orderBarcodes.end()) {
+                std::ostringstream msg;
+                msg << "В тележке есть остаток не из нового заказа: "
+                    << reel.barcode << " slot=" << reel.slotIndex;
+                return reject(domain::ErrorCode::Unknown,
+                              msg.str(),
+                              "OrderImportRejected");
+            }
+            activeSlotByBarcode.emplace(reel.barcode, reel.slotIndex);
+        }
 
         if (orderRepo_.findOrderByExternalId(order.externalOrderId).has_value()) {
             return reject(domain::ErrorCode::PersistenceError,
@@ -148,6 +162,18 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
         const int orderId = orderRepo_.addOrder(order);
         for (auto& item : items) {
             item.orderId = orderId;
+            if (const auto it = activeSlotByBarcode.find(item.barcode);
+                it != activeSlotByBarcode.end())
+            {
+                item.currentSlot = it->second;
+                item.status = domain::OrderItemStatus::Placed;
+
+                std::ostringstream msg;
+                msg << "barcode=" << item.barcode
+                    << " current_slot=" << it->second
+                    << " target_slot=" << item.targetSlot;
+                logSafe("INFO", "OrderLeftoverReused", msg.str());
+            }
             orderRepo_.addItem(item);
         }
 

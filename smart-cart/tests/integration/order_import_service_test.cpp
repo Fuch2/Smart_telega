@@ -138,3 +138,59 @@ TEST(OrderImportServiceTest, ImportRejected_WhenCartHasLeftovers) {
     EXPECT_EQ(workflowRepo.get().state, domain::CartWorkflowState::Free);
     EXPECT_EQ(countEvents(conn.handle(), "OrderImportRejected"), 1);
 }
+
+TEST(OrderImportServiceTest, ImportAllowsLeftover_WhenBarcodeBelongsToOrder) {
+    infrastructure::db::SqliteConnection conn(":memory:");
+    conn.runMigrations(std::string{MIGRATIONS_DIR});
+
+    infrastructure::db::OrderRepositorySqlite orderRepo(conn);
+    infrastructure::db::WorkflowRepositorySqlite workflowRepo(conn);
+    infrastructure::db::ReelRepositorySqlite reelRepo(conn);
+    infrastructure::logging::SqliteEventLogger logger(conn.handle());
+
+    conn.execute(
+        "INSERT INTO modules(id, serial, slot_count, firmware, status) "
+        "VALUES(1, 'TEST-MODULE', 24, '', 'ONLINE');"
+    );
+    reelRepo.addRecord(1, 1, "R-150 10%");
+
+    const auto path = writeOrderJson(
+        "smartcart_order_import_reuse_leftover.json",
+        R"({
+            "order_id": "ORDER-IMPORT-003",
+            "title": "Reuse leftover order",
+            "items": [
+                {
+                    "barcode": "R-150 10%",
+                    "material_type": "reel",
+                    "target_slot": 2
+                },
+                {
+                    "barcode": "R-250 20%",
+                    "material_type": "reel",
+                    "target_slot": 4
+                }
+            ]
+        })"
+    );
+
+    OrderImportService svc(orderRepo, workflowRepo, reelRepo, logger, {});
+    const auto result = svc.importFromFile(path.string());
+
+    ASSERT_TRUE(result.success) << result.message;
+    ASSERT_GT(result.orderId, 0);
+
+    const auto reused = orderRepo.findItemByBarcode(result.orderId, "R-150 10%");
+    ASSERT_TRUE(reused.has_value());
+    ASSERT_TRUE(reused->currentSlot.has_value());
+    EXPECT_EQ(*reused->currentSlot, 1);
+    EXPECT_EQ(reused->status, domain::OrderItemStatus::Placed);
+
+    const auto pending = orderRepo.findItemByBarcode(result.orderId, "R-250 20%");
+    ASSERT_TRUE(pending.has_value());
+    EXPECT_FALSE(pending->currentSlot.has_value());
+    EXPECT_EQ(pending->status, domain::OrderItemStatus::Pending);
+
+    EXPECT_EQ(workflowRepo.get().state, domain::CartWorkflowState::OrderLoaded);
+    EXPECT_EQ(countEvents(conn.handle(), "OrderLeftoverReused"), 1);
+}
