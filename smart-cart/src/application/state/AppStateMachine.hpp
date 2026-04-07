@@ -4,6 +4,7 @@
 #include "application/services/AddReelService.hpp"
 #include "application/services/ReplaceReelService.hpp"
 #include "application/services/RecoveryService.hpp"
+#include "application/ports/IEventLogger.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/errors/ErrorCode.hpp"
@@ -42,6 +43,7 @@ public:
         services::ReplaceReelService& replaceReelSvc,
         services::RecoveryService&    recoverySvc,
         ports::IReelRepository&       reelRepo,
+        ports::IEventLogger&          eventLogger,
         QObject*                      parent = nullptr
     );
 
@@ -78,6 +80,7 @@ private:
     services::ReplaceReelService& replaceReelSvc_;
     services::RecoveryService&    recoverySvc_;
     ports::IReelRepository&       reelRepo_;
+    ports::IEventLogger&          eventLogger_;
 
     AppState state_ = AppState::Idle;
 };

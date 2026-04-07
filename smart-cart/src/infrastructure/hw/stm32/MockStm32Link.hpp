@@ -35,6 +35,7 @@ public:
 private:
     Handler   handler_;
 
+    std::mutex                                commandMtx_;
     std::mutex                                eventCbMtx_;
     application::ports::EventCallback         eventCb_;
 

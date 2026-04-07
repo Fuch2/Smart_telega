@@ -2,10 +2,12 @@
 #include "UartStm32Link.hpp"
 
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <stdexcept>
 #include <fcntl.h>
 #include <termios.h>
+#include <thread>
 #include <unistd.h>
 
 namespace smartcart::infrastructure::hw::stm32 {
@@ -90,10 +92,12 @@ bool UartStm32Link::isOpen() const { return running_.load(); }
 void UartStm32Link::setEventCallback(
     application::ports::EventCallback cb)
 {
+    std::lock_guard lock(eventCbMtx_);
     eventCb_ = std::move(cb);
 }
 
 std::optional<Frame> UartStm32Link::sendCommand(const Frame& cmd) {
+    std::lock_guard commandLock(commandMtx_);
     if (!running_.load()) return std::nullopt;
 
     Frame outFrame = cmd;
@@ -126,7 +130,10 @@ void UartStm32Link::rxThreadFunc() {
     uint8_t buf[256];
     while (running_.load()) {
         const ssize_t n = ::read(fd_, buf, sizeof(buf));
-        if (n <= 0) continue;
+        if (n <= 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
+        }
         for (ssize_t i = 0; i < n; ++i) {
             auto ev = parser_.feed(buf[i]);
             if (ev.type == FrameCodec::ParseEventType::FrameReady && ev.frame)
@@ -139,7 +146,12 @@ void UartStm32Link::handleParsedFrame(Frame frame) {
     const bool isEvent = (frame.type == FrameType::Evt);
 
     if (isEvent) {
-        if (eventCb_) eventCb_(frame);
+        application::ports::EventCallback cb;
+        {
+            std::lock_guard lock(eventCbMtx_);
+            cb = eventCb_;
+        }
+        if (cb) cb(frame);
         return;
     }
 

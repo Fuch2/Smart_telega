@@ -2,15 +2,20 @@
 #include "HidScannerProvider.hpp"
 
 #include <fcntl.h>
+#ifdef __linux__
 #include <linux/input.h>
+#endif
 #include <unistd.h>
 
 #include <cctype>
+#include <cstdint>
 #include <string>
+#include <utility>
 
 namespace smartcart::infrastructure::hw::scanner {
 
 // Таблица: evdev keycode → ASCII символ (только цифры и буквы)
+#ifdef __linux__
 static char keycodeToChar(uint16_t code, bool shift) {
     if (code >= KEY_1 && code <= KEY_9) {
         const char digits[] = "1234567890";
@@ -34,6 +39,7 @@ static char keycodeToChar(uint16_t code, bool shift) {
     }
     return '\0';
 }
+#endif
 
 HidScannerProvider::HidScannerProvider(std::string devicePath)
     : devicePath_(std::move(devicePath))
@@ -47,10 +53,12 @@ void HidScannerProvider::setBarcodeCallback(BarcodeCallback cb) {
 
 void HidScannerProvider::start() {
     if (active_.load()) return;
+#ifdef __linux__
     fd_ = ::open(devicePath_.c_str(), O_RDONLY | O_NONBLOCK);
     if (fd_ < 0) return;
     active_.store(true);
     thread_ = std::thread(&HidScannerProvider::readLoop, this);
+#endif
 }
 
 void HidScannerProvider::stop() {
@@ -63,6 +71,7 @@ void HidScannerProvider::stop() {
 bool HidScannerProvider::isActive() const { return active_.load(); }
 
 void HidScannerProvider::readLoop() {
+#ifdef __linux__
     std::string buf;
     bool shift = false;
     input_event ev{};
@@ -87,6 +96,7 @@ void HidScannerProvider::readLoop() {
             }
         }
     }
+#endif
 }
 
 } // namespace smartcart::infrastructure::hw::scanner

@@ -53,6 +53,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/AddReelService.cpp
     src/application/services/ReplaceReelService.cpp
     src/application/services/RecoveryService.cpp
+    src/application/services/Stm32PollingService.cpp
 )
 
 target_include_directories(smartcart_infra PUBLIC

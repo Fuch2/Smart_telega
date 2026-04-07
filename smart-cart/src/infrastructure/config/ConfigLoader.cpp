@@ -27,6 +27,7 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     AppConfig cfg{};
     readOptional(j, "log_file",            cfg.logFile);
     readOptional(j, "sqlite_path",         cfg.sqlitePath);
+    readOptional(j, "stm32_device",        cfg.stm32Device);
     readOptional(j, "demo_mode",           cfg.demoMode);
     readOptional(j, "stm32_poll_ms",       cfg.stm32PollMs);
     readOptional(j, "debounce_ms",         cfg.debounceMs);
@@ -44,6 +45,8 @@ void ConfigLoader::validate(AppConfig& cfg) {
         throw std::runtime_error("ConfigLoader: log_file is empty");
     if (cfg.sqlitePath.empty())
         throw std::runtime_error("ConfigLoader: sqlite_path is empty");
+    if (!cfg.demoMode && cfg.stm32Device.empty())
+        throw std::runtime_error("ConfigLoader: stm32_device is empty");
     if (cfg.stm32PollMs == 0)
         throw std::runtime_error("ConfigLoader: stm32_poll_ms must be > 0");
     if (cfg.debounceMs == 0)

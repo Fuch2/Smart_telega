@@ -1,12 +1,12 @@
 #include "infrastructure/db/SqliteConnection.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <set>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <algorithm>
 
 namespace smartcart::infrastructure::db {
 namespace {
@@ -32,13 +32,51 @@ void execSql(sqlite3* db, const std::string& sql) {
     }
 }
 
-std::set<std::string> loadAppliedMigrations(sqlite3* db) {
-    std::set<std::string> applied;
-
-    const char* query = "SELECT name FROM schema_migrations;";
+std::string migrationNameColumn(sqlite3* db) {
+    const char* query = "PRAGMA table_info(schema_migrations);";
     sqlite3_stmt* stmt = nullptr;
 
     const int rcPrepare = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rcPrepare != SQLITE_OK) {
+        throw std::runtime_error("Не удалось прочитать схему schema_migrations");
+    }
+
+    bool hasFilename = false;
+    bool hasName = false;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* text = sqlite3_column_text(stmt, 1);
+        if (text == nullptr) {
+            continue;
+        }
+
+        const std::string column = reinterpret_cast<const char*>(text);
+        if (column == "filename") {
+            hasFilename = true;
+        } else if (column == "name") {
+            hasName = true;
+        }
+    }
+    sqlite3_finalize(stmt);
+
+    if (hasFilename) {
+        return "filename";
+    }
+    if (hasName) {
+        return "name";
+    }
+
+    throw std::runtime_error("schema_migrations не содержит filename/name");
+}
+
+std::set<std::string> loadAppliedMigrations(sqlite3* db,
+                                            const std::string& nameColumn) {
+    std::set<std::string> applied;
+
+    const std::string query =
+        "SELECT " + nameColumn + " FROM schema_migrations;";
+    sqlite3_stmt* stmt = nullptr;
+
+    const int rcPrepare = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr);
     if (rcPrepare != SQLITE_OK) {
         throw std::runtime_error("Не удалось подготовить SELECT schema_migrations");
     }
@@ -64,12 +102,15 @@ std::set<std::string> loadAppliedMigrations(sqlite3* db) {
     return applied;
 }
 
-void insertAppliedMigration(sqlite3* db, const std::string& migrationName) {
-    const char* insertSql =
-        "INSERT INTO schema_migrations(name, applied_at) VALUES(?, datetime('now'));";
+void insertAppliedMigration(sqlite3* db,
+                            const std::string& nameColumn,
+                            const std::string& migrationName) {
+    const std::string insertSql =
+        "INSERT INTO schema_migrations(" + nameColumn +
+        ", applied_at) VALUES(?, datetime('now'));";
 
     sqlite3_stmt* stmt = nullptr;
-    const int rcPrepare = sqlite3_prepare_v2(db, insertSql, -1, &stmt, nullptr);
+    const int rcPrepare = sqlite3_prepare_v2(db, insertSql.c_str(), -1, &stmt, nullptr);
     if (rcPrepare != SQLITE_OK) {
         throw std::runtime_error("Не удалось подготовить INSERT schema_migrations");
     }
@@ -109,7 +150,14 @@ sqlite3* SqliteConnection::handle() const noexcept {
     return db_;
 }
 
-void SqliteConnection::runMigrations(const std::string& migrationsDir) {
+void SqliteConnection::execute(const std::string& sql) {
+    if (db_ == nullptr) {
+        throw std::runtime_error("execute: SQLite соединение не инициализировано");
+    }
+    execSql(db_, sql);
+}
+
+void SqliteConnection::runMigrations(const std::filesystem::path& migrationsDir) {
     if (db_ == nullptr) {
         throw std::runtime_error("runMigrations: SQLite соединение не инициализировано");
     }
@@ -118,15 +166,15 @@ void SqliteConnection::runMigrations(const std::string& migrationsDir) {
     execSql(
         db_,
         "CREATE TABLE IF NOT EXISTS schema_migrations ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "name TEXT NOT NULL UNIQUE,"
-        "applied_at TEXT NOT NULL"
+        "filename TEXT PRIMARY KEY NOT NULL,"
+        "applied_at TEXT NOT NULL DEFAULT (datetime('now'))"
         ");"
     );
 
+    const std::string nameColumn = migrationNameColumn(db_);
     std::filesystem::path dirPath(migrationsDir);
     if (!std::filesystem::exists(dirPath) || !std::filesystem::is_directory(dirPath)) {
-        throw std::runtime_error("Каталог миграций не найден: " + migrationsDir);
+        throw std::runtime_error("Каталог миграций не найден: " + migrationsDir.string());
     }
 
     std::vector<std::filesystem::path> migrationFiles;
@@ -145,7 +193,7 @@ void SqliteConnection::runMigrations(const std::string& migrationsDir) {
                   return a.filename().string() < b.filename().string();
               });
 
-    const std::set<std::string> applied = loadAppliedMigrations(db_);
+    const std::set<std::string> applied = loadAppliedMigrations(db_, nameColumn);
 
     for (const auto& filePath : migrationFiles) {
         const std::string fileName = filePath.filename().string();
@@ -158,7 +206,7 @@ void SqliteConnection::runMigrations(const std::string& migrationsDir) {
         execSql(db_, "BEGIN IMMEDIATE TRANSACTION;");
         try {
             execSql(db_, sql);
-            insertAppliedMigration(db_, fileName);
+            insertAppliedMigration(db_, nameColumn, fileName);
             execSql(db_, "COMMIT;");
         } catch (...) {
             try {
@@ -169,6 +217,10 @@ void SqliteConnection::runMigrations(const std::string& migrationsDir) {
             throw;
         }
     }
+}
+
+void SqliteConnection::runMigrations(const std::string& migrationsDir) {
+    runMigrations(std::filesystem::path(migrationsDir));
 }
 
 } // namespace smartcart::infrastructure::db

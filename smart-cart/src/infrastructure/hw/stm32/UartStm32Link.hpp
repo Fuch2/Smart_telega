@@ -39,9 +39,11 @@ private:
     std::atomic<bool> running_ {false};
     std::thread       rxThread_;
 
+    std::mutex                        eventCbMtx_;
     application::ports::EventCallback eventCb_;
 
     // Pending synchronous reply
+    std::mutex              commandMtx_;
     std::mutex              replyMtx_;
     std::condition_variable replyCv_;
     std::optional<Frame>    pendingReply_;

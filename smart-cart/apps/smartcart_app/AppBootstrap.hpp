@@ -16,7 +16,9 @@
 #include "application/services/AddReelService.hpp"
 #include "application/services/ReplaceReelService.hpp"
 #include "application/services/RecoveryService.hpp"
+#include "application/services/Stm32PollingService.hpp"
 #include "application/state/AppStateMachine.hpp"
+#include "infrastructure/logging/SqliteEventLogger.hpp"
 
 #include <filesystem>
 #include <memory>
@@ -45,6 +47,7 @@ private:
     std::unique_ptr<smartcart::infrastructure::db::ModuleRepositorySqlite>    moduleRepo_;
     std::unique_ptr<smartcart::infrastructure::db::ReelRepositorySqlite>      reelRepo_;
     std::unique_ptr<smartcart::infrastructure::db::OperationRepositorySqlite> opRepo_;
+    std::unique_ptr<smartcart::infrastructure::logging::SqliteEventLogger>    eventLogger_;
 
     std::unique_ptr<smartcart::application::ports::IStm32Link>                stm32Link_;
 
@@ -52,6 +55,7 @@ private:
     std::unique_ptr<smartcart::application::services::AddReelService>         addReelSvc_;
     std::unique_ptr<smartcart::application::services::ReplaceReelService>     replaceReelSvc_;
     std::unique_ptr<smartcart::application::services::RecoveryService>        recoverySvc_;
+    std::unique_ptr<smartcart::application::services::Stm32PollingService>    pollingSvc_;
 
     std::unique_ptr<smartcart::application::AppStateMachine>                  stateMachine_;
 

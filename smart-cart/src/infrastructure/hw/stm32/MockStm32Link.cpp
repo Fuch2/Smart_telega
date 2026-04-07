@@ -19,6 +19,7 @@ void MockStm32Link::setEventCallback(application::ports::EventCallback cb) {
 }
 
 std::optional<Frame> MockStm32Link::sendCommand(const Frame& cmd) {
+    std::lock_guard commandLock(commandMtx_);
     if (!open_) return std::nullopt;
     if (handler_) return handler_(cmd);
 
@@ -43,8 +44,12 @@ void MockStm32Link::simulateSwitchEvent(int slotIndex, bool occupied) {
 }
 
 void MockStm32Link::injectEvent(const Frame& evt) {
-    std::lock_guard lock(eventCbMtx_);
-    if (eventCb_) eventCb_(evt);
+    application::ports::EventCallback cb;
+    {
+        std::lock_guard lock(eventCbMtx_);
+        cb = eventCb_;
+    }
+    if (cb) cb(evt);
 }
 
 } // namespace smartcart::infrastructure::hw::stm32

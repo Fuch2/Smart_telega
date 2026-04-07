@@ -2,6 +2,7 @@
 
 #include <sqlite3.h>
 
+#include <filesystem>
 #include <string>
 
 namespace smartcart::infrastructure::db {
@@ -19,7 +20,11 @@ public:
 
     sqlite3* handle() const noexcept;
 
+    // Выполнить SQL без результата.
+    void execute(const std::string& sql);
+
     // Прогон миграций из директории (все *.sql по алфавиту, idempotent)
+    void runMigrations(const std::filesystem::path& migrationsDir);
     void runMigrations(const std::string& migrationsDir);
 
 private:

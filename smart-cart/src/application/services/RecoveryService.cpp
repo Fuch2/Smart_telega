@@ -3,6 +3,7 @@
 #include "application/services/RecoveryService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 
+#include <optional>
 #include <stdexcept>
 
 namespace smartcart::application::services {
@@ -22,26 +23,42 @@ RecoveryService::RecoveryService(
 {}
 
 std::vector<bool> RecoveryService::getPhysicalSnapshot() {
-    stm32::Frame cmd;
-    cmd.type  = stm32::FrameType::Cmd;
-    cmd.cmdId = stm32::CommandId::GetSwitchSnapshot;
-
-    auto resp = link_.sendCommand(cmd);
-    if (!resp.has_value() ||
-        resp->type != stm32::FrameType::Resp ||
-        resp->payload.size() < 3)
+    auto requestSnapshot = [this](stm32::CommandId cmdId)
+        -> std::optional<std::vector<bool>>
     {
-        throw std::runtime_error(
-            "RecoveryService: не удалось получить снимок слотов");
+        stm32::Frame cmd;
+        cmd.type  = stm32::FrameType::Cmd;
+        cmd.cmdId = cmdId;
+
+        auto resp = link_.sendCommand(cmd);
+        if (!resp.has_value() ||
+            resp->type != stm32::FrameType::Resp ||
+            resp->payload.size() < 3)
+        {
+            return std::nullopt;
+        }
+
+        std::vector<bool> result(config_.slotCount, false);
+        for (int i = 0; i < config_.slotCount; ++i) {
+            const int byteIdx = i / 8;
+            const int bitIdx  = i % 8;
+            result[i] = (resp->payload[byteIdx] >> bitIdx) & 0x01;
+        }
+        if (config_.slotCount > 11) {
+            result[11] = false;
+        }
+        return result;
+    };
+
+    if (auto snapshot = requestSnapshot(stm32::CommandId::GetSwitchSnapshot)) {
+        return *snapshot;
+    }
+    if (auto snapshot = requestSnapshot(static_cast<stm32::CommandId>(0x04))) {
+        return *snapshot;
     }
 
-    std::vector<bool> result(config_.slotCount, false);
-    for (int i = 0; i < config_.slotCount; ++i) {
-        const int byteIdx = i / 8;
-        const int bitIdx  = i % 8;
-        result[i] = (resp->payload[byteIdx] >> bitIdx) & 0x01;
-    }
-    return result;
+    throw std::runtime_error(
+        "RecoveryService: не удалось получить снимок слотов");
 }
 
 void RecoveryService::recoverOperation(

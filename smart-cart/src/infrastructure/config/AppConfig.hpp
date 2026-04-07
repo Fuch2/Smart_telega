@@ -11,6 +11,7 @@ namespace smartcart::infrastructure::config {
 struct AppConfig {
     std::string logFile;            // путь к лог-файлу
     std::string sqlitePath;         // путь к БД
+    std::string stm32Device{"/dev/ttyAMA0"};
 
     bool demoMode{true};
 

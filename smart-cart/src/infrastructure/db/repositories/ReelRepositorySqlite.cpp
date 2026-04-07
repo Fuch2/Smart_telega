@@ -38,6 +38,16 @@ ReelRepositorySqlite::ReelRepositorySqlite(SqliteConnection& conn)
 }
 
 void ReelRepositorySqlite::ensureSchema() {
+    conn_.execute(
+        "CREATE TABLE IF NOT EXISTS modules ("
+        "  id         INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  serial     TEXT    NOT NULL UNIQUE COLLATE NOCASE,"
+        "  slot_count INTEGER NOT NULL DEFAULT 24,"
+        "  firmware   TEXT    NOT NULL DEFAULT '',"
+        "  status     TEXT    NOT NULL DEFAULT 'OFFLINE'"
+        ");"
+    );
+
     // ← разбито на два отдельных вызова: sqlite3_exec не поддерживает
     //   несколько statements в одной строке без специального callback
     conn_.execute(

@@ -25,6 +25,7 @@ AppStateMachine::AppStateMachine(
     services::ReplaceReelService& replaceReelSvc,
     services::RecoveryService&    recoverySvc,
     ports::IReelRepository&       reelRepo,
+    ports::IEventLogger&          eventLogger,
     QObject*                      parent)
     : QObject(parent)
     , startupSvc_(startupSvc)
@@ -32,6 +33,7 @@ AppStateMachine::AppStateMachine(
     , replaceReelSvc_(replaceReelSvc)
     , recoverySvc_(recoverySvc)
     , reelRepo_(reelRepo)
+    , eventLogger_(eventLogger)
 {}
 
 void AppStateMachine::transition(AppState newState) {
@@ -76,11 +78,23 @@ void AppStateMachine::startup() {
 }
 
 void AppStateMachine::scanBarcode(const QString& barcode) {
+    const QString trimmedBarcode = barcode.trimmed();
+    if (!trimmedBarcode.isEmpty()) {
+        try {
+            eventLogger_.log("INFO",
+                             "BarcodeScanned",
+                             trimmedBarcode.toStdString());
+        } catch (...) {
+            emit errorOccurred(ErrorCode::PersistenceError,
+                               "Не удалось записать сканирование в БД");
+        }
+    }
+
     if (state_ != AppState::Ready) return;
 
     transition(AppState::Operating);
 
-    const std::string barcodeStr = barcode.toStdString();
+    const std::string barcodeStr = trimmedBarcode.toStdString();
 
     auto toQColor = [this](int slotIdx, services::RgbColor c) {
         emit slotHighlighted(slotIdx, QColor(c.r, c.g, c.b));

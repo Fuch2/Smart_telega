@@ -8,6 +8,7 @@
 #include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
 #include <QMetaObject>
+#include <QObject>
 #include <stdexcept>
 
 using namespace smartcart;
@@ -28,6 +29,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
     reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
     opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
+    eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
 
     // ── 3. LED map ────────────────────────────────────────────────────────────
     buildSlotToLedMap();
@@ -57,11 +59,11 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         stm32Link_->open();
     } else {
         auto uart = std::make_unique<hw::stm32::UartStm32Link>(
-            "/dev/ttyUSB0", 115200, 500
+            cfg_.stm32Device, 115200, 500
         );
         if (!uart->open())
             throw std::runtime_error(
-                "AppBootstrap: failed to open UART /dev/ttyUSB0");
+                "AppBootstrap: failed to open UART " + cfg_.stm32Device);
         stm32Link_ = std::move(uart);
         // mockLink_ остаётся nullptr — MainWindow не покажет demo-панель
     }
@@ -105,13 +107,25 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *opRepo_, *reelRepo_, *stm32Link_, recoveryCfg
     );
 
+    Stm32PollingConfig pollingCfg;
+    pollingCfg.moduleId  = 1;
+    pollingCfg.slotCount = 24;
+    pollingCfg.pollMs    = static_cast<int>(cfg_.stm32PollMs);
+    pollingCfg.trackedChannels = {1, 3};
+    pollingCfg.ignoredChannels = {11};
+
+    pollingSvc_ = std::make_unique<Stm32PollingService>(
+        *stm32Link_, *reelRepo_, *eventLogger_, pollingCfg
+    );
+
     // ── 6. State machine ──────────────────────────────────────────────────────
     stateMachine_ = std::make_unique<AppStateMachine>(
         *startupSvc_,
         *addReelSvc_,
         *replaceReelSvc_,
         *recoverySvc_,
-        *reelRepo_
+        *reelRepo_,
+        *eventLogger_
     );
 
     // ── 7. ViewModels ─────────────────────────────────────────────────────────
@@ -137,6 +151,17 @@ void AppBootstrap::launch() {
     // mockLink_ == nullptr в prod-режиме → MainWindow не покажет demo-панель
     mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
     mainWindow_->show();
+
+    QObject::connect(
+        stateMachine_.get(),
+        &AppStateMachine::stateChanged,
+        mainWindow_,
+        [this](AppState state) {
+            if (state == AppState::Ready && pollingSvc_) {
+                pollingSvc_->start();
+            }
+        }
+    );
 
     QMetaObject::invokeMethod(
         stateMachine_.get(),
