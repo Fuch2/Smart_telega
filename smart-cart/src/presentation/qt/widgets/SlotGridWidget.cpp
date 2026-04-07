@@ -88,8 +88,8 @@ void SlotGridWidget::applyStyle(QPushButton* cell,
     Q_UNUSED(state)
 
     const QString border = highlighted
-        ? "border: 3px solid #FFFFFF;"
-        : "border: 1px solid #555555;";
+        ? "border: 3px solid #2E7D4F;"
+        : "border: 1px solid #BFCBC2;";
 
     const QString bg = QString("background-color: rgb(%1,%2,%3);")
         .arg(color.red())
@@ -103,16 +103,16 @@ void SlotGridWidget::applyStyle(QPushButton* cell,
 
     cell->setStyleSheet(QString(
         "QPushButton { %1 %2 %3 border-radius: 6px; padding: 4px; }"
-        "QPushButton:hover { border-color: #AAAAAA; }"
+        "QPushButton:hover { border-color: #6FA77A; }"
     ).arg(bg, border, textColor));
 }
 
 QColor SlotGridWidget::colorForState(SlotState state) {
     switch (state) {
-        case SlotState::Free:     return QColor(80,  80,  80);
-        case SlotState::Occupied: return QColor(30,  80,  200);
-        case SlotState::Reserved: return QColor(200, 160,   0);
-        case SlotState::Error:    return QColor(200,  30,  30);
+        case SlotState::Free:     return QColor(211, 218, 212);
+        case SlotState::Occupied: return QColor(78,  143,  97);
+        case SlotState::Reserved: return QColor(216, 183,  94);
+        case SlotState::Error:    return QColor(190,  85,  74);
     }
-    return QColor(80, 80, 80);
+    return QColor(211, 218, 212);
 }

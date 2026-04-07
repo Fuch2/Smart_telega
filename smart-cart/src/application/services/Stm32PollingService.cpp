@@ -57,6 +57,7 @@ Stm32PollingService::Stm32PollingService(
     ports::IOperationRepository& opRepo,
     ports::IOrderRepository& orderRepo,
     ports::IWorkflowRepository& workflowRepo,
+    WorkflowService& workflowSvc,
     ports::IEventLogger&    eventLogger,
     Stm32PollingConfig      config)
     : link_(link)
@@ -64,6 +65,7 @@ Stm32PollingService::Stm32PollingService(
     , opRepo_(opRepo)
     , orderRepo_(orderRepo)
     , workflowRepo_(workflowRepo)
+    , workflowSvc_(workflowSvc)
     , eventLogger_(eventLogger)
     , config_(std::move(config))
 {}
@@ -329,6 +331,10 @@ void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {
             << " operation_id=" << pending->operationId;
         logSafe("INFO", "ReelPlacedBySwitch", msg.str());
         logSafe("INFO", "MaterialPlaced", msg.str());
+        const auto workflow = workflowSvc_.notifyMaterialPlaced();
+        if (!workflow) {
+            logSafe("WARN", "WorkflowAdvanceFailed", workflow.message);
+        }
     } catch (const std::exception& ex) {
         opRepo_.updateStatus(pending->operationId,
                              domain::OperationStatus::Failed);

@@ -8,17 +8,39 @@
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/AddReelService.hpp"
 #include "application/services/Stm32PollingService.hpp"
+#include "application/services/WorkflowService.hpp"
 #include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Operation.hpp"
+
+#include <sqlite3.h>
 
 #include <gtest/gtest.h>
 #include <atomic>
 #include <chrono>
+#include <string>
 #include <thread>
 
 using namespace smartcart;
 using namespace smartcart::infrastructure::hw::stm32;
 using namespace smartcart::application::services;
+
+namespace {
+
+int countEvents(sqlite3* db, const std::string& code) {
+    const char* sql = "SELECT COUNT(1) FROM event_log WHERE code = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, code.c_str(), -1, SQLITE_TRANSIENT);
+
+    int count = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    return count;
+}
+
+} // namespace
 
 class AddReelFlowTest : public ::testing::Test {
 protected:
@@ -147,6 +169,13 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     link.open();
 
     infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
 
     Stm32PollingConfig cfg;
     cfg.moduleId = 1;
@@ -173,6 +202,7 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
                             *opRepo_,
                             *orderRepo_,
                             *workflowRepo_,
+                            workflowSvc,
                             logger,
                             cfg);
     const auto scan = svc.recordBarcodeScan("REEL-PA1");
@@ -217,6 +247,13 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     link.open();
 
     infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
 
     Stm32PollingConfig cfg;
     cfg.moduleId = 1;
@@ -243,6 +280,7 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
                             *opRepo_,
                             *orderRepo_,
                             *workflowRepo_,
+                            workflowSvc,
                             logger,
                             cfg);
     const auto scan = svc.recordBarcodeScan("REEL-WRONG");
@@ -264,4 +302,5 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     ASSERT_TRUE(placed->currentSlot.has_value());
     EXPECT_EQ(*placed->currentSlot, 4);
     EXPECT_EQ(placed->status, domain::OrderItemStatus::WrongSlot);
+    EXPECT_EQ(countEvents(conn_->handle(), "WrongSlotInteraction"), 1);
 }

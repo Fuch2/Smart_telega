@@ -18,6 +18,7 @@ WorkerViewModel::WorkerViewModel(
     ports::IOrderRepository&     orderRepo,
     ports::IWorkflowRepository&  workflowRepo,
     services::OrderImportService& orderImportSvc,
+    services::WorkflowService& workflowSvc,
     AppStateMachine&             stateMachine,
     QObject*                     parent)
     : QObject(parent)
@@ -26,6 +27,7 @@ WorkerViewModel::WorkerViewModel(
     , orderRepo_(orderRepo)
     , workflowRepo_(workflowRepo)
     , orderImportSvc_(orderImportSvc)
+    , workflowSvc_(workflowSvc)
     , stateMachine_(stateMachine)
 {
     connect(&stateMachine_, &AppStateMachine::stateChanged,
@@ -89,6 +91,65 @@ void WorkerViewModel::importOrderFromFile(const QString& path) {
     emit operationStateChanged(QString::fromUtf8("Заказ загружен"),
                                QString::fromStdString(result.message));
     reload();
+}
+
+void WorkerViewModel::markCartArrivedToFeederPrep() {
+    handleWorkflowResult(workflowSvc_.markCartArrivedToFeederPrep());
+}
+
+void WorkerViewModel::startFeederPrep() {
+    handleWorkflowResult(workflowSvc_.startFeederPrep());
+}
+
+void WorkerViewModel::markFeederPrepCompleted() {
+    handleWorkflowResult(workflowSvc_.markFeederPrepCompleted());
+}
+
+void WorkerViewModel::markCartArrivedToLine() {
+    handleWorkflowResult(workflowSvc_.markCartArrivedToLine());
+}
+
+void WorkerViewModel::startIssuingToLine() {
+    handleWorkflowResult(workflowSvc_.startIssuingToLine());
+}
+
+void WorkerViewModel::markItemIssued(const QString& barcode) {
+    const auto normalized = barcode.trimmed();
+    if (normalized.isEmpty()) {
+        emit errorOccurred(QString::fromUtf8("Введите штрихкод для выдачи"));
+        return;
+    }
+    handleWorkflowResult(workflowSvc_.markItemIssued(normalized.toStdString()));
+}
+
+void WorkerViewModel::completeIssuing() {
+    handleWorkflowResult(workflowSvc_.completeIssuing());
+}
+
+void WorkerViewModel::inspectLeftovers() {
+    handleWorkflowResult(workflowSvc_.inspectLeftoversAfterOrderCompleted());
+}
+
+void WorkerViewModel::startReturningLeftovers() {
+    handleWorkflowResult(workflowSvc_.startReturningLeftovers());
+}
+
+void WorkerViewModel::markLeftoverReturned(const QString& barcodeOrSlot) {
+    const auto normalized = barcodeOrSlot.trimmed();
+    if (normalized.isEmpty()) {
+        emit errorOccurred(QString::fromUtf8("Введите штрихкод или номер слота остатка"));
+        return;
+    }
+
+    bool isSlot = false;
+    const int slotIndex = normalized.toInt(&isSlot);
+    if (isSlot && slotIndex > 0) {
+        handleWorkflowResult(workflowSvc_.markLeftoverReturnedBySlot(slotIndex));
+        return;
+    }
+
+    handleWorkflowResult(
+        workflowSvc_.markLeftoverReturnedByBarcode(normalized.toStdString()));
 }
 
 void WorkerViewModel::reload() {
@@ -197,10 +258,10 @@ void WorkerViewModel::rebuildSlots() {
                          ? barcodeBySlot.at(slot.slotIndex)
                          : "";
         switch (slot.state) {
-            case SlotState::Free:     item.color = QColor(80,  80,  80);  break;
-            case SlotState::Occupied: item.color = QColor(30,  80,  200); break;
-            case SlotState::Reserved: item.color = QColor(200, 160,   0); break;
-            case SlotState::Error:    item.color = QColor(200,  30,  30); break;
+            case SlotState::Free:     item.color = QColor(211, 218, 212); break;
+            case SlotState::Occupied: item.color = QColor(78,  143,  97); break;
+            case SlotState::Reserved: item.color = QColor(216, 183,  94); break;
+            case SlotState::Error:    item.color = QColor(190,  85,  74); break;
         }
         slots_.append(item);
     }
@@ -242,6 +303,20 @@ void WorkerViewModel::rebuildWorkflowSummary() {
     emit workflowUpdated(workflowLabel(workflow.state),
                          orderText,
                          checklistText);
+}
+
+void WorkerViewModel::handleWorkflowResult(
+    const services::WorkflowActionResult& result)
+{
+    if (!result) {
+        emit errorOccurred(QString::fromStdString(result.message));
+        reload();
+        return;
+    }
+
+    emit operationStateChanged(QString::fromUtf8("Маршрут"),
+                               QString::fromStdString(result.message));
+    reload();
 }
 
 QString WorkerViewModel::errorMessage(ErrorCode code) {

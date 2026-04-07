@@ -57,6 +57,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/RecoveryService.cpp
     src/application/services/Stm32PollingService.cpp
     src/application/services/OrderImportService.cpp
+    src/application/services/WorkflowService.cpp
 )
 
 target_include_directories(smartcart_infra PUBLIC
@@ -176,6 +177,7 @@ add_executable(integration_tests
     tests/integration/uart_recovery_test.cpp
     tests/integration/order_workflow_repository_test.cpp
     tests/integration/order_import_service_test.cpp
+    tests/integration/workflow_service_test.cpp
 )
 
 target_include_directories(integration_tests PRIVATE

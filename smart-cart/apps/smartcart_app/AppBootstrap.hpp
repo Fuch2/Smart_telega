@@ -20,6 +20,7 @@
 #include "application/services/RecoveryService.hpp"
 #include "application/services/Stm32PollingService.hpp"
 #include "application/services/OrderImportService.hpp"
+#include "application/services/WorkflowService.hpp"
 #include "application/state/AppStateMachine.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 
@@ -62,6 +63,7 @@ private:
     std::unique_ptr<smartcart::application::services::RecoveryService>        recoverySvc_;
     std::unique_ptr<smartcart::application::services::Stm32PollingService>    pollingSvc_;
     std::unique_ptr<smartcart::application::services::OrderImportService>     orderImportSvc_;
+    std::unique_ptr<smartcart::application::services::WorkflowService>        workflowSvc_;
 
     std::unique_ptr<smartcart::application::AppStateMachine>                  stateMachine_;
 

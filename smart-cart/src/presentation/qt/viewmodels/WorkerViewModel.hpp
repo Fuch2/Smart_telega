@@ -6,6 +6,7 @@
 #include "application/ports/IOrderRepository.hpp"
 #include "application/ports/IWorkflowRepository.hpp"
 #include "application/services/OrderImportService.hpp"
+#include "application/services/WorkflowService.hpp"
 #include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Slot.hpp"
 #include "domain/entities/Operation.hpp"
@@ -27,6 +28,7 @@ public:
         smartcart::application::ports::IOrderRepository&     orderRepo,
         smartcart::application::ports::IWorkflowRepository&  workflowRepo,
         smartcart::application::services::OrderImportService& orderImportSvc,
+        smartcart::application::services::WorkflowService& workflowSvc,
         smartcart::application::AppStateMachine&             stateMachine,
         QObject*                                             parent = nullptr
     );
@@ -50,6 +52,16 @@ public Q_SLOTS:
     void onSlotPhysicalChange(int slotIndex, bool occupied);
     void cancelCurrentOperation();
     void importOrderFromFile(const QString& path);
+    void markCartArrivedToFeederPrep();
+    void startFeederPrep();
+    void markFeederPrepCompleted();
+    void markCartArrivedToLine();
+    void startIssuingToLine();
+    void markItemIssued(const QString& barcode);
+    void completeIssuing();
+    void inspectLeftovers();
+    void startReturningLeftovers();
+    void markLeftoverReturned(const QString& barcodeOrSlot);
     void reload();
 
 private Q_SLOTS:
@@ -67,6 +79,7 @@ private:
     smartcart::application::ports::IOrderRepository&     orderRepo_;
     smartcart::application::ports::IWorkflowRepository&  workflowRepo_;
     smartcart::application::services::OrderImportService& orderImportSvc_;
+    smartcart::application::services::WorkflowService& workflowSvc_;
     smartcart::application::AppStateMachine&             stateMachine_;
 
     QVector<SlotCellData> slots_;
@@ -74,6 +87,8 @@ private:
     SlotCellData*  findSlot(int slotIndex);
     void           rebuildSlots();
     void           rebuildWorkflowSummary();
+    void           handleWorkflowResult(
+        const smartcart::application::services::WorkflowActionResult& result);
     static QString errorMessage(smartcart::domain::ErrorCode code);
     static QString workflowLabel(smartcart::domain::CartWorkflowState state);
     static QString itemStatusLabel(smartcart::domain::OrderItemStatus status);

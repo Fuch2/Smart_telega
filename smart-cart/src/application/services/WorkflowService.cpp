@@ -1,0 +1,314 @@
+#include "application/services/WorkflowService.hpp"
+
+#include <algorithm>
+#include <optional>
+#include <sstream>
+#include <utility>
+
+namespace smartcart::application::services {
+
+namespace domain = smartcart::domain;
+
+WorkflowService::WorkflowService(ports::IOrderRepository& orderRepo,
+                                 ports::IWorkflowRepository& workflowRepo,
+                                 ports::IReelRepository& reelRepo,
+                                 ports::IEventLogger& eventLogger,
+                                 int moduleId)
+    : orderRepo_(orderRepo)
+    , workflowRepo_(workflowRepo)
+    , reelRepo_(reelRepo)
+    , eventLogger_(eventLogger)
+    , moduleId_(moduleId)
+{}
+
+WorkflowActionResult WorkflowService::notifyMaterialPlaced() {
+    const auto orderId = currentOrderId();
+    if (!orderId.has_value()) {
+        return reject(domain::ErrorCode::Unknown,
+                      "Нет активного заказа",
+                      "InvalidWorkflowTransition");
+    }
+
+    const auto items = orderRepo_.getItems(*orderId);
+    if (items.empty()) {
+        return reject(domain::ErrorCode::Unknown,
+                      "В заказе нет позиций",
+                      "InvalidWorkflowTransition");
+    }
+
+    const bool allPlaced = std::all_of(items.begin(), items.end(), [](const auto& item) {
+        return item.status == domain::OrderItemStatus::Placed ||
+               item.status == domain::OrderItemStatus::Issued;
+    });
+
+    if (!allPlaced) {
+        workflowRepo_.setState(domain::CartWorkflowState::PickingMaterials);
+        return ok("Подбор материалов продолжается");
+    }
+
+    orderRepo_.updateOrderStatus(*orderId, domain::OrderStatus::InProgress);
+    workflowRepo_.setState(domain::CartWorkflowState::ReadyForFeederPrep);
+    logSafe("INFO", "PickingCompleted", "Подбор материалов завершён");
+    logSafe("INFO", "NextStep", "Перевезите тележку в зону подготовки питателей");
+    return ok("Подбор завершён. Перевезите тележку в зону подготовки питателей");
+}
+
+WorkflowActionResult WorkflowService::markCartArrivedToFeederPrep() {
+    if (auto guard = requireState(domain::CartWorkflowState::ReadyForFeederPrep,
+                                  "markCartArrivedToFeederPrep");
+        !guard)
+    {
+        return guard;
+    }
+
+    logSafe("INFO", "CartArrivedToFeederPrep", "Тележка прибыла в зону подготовки питателей");
+    return ok("Тележка прибыла в зону подготовки питателей");
+}
+
+WorkflowActionResult WorkflowService::startFeederPrep() {
+    if (auto guard = requireState(domain::CartWorkflowState::ReadyForFeederPrep,
+                                  "startFeederPrep");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::FeederPrep);
+    logSafe("INFO", "FeederPrepStarted", "Подготовка питателей начата");
+    return ok("Подготовка питателей начата");
+}
+
+WorkflowActionResult WorkflowService::markFeederPrepCompleted() {
+    if (auto guard = requireState(domain::CartWorkflowState::FeederPrep,
+                                  "markFeederPrepCompleted");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::ReadyForLine);
+    logSafe("INFO", "FeederPrepCompleted", "Подготовка питателей завершена");
+    logSafe("INFO", "NextStep", "Перевезите тележку к линии SMT");
+    return ok("Подготовка питателей завершена. Перевезите тележку к линии SMT");
+}
+
+WorkflowActionResult WorkflowService::markCartArrivedToLine() {
+    if (auto guard = requireState(domain::CartWorkflowState::ReadyForLine,
+                                  "markCartArrivedToLine");
+        !guard)
+    {
+        return guard;
+    }
+
+    logSafe("INFO", "CartArrivedToLine", "Тележка прибыла на линию SMT");
+    return ok("Тележка прибыла на линию SMT");
+}
+
+WorkflowActionResult WorkflowService::startIssuingToLine() {
+    if (auto guard = requireState(domain::CartWorkflowState::ReadyForLine,
+                                  "startIssuingToLine");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::IssuingToLine);
+    logSafe("INFO", "IssuingToLineStarted", "Выдача материалов на линию начата");
+    return ok("Выдача материалов на линию начата");
+}
+
+WorkflowActionResult WorkflowService::markItemIssued(const std::string& barcode) {
+    if (auto guard = requireState(domain::CartWorkflowState::IssuingToLine,
+                                  "markItemIssued");
+        !guard)
+    {
+        return guard;
+    }
+
+    const auto orderId = currentOrderId();
+    if (!orderId.has_value()) {
+        return reject(domain::ErrorCode::Unknown,
+                      "Нет активного заказа",
+                      "MaterialIssueFailed");
+    }
+
+    const auto item = orderRepo_.findItemByBarcode(*orderId, barcode);
+    if (!item.has_value()) {
+        return reject(domain::ErrorCode::ReelNotFound,
+                      "Материал не найден в текущем заказе: " + barcode,
+                      "MaterialIssueFailed");
+    }
+
+    if (item->currentSlot.has_value()) {
+        reelRepo_.markRemovedBySlot(moduleId_, *item->currentSlot);
+        reelRepo_.setSlotState(moduleId_, *item->currentSlot, domain::SlotState::Free);
+    } else if (auto active = reelRepo_.findActiveByBarcode(barcode)) {
+        reelRepo_.markRemovedBySlot(active->moduleId, active->slotIndex);
+        reelRepo_.setSlotState(active->moduleId, active->slotIndex, domain::SlotState::Free);
+    }
+
+    orderRepo_.updateItemStatus(item->id, domain::OrderItemStatus::Issued);
+
+    std::ostringstream msg;
+    msg << "barcode=" << barcode;
+    if (item->currentSlot.has_value()) {
+        msg << " slot=" << *item->currentSlot;
+    }
+    logSafe("INFO", "MaterialIssued", msg.str());
+    return ok("Материал выдан на линию: " + barcode);
+}
+
+WorkflowActionResult WorkflowService::completeIssuing() {
+    if (auto guard = requireState(domain::CartWorkflowState::IssuingToLine,
+                                  "completeIssuing");
+        !guard)
+    {
+        return guard;
+    }
+
+    const auto orderId = currentOrderId();
+    if (!orderId.has_value()) {
+        return reject(domain::ErrorCode::Unknown,
+                      "Нет активного заказа",
+                      "IssuingCompleteFailed");
+    }
+
+    const auto items = orderRepo_.getItems(*orderId);
+    const bool allIssued = !items.empty() &&
+        std::all_of(items.begin(), items.end(), [](const auto& item) {
+            return item.status == domain::OrderItemStatus::Issued ||
+                   item.status == domain::OrderItemStatus::Returned;
+        });
+
+    if (!allIssued) {
+        return reject(domain::ErrorCode::Unknown,
+                      "Не все материалы выданы на линию",
+                      "IssuingCompleteFailed");
+    }
+
+    orderRepo_.updateOrderStatus(*orderId, domain::OrderStatus::Completed);
+    workflowRepo_.setState(domain::CartWorkflowState::OrderCompleted);
+    logSafe("INFO", "OrderCompleted", "Заказ завершён");
+    return ok("Заказ завершён. Проверьте остатки");
+}
+
+WorkflowActionResult WorkflowService::inspectLeftoversAfterOrderCompleted() {
+    const auto workflow = workflowRepo_.get();
+    if (workflow.state != domain::CartWorkflowState::OrderCompleted &&
+        workflow.state != domain::CartWorkflowState::LeftoversDetected &&
+        workflow.state != domain::CartWorkflowState::ReturningLeftovers)
+    {
+        return reject(domain::ErrorCode::Unknown,
+                      "Проверка остатков доступна только после завершения заказа",
+                      "InvalidWorkflowTransition");
+    }
+
+    const auto active = reelRepo_.getActiveByModule(moduleId_);
+    if (active.empty()) {
+        workflowRepo_.clearCurrentOrder(domain::CartWorkflowState::Free);
+        logSafe("INFO", "CartFree", "Остатков нет, тележка свободна");
+        return ok("Остатков нет. Тележка свободна");
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::LeftoversDetected);
+    std::ostringstream msg;
+    msg << "count=" << active.size();
+    logSafe("WARN", "LeftoversDetected", msg.str());
+    return ok("Обнаружены остатки. Верните их на склад");
+}
+
+WorkflowActionResult WorkflowService::startReturningLeftovers() {
+    if (auto guard = requireState(domain::CartWorkflowState::LeftoversDetected,
+                                  "startReturningLeftovers");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::ReturningLeftovers);
+    logSafe("INFO", "ReturningLeftoversStarted", "Возврат остатков начат");
+    return ok("Возврат остатков начат");
+}
+
+WorkflowActionResult WorkflowService::markLeftoverReturnedByBarcode(
+    const std::string& barcode)
+{
+    if (auto active = reelRepo_.findActiveByBarcode(barcode)) {
+        return markLeftoverReturnedBySlot(active->slotIndex);
+    }
+    return reject(domain::ErrorCode::ReelNotFound,
+                  "Остаток не найден: " + barcode,
+                  "LeftoverReturnFailed");
+}
+
+WorkflowActionResult WorkflowService::markLeftoverReturnedBySlot(int slotIndex) {
+    const auto workflow = workflowRepo_.get();
+    if (workflow.state != domain::CartWorkflowState::ReturningLeftovers &&
+        workflow.state != domain::CartWorkflowState::LeftoversDetected)
+    {
+        return reject(domain::ErrorCode::Unknown,
+                      "Возврат остатка сейчас недоступен",
+                      "InvalidWorkflowTransition");
+    }
+
+    reelRepo_.markRemovedBySlot(moduleId_, slotIndex);
+    reelRepo_.setSlotState(moduleId_, slotIndex, domain::SlotState::Free);
+
+    std::ostringstream msg;
+    msg << "slot=" << slotIndex;
+    logSafe("INFO", "LeftoverReturned", msg.str());
+
+    if (reelRepo_.getActiveByModule(moduleId_).empty()) {
+        workflowRepo_.clearCurrentOrder(domain::CartWorkflowState::Free);
+        logSafe("INFO", "CartFree", "Все остатки возвращены, тележка свободна");
+        return ok("Все остатки возвращены. Тележка свободна");
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::ReturningLeftovers);
+    return ok("Остаток возвращён");
+}
+
+std::optional<int> WorkflowService::currentOrderId() const {
+    return workflowRepo_.get().currentOrderId;
+}
+
+WorkflowActionResult WorkflowService::ok(std::string message) const {
+    return WorkflowActionResult{true, domain::ErrorCode::None, std::move(message)};
+}
+
+WorkflowActionResult WorkflowService::reject(domain::ErrorCode code,
+                                             std::string message,
+                                             std::string_view logCode) const {
+    logSafe("ERROR", logCode, message);
+    return WorkflowActionResult{false, code, std::move(message)};
+}
+
+WorkflowActionResult WorkflowService::requireState(
+    domain::CartWorkflowState expected,
+    std::string_view action) const
+{
+    const auto workflow = workflowRepo_.get();
+    if (workflow.state == expected) {
+        return ok("OK");
+    }
+
+    std::ostringstream msg;
+    msg << "action=" << action
+        << " expected=" << domain::toString(expected)
+        << " actual=" << domain::toString(workflow.state);
+    return reject(domain::ErrorCode::Unknown,
+                  msg.str(),
+                  "InvalidWorkflowTransition");
+}
+
+void WorkflowService::logSafe(std::string_view level,
+                              std::string_view code,
+                              std::string_view message) const {
+    try {
+        eventLogger_.log(level, code, message);
+    } catch (...) {
+        // Ошибка логирования не должна ломать бизнес-переход.
+    }
+}
+
+} // namespace smartcart::application::services

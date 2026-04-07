@@ -109,6 +109,14 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *opRepo_, *reelRepo_, *stm32Link_, recoveryCfg
     );
 
+    workflowSvc_ = std::make_unique<WorkflowService>(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        *eventLogger_,
+        1
+    );
+
     Stm32PollingConfig pollingCfg;
     pollingCfg.moduleId  = 1;
     pollingCfg.slotCount = 24;
@@ -122,6 +130,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *opRepo_,
         *orderRepo_,
         *workflowRepo_,
+        *workflowSvc_,
         *eventLogger_,
         pollingCfg
     );
@@ -154,6 +163,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *orderRepo_,
         *workflowRepo_,
         *orderImportSvc_,
+        *workflowSvc_,
         *stateMachine_
     );
 }

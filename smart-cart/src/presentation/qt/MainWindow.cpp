@@ -29,6 +29,14 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
                          smartcart::infrastructure::hw::stm32::MockStm32Link* mock)
 {
     auto* central = new QWidget(this);
+    central->setStyleSheet(
+        "QWidget { background: #F0F4F1; color: #223027; }"
+        "QPushButton { background: #E3ECE5; color: #223027; "
+        "border: 1px solid #C5D2C8; border-radius: 4px; "
+        "padding: 8px 14px; font-weight: bold; }"
+        "QPushButton:hover { background: #D6E5DA; }"
+        "QPushButton:pressed { background: #C3D7C9; }"
+    );
     auto* root    = new QVBoxLayout(central);
 
     // ── Верхняя панель навигации ───────────────────────────────────────────────
@@ -46,7 +54,7 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
         auto* demoFrame = new QFrame(central);
         demoFrame->setFrameShape(QFrame::StyledPanel);
         demoFrame->setStyleSheet(
-            "QFrame { background: #2A2A3E; border: 1px solid #585B70; "
+            "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
             "border-radius: 6px; padding: 4px; }");
 
         auto* demoLayout = new QHBoxLayout(demoFrame);
@@ -54,40 +62,40 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
         demoLayout->setSpacing(8);
 
         auto* demoLabel = new QLabel(QString::fromUtf8("🧪 Demo:"), demoFrame);
-        demoLabel->setStyleSheet("color: #F9E2AF; font-weight: bold;");
+        demoLabel->setStyleSheet("color: #6E6A3A; font-weight: bold;");
         demoLayout->addWidget(demoLabel);
 
         // PA1 — вставить катушку (слот 1)
         auto* pa1InsertBtn = new QPushButton(
             QString::fromUtf8("PA1: вставить (слот 1)"), demoFrame);
         pa1InsertBtn->setStyleSheet(
-            "QPushButton { background: #A6E3A1; color: #1E1E2E; "
+            "QPushButton { background: #2E7D4F; color: #FFFFFF; "
             "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #40A02B; }");
+            "QPushButton:pressed { background: #24663F; }");
 
         // PA1 — вынуть катушку (слот 1)
         auto* pa1RemoveBtn = new QPushButton(
             QString::fromUtf8("PA1: вынуть (слот 1)"), demoFrame);
         pa1RemoveBtn->setStyleSheet(
-            "QPushButton { background: #F38BA8; color: #1E1E2E; "
+            "QPushButton { background: #B85C5C; color: #FFFFFF; "
             "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #E64553; }");
+            "QPushButton:pressed { background: #954747; }");
 
         // PA2 — вставить катушку (слот 2)
         auto* pa2InsertBtn = new QPushButton(
             QString::fromUtf8("PA2: вставить (слот 2)"), demoFrame);
         pa2InsertBtn->setStyleSheet(
-            "QPushButton { background: #89B4FA; color: #1E1E2E; "
+            "QPushButton { background: #4E8F61; color: #FFFFFF; "
             "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #1E66F5; }");
+            "QPushButton:pressed { background: #3E744E; }");
 
         // PA2 — вынуть катушку (слот 2)
         auto* pa2RemoveBtn = new QPushButton(
             QString::fromUtf8("PA2: вынуть (слот 2)"), demoFrame);
         pa2RemoveBtn->setStyleSheet(
-            "QPushButton { background: #CBA6F7; color: #1E1E2E; "
+            "QPushButton { background: #C47B5A; color: #FFFFFF; "
             "border-radius: 4px; padding: 4px 12px; font-weight: bold; }"
-            "QPushButton:pressed { background: #8839EF; }");
+            "QPushButton:pressed { background: #9E6146; }");
 
         demoLayout->addWidget(pa1InsertBtn);
         demoLayout->addWidget(pa1RemoveBtn);

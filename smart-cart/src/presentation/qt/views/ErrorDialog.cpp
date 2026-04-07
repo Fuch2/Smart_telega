@@ -23,29 +23,29 @@ ErrorDialog::ErrorDialog(const QString& title,
     auto* icon = new QLabel("⚠", this);
     icon->setFont(QFont("Segoe UI", 32));
     icon->setAlignment(Qt::AlignCenter);
-    icon->setStyleSheet("color: #F38BA8;");
+    icon->setStyleSheet("color: #B85C5C;");
     root->addWidget(icon);
 
     auto* titleLabel = new QLabel(title, this);
     titleLabel->setFont(QFont("Segoe UI", 13, QFont::Bold));
     titleLabel->setAlignment(Qt::AlignCenter);
-    titleLabel->setStyleSheet("color: #CDD6F4;");
+    titleLabel->setStyleSheet("color: #223027;");
     root->addWidget(titleLabel);
 
     auto* msgLabel = new QLabel(message, this);
     msgLabel->setFont(QFont("Segoe UI", 10));
     msgLabel->setWordWrap(true);
     msgLabel->setAlignment(Qt::AlignCenter);
-    msgLabel->setStyleSheet("color: #A6ADC8;");
+    msgLabel->setStyleSheet("color: #66736B;");
     root->addWidget(msgLabel);
 
     auto* btnRow = new QHBoxLayout();
     auto* okBtn  = new QPushButton("OK", this);
     okBtn->setMinimumWidth(80);
     okBtn->setStyleSheet(
-        "QPushButton { background: #89B4FA; color: #1E1E2E; "
+        "QPushButton { background: #2E7D4F; color: #FFFFFF; "
         "border-radius: 4px; padding: 6px 20px; font-weight: bold; }"
-        "QPushButton:hover { background: #B4BEFE; }"
+        "QPushButton:hover { background: #3F9362; }"
     );
     btnRow->addStretch();
     btnRow->addWidget(okBtn);
@@ -54,7 +54,7 @@ ErrorDialog::ErrorDialog(const QString& title,
 
     connect(okBtn, &QPushButton::clicked, this, &QDialog::accept);
 
-    setStyleSheet("ErrorDialog { background: #181825; }");
+    setStyleSheet("ErrorDialog { background: #F0F4F1; }");
 }
 
 void ErrorDialog::show(const QString& title,

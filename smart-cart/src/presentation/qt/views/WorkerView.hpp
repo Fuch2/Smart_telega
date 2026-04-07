@@ -28,6 +28,16 @@ private slots:
     void onImportOrderClicked();
     void onBarcodeSubmitted();
     void onCancelClicked();
+    void onArrivedFeederClicked();
+    void onStartFeederPrepClicked();
+    void onFeederPrepDoneClicked();
+    void onArrivedLineClicked();
+    void onStartIssuingClicked();
+    void onIssueMaterialClicked();
+    void onCompleteIssuingClicked();
+    void onInspectLeftoversClicked();
+    void onStartReturnClicked();
+    void onReturnLeftoverClicked();
 
 private:
     WorkerViewModel& viewModel_;
@@ -43,6 +53,16 @@ private:
     QPushButton*    importButton_ = nullptr;
     QPushButton*    scanButton_   = nullptr;
     QPushButton*    cancelButton_ = nullptr;
+    QPushButton*    arrivedFeederButton_ = nullptr;
+    QPushButton*    startFeederPrepButton_ = nullptr;
+    QPushButton*    feederPrepDoneButton_ = nullptr;
+    QPushButton*    arrivedLineButton_ = nullptr;
+    QPushButton*    startIssuingButton_ = nullptr;
+    QPushButton*    issueButton_ = nullptr;
+    QPushButton*    completeIssuingButton_ = nullptr;
+    QPushButton*    inspectLeftoversButton_ = nullptr;
+    QPushButton*    startReturnButton_ = nullptr;
+    QPushButton*    returnLeftoverButton_ = nullptr;
 
     void setupUi();
     void connectSignals();

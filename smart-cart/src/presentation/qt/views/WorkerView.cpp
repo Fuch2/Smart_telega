@@ -8,6 +8,7 @@
 #include <QFont>
 #include <QFileDialog>
 #include <QFrame>
+#include <QGridLayout>
 #include <QSizePolicy>
 #include <QTextEdit>
 #include <QTimer>
@@ -36,22 +37,24 @@ void WorkerView::setupUi() {
     // ── Статус-панель ──────────────────────────────────────────────────────────
     auto* statusFrame = new QFrame(this);
     statusFrame->setFrameShape(QFrame::StyledPanel);
-    statusFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
+    statusFrame->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
+        "border-radius: 8px; }");
 
     auto* statusLayout = new QVBoxLayout(statusFrame);
     statusLayout->setContentsMargins(12, 8, 12, 8);
 
     stateLabel_ = new QLabel(QString::fromUtf8("Инициализация..."), statusFrame);
     stateLabel_->setFont(QFont("Segoe UI", 14, QFont::Bold));
-    stateLabel_->setStyleSheet("color: #CDD6F4;");
+    stateLabel_->setStyleSheet("color: #223027;");
 
     messageLabel_ = new QLabel(QString::fromUtf8("Подождите..."), statusFrame);
     messageLabel_->setFont(QFont("Segoe UI", 10));
-    messageLabel_->setStyleSheet("color: #A6ADC8;");
+    messageLabel_->setStyleSheet("color: #66736B;");
 
     errorLabel_ = new QLabel("", statusFrame);
     errorLabel_->setFont(QFont("Segoe UI", 10));
-    errorLabel_->setStyleSheet("color: #F38BA8;");
+    errorLabel_->setStyleSheet("color: #B84A4A;");
     errorLabel_->setVisible(false);
 
     statusLayout->addWidget(stateLabel_);
@@ -62,7 +65,9 @@ void WorkerView::setupUi() {
     // ── Заказ и чек-лист ──────────────────────────────────────────────────────
     auto* orderFrame = new QFrame(this);
     orderFrame->setFrameShape(QFrame::StyledPanel);
-    orderFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
+    orderFrame->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
+        "border-radius: 8px; }");
 
     auto* orderLayout = new QVBoxLayout(orderFrame);
     orderLayout->setContentsMargins(12, 8, 12, 8);
@@ -70,11 +75,11 @@ void WorkerView::setupUi() {
 
     workflowLabel_ = new QLabel(QString::fromUtf8("Тележка свободна"), orderFrame);
     workflowLabel_->setFont(QFont("Segoe UI", 12, QFont::Bold));
-    workflowLabel_->setStyleSheet("color: #A6E3A1;");
+    workflowLabel_->setStyleSheet("color: #2E7D4F;");
 
     orderLabel_ = new QLabel(QString::fromUtf8("Заказ не загружен"), orderFrame);
     orderLabel_->setFont(QFont("Segoe UI", 10));
-    orderLabel_->setStyleSheet("color: #CDD6F4;");
+    orderLabel_->setStyleSheet("color: #223027;");
     orderLabel_->setWordWrap(true);
 
     checklistText_ = new QTextEdit(orderFrame);
@@ -82,8 +87,8 @@ void WorkerView::setupUi() {
     checklistText_->setFixedHeight(92);
     checklistText_->setFont(QFont("Segoe UI", 10));
     checklistText_->setStyleSheet(
-        "QTextEdit { background: #313244; color: #CDD6F4; "
-        "border: 1px solid #585B70; border-radius: 4px; padding: 4px; }"
+        "QTextEdit { background: #F7FAF7; color: #223027; "
+        "border: 1px solid #C9D6CC; border-radius: 4px; padding: 4px; }"
     );
     checklistText_->setPlainText(QString::fromUtf8("Загрузите JSON заказа"));
 
@@ -99,14 +104,16 @@ void WorkerView::setupUi() {
     // ── Панель ввода штрихкода ─────────────────────────────────────────────────
     auto* inputFrame = new QFrame(this);
     inputFrame->setFrameShape(QFrame::StyledPanel);
-    inputFrame->setStyleSheet("QFrame { background: #1E1E2E; border-radius: 8px; }");
+    inputFrame->setStyleSheet(
+        "QFrame { background: #FFFFFF; border: 1px solid #D8E1D9; "
+        "border-radius: 8px; }");
 
     auto* inputLayout = new QHBoxLayout(inputFrame);
     inputLayout->setContentsMargins(12, 8, 12, 8);
     inputLayout->setSpacing(8);
 
     auto* barcodeLabel = new QLabel(QString::fromUtf8("Штрихкод:"), inputFrame);
-    barcodeLabel->setStyleSheet("color: #CDD6F4;");
+    barcodeLabel->setStyleSheet("color: #223027;");
     barcodeLabel->setFont(QFont("Segoe UI", 10));
 
     barcodeEdit_ = new QLineEdit(inputFrame);
@@ -115,37 +122,37 @@ void WorkerView::setupUi() {
     barcodeEdit_->setFont(QFont("Segoe UI", 11));
     barcodeEdit_->setMinimumWidth(280);
     barcodeEdit_->setStyleSheet(
-        "QLineEdit { background: #313244; color: #CDD6F4; "
-        "border: 1px solid #585B70; border-radius: 4px; padding: 4px 8px; }"
-        "QLineEdit:focus { border-color: #89B4FA; }"
+        "QLineEdit { background: #F7FAF7; color: #223027; "
+        "border: 1px solid #C9D6CC; border-radius: 4px; padding: 4px 8px; }"
+        "QLineEdit:focus { border-color: #2E7D4F; }"
     );
 
     importButton_ = new QPushButton(QString::fromUtf8("Загрузить заказ"), inputFrame);
     importButton_->setFont(QFont("Segoe UI", 10));
     importButton_->setStyleSheet(
-        "QPushButton { background: #A6E3A1; color: #1E1E2E; "
+        "QPushButton { background: #2E7D4F; color: #FFFFFF; "
         "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #94E2D5; }"
-        "QPushButton:pressed { background: #40A02B; }"
+        "QPushButton:hover { background: #3F9362; }"
+        "QPushButton:pressed { background: #24663F; }"
     );
 
     scanButton_ = new QPushButton(QString::fromUtf8("Сканировать"), inputFrame);
     scanButton_->setFont(QFont("Segoe UI", 10));
     scanButton_->setStyleSheet(
-        "QPushButton { background: #89B4FA; color: #1E1E2E; "
+        "QPushButton { background: #4E8F61; color: #FFFFFF; "
         "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #B4BEFE; }"
-        "QPushButton:pressed { background: #74C7EC; }"
+        "QPushButton:hover { background: #63A875; }"
+        "QPushButton:pressed { background: #3E744E; }"
     );
 
     cancelButton_ = new QPushButton(QString::fromUtf8("Отмена"), inputFrame);
     cancelButton_->setFont(QFont("Segoe UI", 10));
     cancelButton_->setEnabled(false);
     cancelButton_->setStyleSheet(
-        "QPushButton { background: #F38BA8; color: #1E1E2E; "
+        "QPushButton { background: #B85C5C; color: #FFFFFF; "
         "border-radius: 4px; padding: 6px 16px; font-weight: bold; }"
-        "QPushButton:hover { background: #EBA0AC; }"
-        "QPushButton:disabled { background: #45475A; color: #585B70; }"
+        "QPushButton:hover { background: #C66F6F; }"
+        "QPushButton:disabled { background: #D7DED8; color: #8B968F; }"
     );
 
     inputLayout->addWidget(barcodeLabel);
@@ -155,8 +162,66 @@ void WorkerView::setupUi() {
     inputLayout->addWidget(cancelButton_);
     rootLayout->addWidget(inputFrame);
 
+    // ── Этапы маршрута тележки ────────────────────────────────────────────────
+    auto* workflowFrame = new QFrame(this);
+    workflowFrame->setFrameShape(QFrame::StyledPanel);
+    workflowFrame->setStyleSheet(
+        "QFrame { background: #EEF5EF; border: 1px solid #D8E1D9; "
+        "border-radius: 8px; }");
+
+    auto* workflowLayout = new QGridLayout(workflowFrame);
+    workflowLayout->setContentsMargins(12, 8, 12, 8);
+    workflowLayout->setHorizontalSpacing(8);
+    workflowLayout->setVerticalSpacing(8);
+
+    auto makeWorkflowButton = [workflowFrame](const QString& text) {
+        auto* button = new QPushButton(text, workflowFrame);
+        button->setFont(QFont("Segoe UI", 10));
+        button->setStyleSheet(
+            "QPushButton { background: #D9EADD; color: #223027; "
+            "border: 1px solid #A9C8B1; border-radius: 4px; "
+            "padding: 6px 10px; font-weight: bold; }"
+            "QPushButton:hover { background: #C8E0CE; }"
+            "QPushButton:pressed { background: #B5D2BD; }"
+        );
+        return button;
+    };
+
+    arrivedFeederButton_ =
+        makeWorkflowButton(QString::fromUtf8("Прибыла к питателям"));
+    startFeederPrepButton_ =
+        makeWorkflowButton(QString::fromUtf8("Начать подготовку"));
+    feederPrepDoneButton_ =
+        makeWorkflowButton(QString::fromUtf8("Питатели готовы"));
+    arrivedLineButton_ =
+        makeWorkflowButton(QString::fromUtf8("Прибыла на линию"));
+    startIssuingButton_ =
+        makeWorkflowButton(QString::fromUtf8("Начать выдачу"));
+    issueButton_ =
+        makeWorkflowButton(QString::fromUtf8("Выдать штрихкод"));
+    completeIssuingButton_ =
+        makeWorkflowButton(QString::fromUtf8("Завершить выдачу"));
+    inspectLeftoversButton_ =
+        makeWorkflowButton(QString::fromUtf8("Проверить остатки"));
+    startReturnButton_ =
+        makeWorkflowButton(QString::fromUtf8("Начать возврат"));
+    returnLeftoverButton_ =
+        makeWorkflowButton(QString::fromUtf8("Вернуть остаток"));
+
+    workflowLayout->addWidget(arrivedFeederButton_, 0, 0);
+    workflowLayout->addWidget(startFeederPrepButton_, 0, 1);
+    workflowLayout->addWidget(feederPrepDoneButton_, 0, 2);
+    workflowLayout->addWidget(arrivedLineButton_, 1, 0);
+    workflowLayout->addWidget(startIssuingButton_, 1, 1);
+    workflowLayout->addWidget(issueButton_, 1, 2);
+    workflowLayout->addWidget(completeIssuingButton_, 2, 0);
+    workflowLayout->addWidget(inspectLeftoversButton_, 2, 1);
+    workflowLayout->addWidget(startReturnButton_, 2, 2);
+    workflowLayout->addWidget(returnLeftoverButton_, 3, 0, 1, 3);
+    rootLayout->addWidget(workflowFrame);
+
     setLayout(rootLayout);
-    setStyleSheet("WorkerView { background: #181825; }");
+    setStyleSheet("WorkerView { background: #F0F4F1; }");
 
     // Автофокус на поле ввода при старте
     barcodeEdit_->setFocus();
@@ -180,6 +245,26 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onBarcodeSubmitted);
     connect(cancelButton_, &QPushButton::clicked,
             this, &WorkerView::onCancelClicked);
+    connect(arrivedFeederButton_, &QPushButton::clicked,
+            this, &WorkerView::onArrivedFeederClicked);
+    connect(startFeederPrepButton_, &QPushButton::clicked,
+            this, &WorkerView::onStartFeederPrepClicked);
+    connect(feederPrepDoneButton_, &QPushButton::clicked,
+            this, &WorkerView::onFeederPrepDoneClicked);
+    connect(arrivedLineButton_, &QPushButton::clicked,
+            this, &WorkerView::onArrivedLineClicked);
+    connect(startIssuingButton_, &QPushButton::clicked,
+            this, &WorkerView::onStartIssuingClicked);
+    connect(issueButton_, &QPushButton::clicked,
+            this, &WorkerView::onIssueMaterialClicked);
+    connect(completeIssuingButton_, &QPushButton::clicked,
+            this, &WorkerView::onCompleteIssuingClicked);
+    connect(inspectLeftoversButton_, &QPushButton::clicked,
+            this, &WorkerView::onInspectLeftoversClicked);
+    connect(startReturnButton_, &QPushButton::clicked,
+            this, &WorkerView::onStartReturnClicked);
+    connect(returnLeftoverButton_, &QPushButton::clicked,
+            this, &WorkerView::onReturnLeftoverClicked);
 
     // Управление кнопками по состоянию автомата
     connect(&viewModel_.stateMachineRef(),  
@@ -252,4 +337,48 @@ void WorkerView::onBarcodeSubmitted() {
 
 void WorkerView::onCancelClicked() {
     viewModel_.cancelCurrentOperation();
+}
+
+void WorkerView::onArrivedFeederClicked() {
+    viewModel_.markCartArrivedToFeederPrep();
+}
+
+void WorkerView::onStartFeederPrepClicked() {
+    viewModel_.startFeederPrep();
+}
+
+void WorkerView::onFeederPrepDoneClicked() {
+    viewModel_.markFeederPrepCompleted();
+}
+
+void WorkerView::onArrivedLineClicked() {
+    viewModel_.markCartArrivedToLine();
+}
+
+void WorkerView::onStartIssuingClicked() {
+    viewModel_.startIssuingToLine();
+}
+
+void WorkerView::onIssueMaterialClicked() {
+    viewModel_.markItemIssued(barcodeEdit_->text().trimmed());
+    barcodeEdit_->clear();
+    barcodeEdit_->setFocus();
+}
+
+void WorkerView::onCompleteIssuingClicked() {
+    viewModel_.completeIssuing();
+}
+
+void WorkerView::onInspectLeftoversClicked() {
+    viewModel_.inspectLeftovers();
+}
+
+void WorkerView::onStartReturnClicked() {
+    viewModel_.startReturningLeftovers();
+}
+
+void WorkerView::onReturnLeftoverClicked() {
+    viewModel_.markLeftoverReturned(barcodeEdit_->text().trimmed());
+    barcodeEdit_->clear();
+    barcodeEdit_->setFocus();
 }

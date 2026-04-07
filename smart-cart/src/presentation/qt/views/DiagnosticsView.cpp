@@ -27,7 +27,9 @@ DiagnosticsView::DiagnosticsView(QWidget* parent)
     logLabel_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     logLabel_->setWordWrap(true);
     logLabel_->setFont(QFont("Courier New", 9));
-    logLabel_->setStyleSheet("color: #CDD6F4; background: #1E1E2E; padding: 8px;");
+    logLabel_->setStyleSheet(
+        "color: #223027; background: #FFFFFF; "
+        "border: 1px solid #D8E1D9; border-radius: 4px; padding: 8px;");
     logFrame->setWidget(logLabel_);
     logFrame->setWidgetResizable(true);
     root->addWidget(logFrame, 1);

@@ -6,6 +6,7 @@
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IStm32Link.hpp"
 #include "application/ports/IWorkflowRepository.hpp"
+#include "application/services/WorkflowService.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
@@ -46,6 +47,7 @@ public:
         ports::IOperationRepository& opRepo,
         ports::IOrderRepository& orderRepo,
         ports::IWorkflowRepository& workflowRepo,
+        WorkflowService& workflowSvc,
         ports::IEventLogger&    eventLogger,
         Stm32PollingConfig      config
     );
@@ -74,6 +76,7 @@ private:
     ports::IOperationRepository& opRepo_;
     ports::IOrderRepository& orderRepo_;
     ports::IWorkflowRepository& workflowRepo_;
+    WorkflowService& workflowSvc_;
     ports::IEventLogger&    eventLogger_;
     Stm32PollingConfig      config_;
 
