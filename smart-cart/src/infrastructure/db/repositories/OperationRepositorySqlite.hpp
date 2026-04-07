@@ -17,6 +17,7 @@ public:
 
     int  add(const domain::Operation& op)                        override;
     bool updateStatus(int id, domain::OperationStatus status)    override;
+    bool updateSlot(int id, int moduleId, int slotIndex)         override;
 
     std::vector<domain::Operation>   getUnfinished()             override;
     std::optional<domain::Operation> getById(int id)             override;

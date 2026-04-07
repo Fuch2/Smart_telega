@@ -3,10 +3,13 @@
 #include "infrastructure/db/SqliteConnection.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/OperationRepositorySqlite.hpp"
+#include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/AddReelService.hpp"
+#include "application/services/Stm32PollingService.hpp"
 #include "domain/entities/Operation.hpp"
 
 #include <gtest/gtest.h>
+#include <atomic>
 #include <chrono>
 #include <thread>
 
@@ -114,4 +117,50 @@ TEST_F(AddReelFlowTest, NoFreeSlots_ReturnsError) {
 
     EXPECT_EQ(svc.start("BARCODE-002"), -1);
     EXPECT_EQ(gotCode, domain::ErrorCode::NoFreeSlot);
+}
+
+TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
+    std::atomic<uint8_t> mask0{0x00};
+
+    MockStm32Link link([&mask0](const Frame& cmd) -> std::optional<Frame> {
+        Frame resp;
+        resp.seq   = cmd.seq;
+        resp.cmdId = cmd.cmdId;
+
+        if (cmd.cmdId == CommandId::GetSwitchSnapshot ||
+            static_cast<uint8_t>(cmd.cmdId) == 0x04)
+        {
+            resp.type    = FrameType::Resp;
+            resp.payload = {mask0.load(), 0x00, 0x00};
+        } else {
+            resp.type = FrameType::Ack;
+        }
+        return resp;
+    });
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.trackedChannels = {1, 3};
+    cfg.ignoredChannels = {11};
+
+    Stm32PollingService svc(link, *reelRepo_, *opRepo_, logger, cfg);
+    const auto opId = svc.recordBarcodeScan("REEL-PA1");
+    ASSERT_TRUE(opId.has_value());
+
+    mask0.store(0x02); // channel 1 -> domain slot 2
+    svc.pollOnce();
+
+    const auto reel = reelRepo_->getBySlot(1, 2);
+    ASSERT_TRUE(reel.has_value());
+    EXPECT_EQ(reel->barcode, "REEL-PA1");
+
+    const auto op = opRepo_->getById(*opId);
+    ASSERT_TRUE(op.has_value());
+    EXPECT_EQ(op->slotIndex, 2);
+    EXPECT_EQ(op->status, domain::OperationStatus::Completed);
 }

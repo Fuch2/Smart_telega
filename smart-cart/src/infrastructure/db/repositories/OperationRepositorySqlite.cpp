@@ -106,6 +106,23 @@ bool OperationRepositorySqlite::updateStatus(int id, OperationStatus status) {
     return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
 }
 
+bool OperationRepositorySqlite::updateSlot(int id, int moduleId, int slotIndex) {
+    const char* sql =
+        "UPDATE operations "
+        "SET module_id = ?, slot_index = ? "
+        "WHERE id = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, moduleId);
+    sqlite3_bind_int(stmt, 2, slotIndex);
+    sqlite3_bind_int(stmt, 3, id);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+}
+
 std::vector<Operation> OperationRepositorySqlite::getUnfinished() {
     const char* sql =
         "SELECT id, type, status, module_id, slot_index, barcode,"

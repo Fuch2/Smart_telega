@@ -25,7 +25,7 @@ AppStateMachine::AppStateMachine(
     services::ReplaceReelService& replaceReelSvc,
     services::RecoveryService&    recoverySvc,
     ports::IReelRepository&       reelRepo,
-    ports::IEventLogger&          eventLogger,
+    services::Stm32PollingService& pollingSvc,
     QObject*                      parent)
     : QObject(parent)
     , startupSvc_(startupSvc)
@@ -33,7 +33,7 @@ AppStateMachine::AppStateMachine(
     , replaceReelSvc_(replaceReelSvc)
     , recoverySvc_(recoverySvc)
     , reelRepo_(reelRepo)
-    , eventLogger_(eventLogger)
+    , pollingSvc_(pollingSvc)
 {}
 
 void AppStateMachine::transition(AppState newState) {
@@ -79,73 +79,20 @@ void AppStateMachine::startup() {
 
 void AppStateMachine::scanBarcode(const QString& barcode) {
     const QString trimmedBarcode = barcode.trimmed();
-    if (!trimmedBarcode.isEmpty()) {
-        try {
-            eventLogger_.log("INFO",
-                             "BarcodeScanned",
-                             trimmedBarcode.toStdString());
-        } catch (...) {
-            emit errorOccurred(ErrorCode::PersistenceError,
-                               "Не удалось записать сканирование в БД");
-        }
+    if (trimmedBarcode.isEmpty()) {
+        emit errorOccurred(ErrorCode::InvalidBarcode,
+                           "Пустой штрихкод проигнорирован");
+        return;
     }
 
-    if (state_ != AppState::Ready) return;
-
-    transition(AppState::Operating);
-
-    const std::string barcodeStr = trimmedBarcode.toStdString();
-
-    auto toQColor = [this](int slotIdx, services::RgbColor c) {
-        emit slotHighlighted(slotIdx, QColor(c.r, c.g, c.b));
-    };
-
-    auto onComplete = [this](int opId, OperationStatus status) {
-        emit operationFinished(opId, status);
-        transition(AppState::Ready);
-    };
-
-    replaceReelSvc_.setCompletionCallback(onComplete);
-    replaceReelSvc_.setSlotHighlightCallback(toQColor);
-    replaceReelSvc_.setErrorCallback(
-        [this, barcodeStr, toQColor, onComplete]
-        (ErrorCode code, std::string /*msg*/) mutable
-        {
-            if (code != ErrorCode::ReelNotFound) {
-                emit errorOccurred(code, QString::fromStdString(
-                    std::string(toString(code))));
-                transition(AppState::Ready);
-                return;
-            }
-
-            addReelSvc_.setCompletionCallback(onComplete);
-            addReelSvc_.setSlotHighlightCallback(toQColor);
-            addReelSvc_.setErrorCallback(
-                [this](ErrorCode c, std::string m) {
-                    emit errorOccurred(c, QString::fromStdString(m));
-                    transition(AppState::Ready);
-                }
-            );
-
-            const int addOpId = addReelSvc_.start(barcodeStr);
-            if (addOpId >= 0) {
-                emit operationStarted(addOpId, OperationType::AddReel);
-            } else {
-                transition(AppState::Ready);
-            }
-        }
-    );
-
-    const int replaceOpId = replaceReelSvc_.start(barcodeStr);
-    if (replaceOpId >= 0) {
-        emit operationStarted(replaceOpId, OperationType::ReplaceReel);
-    } else {
-        // start() вернул -1 синхронно (невалидный баркод отклонён до потока)
-        // onError_ будет вызван из start() — он сам вызовет transition(Ready)
-        // через addReelSvc_ ветку. Но если onError_ не вызван (баркод невалиден
-        // на уровне ReplaceReelService до запуска потока) — возвращаем Ready.
-        transition(AppState::Ready);
+    const auto opId = pollingSvc_.recordBarcodeScan(trimmedBarcode.toStdString());
+    if (!opId.has_value()) {
+        emit errorOccurred(ErrorCode::PersistenceError,
+                           "Не удалось записать сканирование в БД");
+        return;
     }
+
+    emit operationStarted(*opId, OperationType::AddReel);
 }
 
 void AppStateMachine::cancelCurrentOperation() {

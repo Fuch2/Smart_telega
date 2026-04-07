@@ -20,6 +20,9 @@ public:
     /// для терминальных статусов (Completed / Cancelled / Failed).
     virtual bool updateStatus(int id, domain::OperationStatus status) = 0;
 
+    /// Назначить слот операции после физического выбора PA1/PA2.
+    virtual bool updateSlot(int id, int moduleId, int slotIndex) = 0;
+
     /// Незавершённые операции — для RecoveryService.
     virtual std::vector<domain::Operation> getUnfinished() = 0;
     virtual std::optional<domain::Operation> getById(int id) = 0;

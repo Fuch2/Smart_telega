@@ -115,7 +115,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     pollingCfg.ignoredChannels = {11};
 
     pollingSvc_ = std::make_unique<Stm32PollingService>(
-        *stm32Link_, *reelRepo_, *eventLogger_, pollingCfg
+        *stm32Link_, *reelRepo_, *opRepo_, *eventLogger_, pollingCfg
     );
 
     // ── 6. State machine ──────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *replaceReelSvc_,
         *recoverySvc_,
         *reelRepo_,
-        *eventLogger_
+        *pollingSvc_
     );
 
     // ── 7. ViewModels ─────────────────────────────────────────────────────────

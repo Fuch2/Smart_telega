@@ -1,11 +1,28 @@
 #include "SqliteEventLogger.hpp"
 #include <sqlite3.h>
 #include <stdexcept>
+#include <string>
 
 namespace smartcart::infrastructure::logging {
 
 SqliteEventLogger::SqliteEventLogger(sqlite3* db) : db_(db) {
     if (!db_) throw std::runtime_error("SqliteEventLogger: db is null");
+
+    const char* sql =
+        "CREATE TABLE IF NOT EXISTS event_log ("
+        "  id      INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  ts      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+        "  level   TEXT     NOT NULL,"
+        "  code    TEXT     NOT NULL,"
+        "  message TEXT     NOT NULL"
+        ");";
+    char* errMsg = nullptr;
+    const int rc = sqlite3_exec(db_, sql, nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        std::string err = errMsg ? errMsg : "unknown sqlite error";
+        sqlite3_free(errMsg);
+        throw std::runtime_error("SqliteEventLogger: schema failed: " + err);
+    }
 }
 
 void SqliteEventLogger::log(std::string_view level, std::string_view code, std::string_view message) {

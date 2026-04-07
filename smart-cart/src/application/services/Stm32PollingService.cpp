@@ -1,9 +1,11 @@
 #include "application/services/Stm32PollingService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
+#include "domain/entities/Operation.hpp"
 #include "domain/entities/Slot.hpp"
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <exception>
 #include <sstream>
 #include <string>
@@ -32,15 +34,31 @@ std::vector<bool> parseSnapshotPayload(const std::vector<uint8_t>& payload,
     return result;
 }
 
+std::string trimCopy(const std::string& value) {
+    auto begin = std::find_if_not(value.begin(), value.end(), [](unsigned char ch) {
+        return std::isspace(ch) != 0;
+    });
+    auto end = std::find_if_not(value.rbegin(), value.rend(), [](unsigned char ch) {
+        return std::isspace(ch) != 0;
+    }).base();
+
+    if (begin >= end) {
+        return {};
+    }
+    return std::string(begin, end);
+}
+
 } // namespace
 
 Stm32PollingService::Stm32PollingService(
     ports::IStm32Link&      link,
     ports::IReelRepository& reelRepo,
+    ports::IOperationRepository& opRepo,
     ports::IEventLogger&    eventLogger,
     Stm32PollingConfig      config)
     : link_(link)
     , reelRepo_(reelRepo)
+    , opRepo_(opRepo)
     , eventLogger_(eventLogger)
     , config_(std::move(config))
 {}
@@ -94,6 +112,41 @@ void Stm32PollingService::pollOnce() {
         logSafe("ERROR", "Stm32PollingError", ex.what());
     } catch (...) {
         logSafe("ERROR", "Stm32PollingError", "Неизвестная ошибка polling");
+    }
+}
+
+std::optional<int> Stm32PollingService::recordBarcodeScan(
+    const std::string& barcode)
+{
+    const std::string normalized = trimCopy(barcode);
+    if (normalized.empty()) {
+        logSafe("WARN", "BarcodeIgnored", "Пустой штрихкод проигнорирован");
+        return std::nullopt;
+    }
+
+    domain::Operation op;
+    op.type = domain::OperationType::AddReel;
+    op.status = domain::OperationStatus::InProgress;
+    op.moduleId = config_.moduleId;
+    op.slotIndex = 0;
+    op.barcode = normalized;
+
+    try {
+        const int opId = opRepo_.add(op);
+        {
+            std::lock_guard lock(pendingMtx_);
+            if (pendingScan_.has_value()) {
+                opRepo_.updateStatus(pendingScan_->operationId,
+                                     domain::OperationStatus::Cancelled);
+            }
+            pendingScan_ = PendingScan{normalized, opId};
+        }
+
+        logSafe("INFO", "BarcodeScanned", normalized);
+        return opId;
+    } catch (const std::exception& ex) {
+        logSafe("ERROR", "BarcodeScanSaveFailed", ex.what());
+        return std::nullopt;
     }
 }
 
@@ -160,9 +213,72 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
         logSafe(saved ? "INFO" : "ERROR",
                 saved ? "SwitchChanged" : "SwitchStateSaveFailed",
                 msg.str());
+
+        if (occupied) {
+            handleOccupiedSlot(channel, slotIndex);
+        } else {
+            handleFreedSlot(channel, slotIndex);
+        }
     }
 
     lastSnapshot_ = snapshot;
+}
+
+void Stm32PollingService::handleOccupiedSlot(int channel, int slotIndex) {
+    const auto pending = consumePendingScan();
+    if (!pending.has_value()) {
+        return;
+    }
+
+    try {
+        if (reelRepo_.hasActiveRecord(config_.moduleId, slotIndex)) {
+            reelRepo_.markRemovedBySlot(config_.moduleId, slotIndex);
+        }
+
+        reelRepo_.addRecord(config_.moduleId, slotIndex, pending->barcode);
+        reelRepo_.setSlotState(config_.moduleId,
+                               slotIndex,
+                               domain::SlotState::Occupied);
+        opRepo_.updateSlot(pending->operationId, config_.moduleId, slotIndex);
+        opRepo_.updateStatus(pending->operationId,
+                             domain::OperationStatus::Completed);
+
+        std::ostringstream msg;
+        msg << "channel=" << channel
+            << " slot=" << slotIndex
+            << " barcode=" << pending->barcode
+            << " operation_id=" << pending->operationId;
+        logSafe("INFO", "ReelPlacedBySwitch", msg.str());
+    } catch (const std::exception& ex) {
+        opRepo_.updateStatus(pending->operationId,
+                             domain::OperationStatus::Failed);
+        logSafe("ERROR", "ReelPlaceFailed", ex.what());
+    }
+}
+
+void Stm32PollingService::handleFreedSlot(int channel, int slotIndex) {
+    try {
+        const bool removed =
+            reelRepo_.markRemovedBySlot(config_.moduleId, slotIndex);
+        if (!removed) {
+            return;
+        }
+
+        std::ostringstream msg;
+        msg << "channel=" << channel
+            << " slot=" << slotIndex;
+        logSafe("INFO", "ReelRemovedBySwitch", msg.str());
+    } catch (const std::exception& ex) {
+        logSafe("ERROR", "ReelRemoveFailed", ex.what());
+    }
+}
+
+std::optional<Stm32PollingService::PendingScan>
+Stm32PollingService::consumePendingScan() {
+    std::lock_guard lock(pendingMtx_);
+    auto pending = pendingScan_;
+    pendingScan_.reset();
+    return pending;
 }
 
 bool Stm32PollingService::isIgnoredChannel(int channel) const {

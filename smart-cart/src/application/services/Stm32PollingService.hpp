@@ -1,11 +1,14 @@
 #pragma once
 
 #include "application/ports/IEventLogger.hpp"
+#include "application/ports/IOperationRepository.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IStm32Link.hpp"
 
 #include <atomic>
+#include <mutex>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <thread>
 #include <vector>
@@ -27,6 +30,7 @@ public:
     Stm32PollingService(
         ports::IStm32Link&      link,
         ports::IReelRepository& reelRepo,
+        ports::IOperationRepository& opRepo,
         ports::IEventLogger&    eventLogger,
         Stm32PollingConfig      config
     );
@@ -37,11 +41,20 @@ public:
 
     void start();
     void stop();
+    void pollOnce();
     bool isRunning() const noexcept { return running_.load(); }
 
+    std::optional<int> recordBarcodeScan(const std::string& barcode);
+
 private:
+    struct PendingScan {
+        std::string barcode;
+        int operationId = 0;
+    };
+
     ports::IStm32Link&      link_;
     ports::IReelRepository& reelRepo_;
+    ports::IOperationRepository& opRepo_;
     ports::IEventLogger&    eventLogger_;
     Stm32PollingConfig      config_;
 
@@ -49,11 +62,15 @@ private:
     std::thread       thread_;
 
     std::optional<std::vector<bool>> lastSnapshot_;
+    std::mutex pendingMtx_;
+    std::optional<PendingScan> pendingScan_;
 
     void pollLoop();
-    void pollOnce();
     std::optional<std::vector<bool>> requestSnapshot();
     void applySnapshot(const std::vector<bool>& snapshot);
+    void handleOccupiedSlot(int channel, int slotIndex);
+    void handleFreedSlot(int channel, int slotIndex);
+    std::optional<PendingScan> consumePendingScan();
 
     bool isIgnoredChannel(int channel) const;
     bool isTrackedChannel(int channel) const;
