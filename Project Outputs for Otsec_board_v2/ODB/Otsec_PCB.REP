@@ -1,0 +1,610 @@
+*************************************************************
+FileName = Otsec_PCB.PcbDoc
+ODB++ directory structure
+*************************************************************
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\matrix\matrix
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\profile
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\stephdr
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_overlay\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_overlay\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_paste\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_paste\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_solder\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_solder\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_layer\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\top_layer\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\internal_plane_1\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\internal_plane_1\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_layer\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_layer\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_solder\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_solder\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_paste\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_paste\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_overlay\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\bottom_overlay\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\drill\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\drill\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\drill\tools
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\keep-out_layer\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\keep-out_layer\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_1\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_1\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_13\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_13\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_15\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\mechanical_15\attrlist
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\comp_+_top\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\comp_+_top\components
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\comp_+_bot\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\layers\comp_+_bot\components
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\steps\pcb\eda\data
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect66.9291x23.622xr5.9055_225\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect66.9291x23.622xr5.9055_315\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect10x59.0551_225\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect10x59.0551_315\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect35.4331x23.622_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.622x19.685_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s11.811_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect7.874x7.0866xr0.8858_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect23.6221x23.6221_315\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect74.9291x31.622xr9.9055_225\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect74.9291x31.622xr9.9055_315\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect18x67.0551_225\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect18x67.0551_315\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect43.4331x31.622_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect31.622x27.685_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_20\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\s19.811_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_210\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_240\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_340\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_160\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_230\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_350\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_170\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_250\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_220\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_200\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_260\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_190\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_120\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_110\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_150\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_140\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_130\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_330\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_290\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_280\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_300\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_70\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_40\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_60\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_100\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_30\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_310\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_80\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_50\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_10\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_320\features
+
+Generated File : D:\Ostec Board (tesser version)\Otsec_demo_PCB\Otsec_board\Project Outputs for Otsec_board\ODB\odb\symbols\rect15.874x15.0866xr4.8858_20\features
+

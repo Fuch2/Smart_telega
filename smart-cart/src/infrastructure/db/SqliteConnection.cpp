@@ -1,139 +1,173 @@
-// ===== src/infrastructure/db/SqliteConnection.cpp =====
-// Исправлено: убраны кириллица-мусор в сообщениях об ошибках
 #include "infrastructure/db/SqliteConnection.hpp"
 
-#include <sqlite3.h>
-
-#include <algorithm>
+#include <filesystem>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
 
 namespace smartcart::infrastructure::db {
+namespace {
 
-SqliteConnection::SqliteConnection(const std::string& path) {
-    if (sqlite3_open(path.c_str(), &db_) != SQLITE_OK) {
-        std::string err = sqlite3_errmsg(db_);
-        sqlite3_close(db_);
-        db_ = nullptr;
-        throw std::runtime_error(
-            "SqliteConnection: failed to open database: " + err);
+std::string readFileToString(const std::filesystem::path& filePath) {
+    std::ifstream in(filePath, std::ios::in | std::ios::binary);
+    if (!in.is_open()) {
+        throw std::runtime_error("Не удалось открыть файл миграции: " + filePath.string());
     }
-    execute("PRAGMA journal_mode=WAL;");
-    execute("PRAGMA foreign_keys=ON;");
+
+    std::ostringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+}
+
+void execSql(sqlite3* db, const std::string& sql) {
+    char* errMsg = nullptr;
+    const int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        std::string err = errMsg ? errMsg : "unknown sqlite error";
+        sqlite3_free(errMsg);
+        throw std::runtime_error("Ошибка выполнения SQL: " + err);
+    }
+}
+
+std::set<std::string> loadAppliedMigrations(sqlite3* db) {
+    std::set<std::string> applied;
+
+    const char* query = "SELECT name FROM schema_migrations;";
+    sqlite3_stmt* stmt = nullptr;
+
+    const int rcPrepare = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rcPrepare != SQLITE_OK) {
+        throw std::runtime_error("Не удалось подготовить SELECT schema_migrations");
+    }
+
+    while (true) {
+        const int rcStep = sqlite3_step(stmt);
+        if (rcStep == SQLITE_ROW) {
+            const unsigned char* text = sqlite3_column_text(stmt, 0);
+            if (text != nullptr) {
+                applied.emplace(reinterpret_cast<const char*>(text));
+            }
+            continue;
+        }
+        if (rcStep == SQLITE_DONE) {
+            break;
+        }
+
+        sqlite3_finalize(stmt);
+        throw std::runtime_error("Ошибка чтения schema_migrations");
+    }
+
+    sqlite3_finalize(stmt);
+    return applied;
+}
+
+void insertAppliedMigration(sqlite3* db, const std::string& migrationName) {
+    const char* insertSql =
+        "INSERT INTO schema_migrations(name, applied_at) VALUES(?, datetime('now'));";
+
+    sqlite3_stmt* stmt = nullptr;
+    const int rcPrepare = sqlite3_prepare_v2(db, insertSql, -1, &stmt, nullptr);
+    if (rcPrepare != SQLITE_OK) {
+        throw std::runtime_error("Не удалось подготовить INSERT schema_migrations");
+    }
+
+    sqlite3_bind_text(stmt, 1, migrationName.c_str(), -1, SQLITE_TRANSIENT);
+
+    const int rcStep = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    if (rcStep != SQLITE_DONE) {
+        throw std::runtime_error("Не удалось записать применённую миграцию: " + migrationName);
+    }
+}
+
+} // namespace
+
+SqliteConnection::SqliteConnection(const std::string& sqlitePath) {
+    const int rc = sqlite3_open(sqlitePath.c_str(), &db_);
+    if (rc != SQLITE_OK || db_ == nullptr) {
+        const std::string err = db_ ? sqlite3_errmsg(db_) : "sqlite3_open вернул null db";
+        if (db_ != nullptr) {
+            sqlite3_close(db_);
+            db_ = nullptr;
+        }
+        throw std::runtime_error("Не удалось открыть SQLite БД: " + err);
+    }
 }
 
 SqliteConnection::~SqliteConnection() {
-    if (db_) {
+    if (db_ != nullptr) {
         sqlite3_close(db_);
         db_ = nullptr;
     }
 }
 
-void SqliteConnection::execute(const std::string& sql) {
-    char* errMsg = nullptr;
-    const int rc = sqlite3_exec(db_, sql.c_str(), nullptr, nullptr, &errMsg);
-    if (rc != SQLITE_OK) {
-        std::string err = errMsg ? errMsg : "unknown error";
-        sqlite3_free(errMsg);
-        throw std::runtime_error(
-            "SqliteConnection::execute failed: " + err + "\nSQL: " + sql);
+sqlite3* SqliteConnection::handle() const noexcept {
+    return db_;
+}
+
+void SqliteConnection::runMigrations(const std::string& migrationsDir) {
+    if (db_ == nullptr) {
+        throw std::runtime_error("runMigrations: SQLite соединение не инициализировано");
     }
-}
 
-void SqliteConnection::ensureMigrationsTable() {
-    execute(R"sql(
-        CREATE TABLE IF NOT EXISTS schema_migrations (
-            filename   TEXT PRIMARY KEY NOT NULL,
-            applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-        );
-    )sql");
-}
+    // Таблица учёта применённых миграций
+    execSql(
+        db_,
+        "CREATE TABLE IF NOT EXISTS schema_migrations ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "name TEXT NOT NULL UNIQUE,"
+        "applied_at TEXT NOT NULL"
+        ");"
+    );
 
-bool SqliteConnection::isMigrationApplied(const std::string& filename) {
-    const char* sql =
-        "SELECT COUNT(*) FROM schema_migrations WHERE filename = ?;";
-    sqlite3_stmt* stmt = nullptr;
+    std::filesystem::path dirPath(migrationsDir);
+    if (!std::filesystem::exists(dirPath) || !std::filesystem::is_directory(dirPath)) {
+        throw std::runtime_error("Каталог миграций не найден: " + migrationsDir);
+    }
 
-    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK)
-        throw std::runtime_error(
-            "SqliteConnection::isMigrationApplied: prepare failed");
-
-    sqlite3_bind_text(stmt, 1, filename.c_str(), -1, SQLITE_STATIC);
-
-    int count = 0;
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-        count = sqlite3_column_int(stmt, 0);
-
-    sqlite3_finalize(stmt);
-    return count > 0;
-}
-
-void SqliteConnection::recordMigration(const std::string& filename) {
-    const char* sql =
-        "INSERT INTO schema_migrations (filename) VALUES (?);";
-    sqlite3_stmt* stmt = nullptr;
-
-    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK)
-        throw std::runtime_error(
-            "SqliteConnection::recordMigration: prepare failed");
-
-    sqlite3_bind_text(stmt, 1, filename.c_str(), -1, SQLITE_STATIC);
-
-    const int rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-
-    if (rc != SQLITE_DONE)
-        throw std::runtime_error(
-            "SqliteConnection::recordMigration: step failed");
-}
-
-void SqliteConnection::runMigrations(
-    const std::filesystem::path& migrationsDir)
-{
-    ensureMigrationsTable();
-
-    std::vector<std::filesystem::path> files;
-    for (const auto& entry :
-         std::filesystem::directory_iterator(migrationsDir))
-    {
-        if (entry.is_regular_file() &&
-            entry.path().extension() == ".sql")
-        {
-            files.push_back(entry.path());
+    std::vector<std::filesystem::path> migrationFiles;
+    for (const auto& entry : std::filesystem::directory_iterator(dirPath)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+        const auto& p = entry.path();
+        if (p.extension() == ".sql") {
+            migrationFiles.push_back(p);
         }
     }
-    std::sort(files.begin(), files.end());
 
-    for (const auto& filePath : files) {
-        const std::string filename = filePath.filename().string();
-        if (isMigrationApplied(filename))
-            continue;
+    std::sort(migrationFiles.begin(), migrationFiles.end(),
+              [](const auto& a, const auto& b) {
+                  return a.filename().string() < b.filename().string();
+              });
 
-        std::ifstream file(filePath);
-        if (!file.is_open())
-            throw std::runtime_error(
-                "runMigrations: failed to open " + filePath.string());
+    const std::set<std::string> applied = loadAppliedMigrations(db_);
 
-        std::ostringstream ss;
-        ss << file.rdbuf();
+    for (const auto& filePath : migrationFiles) {
+        const std::string fileName = filePath.filename().string();
+        if (applied.find(fileName) != applied.end()) {
+            continue; // Уже применено
+        }
 
-        transaction([&]() {
-            execute(ss.str());
-            recordMigration(filename);
-        });
-    }
-}
+        const std::string sql = readFileToString(filePath);
 
-void SqliteConnection::transaction(const std::function<void()>& fn) {
-    execute("BEGIN IMMEDIATE;");
-    try {
-        fn();
-        execute("COMMIT;");
-    } catch (...) {
-        execute("ROLLBACK;");
-        throw;
+        execSql(db_, "BEGIN IMMEDIATE TRANSACTION;");
+        try {
+            execSql(db_, sql);
+            insertAppliedMigration(db_, fileName);
+            execSql(db_, "COMMIT;");
+        } catch (...) {
+            try {
+                execSql(db_, "ROLLBACK;");
+            } catch (...) {
+                // Игнорируем вторичную ошибку rollback
+            }
+            throw;
+        }
     }
 }
 

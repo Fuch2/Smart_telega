@@ -1,0 +1,26 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: Otsec_PCB.PcbDoc   22.11.2019  12:40:07
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : Otsec_PCB.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      35mil (0.89mm)                                            Round             8         PTH        0.72inch (18.37mm)
+T2      43mil (1.1mm)                                             Round             48        PTH        5.20inch (132.08mm)
+T3      47mil (1.2mm)                                             Round             200       PTH        31.73inch (805.98mm)
+T4      59mil (1.5mm)                                             Round             10        PTH        1.91inch (48.43mm)
+T5      32mil (0.8mm)                                             Round             1         NPTH       0.00inch (0.00mm)
+T6      47mil (1.2mm)                                             Round             1         NPTH       0.00inch (0.00mm)
+T7      62mil (1.57mm)                                            Round             2         NPTH       0.64inch (16.26mm)
+T8      110mil (2.8mm)                                            Round             2         NPTH       1.94inch (49.36mm)
+T9      128mil (3.25mm)                                           Round             2         NPTH       0.50inch (12.70mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              274
+
+Two holes at same point : 1
+-----------------------
+1647,1940
+
+Total Processing Time (hh:mm:ss) : 00:00:01
