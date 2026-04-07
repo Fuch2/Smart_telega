@@ -294,6 +294,88 @@ TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperatio
     EXPECT_EQ(countEvents(conn_->handle(), "MaterialPlaced"), 1);
 }
 
+TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
+    std::atomic<uint8_t> mask0{0x00};
+
+    MockStm32Link link([&mask0](const Frame& cmd) -> std::optional<Frame> {
+        Frame resp;
+        resp.seq   = cmd.seq;
+        resp.cmdId = cmd.cmdId;
+
+        if (cmd.cmdId == CommandId::GetSwitchSnapshot ||
+            static_cast<uint8_t>(cmd.cmdId) == 0x04)
+        {
+            resp.type    = FrameType::Resp;
+            resp.payload = {mask0.load(), 0x00, 0x00};
+        } else {
+            resp.type = FrameType::Ack;
+        }
+        return resp;
+    });
+    link.open();
+
+    infrastructure::logging::SqliteEventLogger logger(conn_->handle());
+    WorkflowService workflowSvc(
+        *orderRepo_,
+        *workflowRepo_,
+        *reelRepo_,
+        logger,
+        1
+    );
+
+    Stm32PollingConfig cfg;
+    cfg.moduleId = 1;
+    cfg.slotCount = 24;
+    cfg.pollMs = 10;
+    cfg.debounceMs = 0;
+    cfg.snapshotFallbackMs = 1000;
+    cfg.trackedChannels = {1, 3};
+    cfg.ignoredChannels = {11};
+
+    domain::OrderInfo order;
+    order.externalOrderId = "ORDER-EVT-PREFERRED";
+    order.title = "Event preferred order";
+    const int orderId = orderRepo_->addOrder(order);
+
+    domain::OrderItem item;
+    item.orderId = orderId;
+    item.barcode = "REEL-EVT-PREFERRED";
+    item.materialType = "reel";
+    item.targetSlot = 2;
+    orderRepo_->addItem(item);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    Stm32PollingService svc(link,
+                            *reelRepo_,
+                            *opRepo_,
+                            *orderRepo_,
+                            *workflowRepo_,
+                            workflowSvc,
+                            logger,
+                            cfg);
+    const auto scan = svc.recordBarcodeScan("REEL-EVT-PREFERRED");
+    ASSERT_TRUE(scan.success);
+
+    svc.pollOnce();
+    mask0.store(0x02); // snapshot увидел PA1, но ждёт fallback-окно
+    svc.pollOnce();
+    EXPECT_FALSE(reelRepo_->getBySlot(1, 2).has_value());
+
+    Frame evt;
+    evt.type = FrameType::Evt;
+    evt.cmdId = CommandId::EvtSwitchChanged;
+    evt.payload = {0x01, 0x01}; // channel 1 -> domain slot 2
+    svc.handleEventFrame(evt);
+
+    const auto reel = reelRepo_->getBySlot(1, 2);
+    ASSERT_TRUE(reel.has_value());
+    EXPECT_EQ(reel->barcode, "REEL-EVT-PREFERRED");
+
+    const auto op = opRepo_->getById(scan.operationId);
+    ASSERT_TRUE(op.has_value());
+    EXPECT_EQ(op->status, domain::OperationStatus::Completed);
+}
+
 TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     std::atomic<uint8_t> mask0{0x00};
 

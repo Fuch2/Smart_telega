@@ -25,6 +25,7 @@ struct Stm32PollingConfig {
     int slotCount = 24;
     int pollMs    = 500;
     int debounceMs = 50;
+    int snapshotFallbackMs = 0;
 
     // На текущей плате реально подключены PA1/PA2.
     std::vector<int> trackedChannels {1, 3};

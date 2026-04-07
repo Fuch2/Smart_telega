@@ -122,6 +122,8 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
     pollingCfg.slotCount = 24;
     pollingCfg.pollMs    = static_cast<int>(cfg_.stm32PollMs);
     pollingCfg.debounceMs = static_cast<int>(cfg_.debounceMs);
+    pollingCfg.snapshotFallbackMs =
+        static_cast<int>(cfg_.stableConfirmMs + cfg_.stm32PollMs);
     pollingCfg.trackedChannels = {1, 3};
     pollingCfg.ignoredChannels = {11};
 
@@ -135,12 +137,6 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         *eventLogger_,
         pollingCfg
     );
-    stm32Link_->setEventCallback([svc = pollingSvc_.get()](
-                                     const hw::stm32::Frame& frame) {
-        if (svc) {
-            svc->handleEventFrame(frame);
-        }
-    });
 
     OrderImportConfig orderImportCfg;
     orderImportCfg.moduleId = 1;
@@ -205,6 +201,12 @@ void AppBootstrap::launch() {
         mainWindow_,
         [this](AppState state) {
             if (state == AppState::Ready && pollingSvc_) {
+                stm32Link_->setEventCallback([svc = pollingSvc_.get()](
+                                                 const hw::stm32::Frame& frame) {
+                    if (svc) {
+                        svc->handleEventFrame(frame);
+                    }
+                });
                 pollingSvc_->start();
             }
         }

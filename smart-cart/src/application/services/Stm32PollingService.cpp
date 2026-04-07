@@ -363,7 +363,9 @@ void Stm32PollingService::applySnapshot(const std::vector<bool>& snapshot) {
         const auto stableFor = std::chrono::duration_cast<std::chrono::milliseconds>(
             now - rawChangedAt_[channel]
         ).count();
-        if (config_.debounceMs > 0 && stableFor < config_.debounceMs) {
+        const int requiredStableMs =
+            std::max(config_.debounceMs, config_.snapshotFallbackMs);
+        if (requiredStableMs > 0 && stableFor < requiredStableMs) {
             continue;
         }
 
