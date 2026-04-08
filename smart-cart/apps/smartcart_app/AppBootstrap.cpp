@@ -156,9 +156,12 @@ int AppBootstrap::resolveActiveModuleId() {
 }
 
 void AppBootstrap::syncModuleStatuses() {
+    const bool hasActivePhysicalModule =
+        !cfg_.rfidEnabled || !activeModuleUid_.empty();
+
     for (auto module : moduleRepo_->getAll()) {
         const auto targetStatus =
-            (module.id == activeModuleId_)
+            (hasActivePhysicalModule && module.id == activeModuleId_)
                 ? smartcart::domain::ModuleStatus::Online
                 : smartcart::domain::ModuleStatus::Offline;
         if (module.status == targetStatus) {
@@ -260,8 +263,7 @@ void AppBootstrap::buildModuleScopedSession() {
         *pollingSvc_, *diagnosticsRepo_, adminDiagnosticsCfg);
 
     if (cfg_.rfidEnabled &&
-        rfidProvider_ &&
-        !activeModuleUid_.empty())
+        rfidProvider_)
     {
         RfidModuleMonitorConfig monitorCfg;
         monitorCfg.moduleId = activeModuleId_;
