@@ -309,6 +309,18 @@ std::optional<std::string> Rc522RfidProvider::tryReadUid() {
         return data;
     };
 
+    // Перед каждым чтением жёстко сбрасываем внутреннее состояние MFRC522,
+    // чтобы не тащить "хвост" от предыдущей метки.
+    if (!initializeChip() ||
+        !writeRegister(kCommandReg, kCmdIdle) ||
+        !writeRegister(kComIrqReg, 0x7F) ||
+        !writeRegister(kFIFOLevelReg, 0x80) ||
+        !writeRegister(kBitFramingReg, 0x00) ||
+        !writeRegister(kControlReg, 0x00))
+    {
+        return std::nullopt;
+    }
+
     auto transceive = [&](const std::vector<uint8_t>& data,
                           uint8_t bitFraming) -> std::optional<std::vector<uint8_t>> {
         if (!writeRegister(kCommandReg, kCmdIdle) ||
