@@ -89,7 +89,7 @@ private:
     void syncModuleStatuses();
     int ensureModuleForUid(const std::string& uid);
     void buildModuleScopedSession();
-    void destroyModuleScopedSession();
+    void destroyModuleScopedSession(bool keepWindow = false);
     void showMainWindow();
     void switchToModuleUid(const std::string& uid);
 };

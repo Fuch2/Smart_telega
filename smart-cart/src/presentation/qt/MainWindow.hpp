@@ -24,12 +24,18 @@ public:
                         smartcart::infrastructure::hw::stm32::MockStm32Link* mock = nullptr,
                         QWidget* parent = nullptr);
 
+    void beginModuleSwitch();
+    void finishModuleSwitch(AdminViewModel* adminVm,
+                            WorkerViewModel* workerVm);
+
 private:
     QStackedWidget* stack_      = nullptr;
     WorkerView*     workerView_ = nullptr;
     AdminView*      adminView_  = nullptr;
+    QWidget*        switchingPage_ = nullptr;
     QPushButton*    workerBtn_  = nullptr;
     QPushButton*    adminBtn_   = nullptr;
+    bool            restoreAdminPageAfterSwitch_ = false;
 
     void buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
                  smartcart::infrastructure::hw::stm32::MockStm32Link* mock);

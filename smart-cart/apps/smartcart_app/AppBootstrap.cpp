@@ -307,7 +307,11 @@ void AppBootstrap::buildModuleScopedSession() {
         *stateMachine_);
 }
 
-void AppBootstrap::destroyModuleScopedSession() {
+void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {
+    if (keepWindow && mainWindow_) {
+        mainWindow_->beginModuleSwitch();
+    }
+
     if (stm32Link_) {
         stm32Link_->setEventCallback({});
     }
@@ -317,7 +321,7 @@ void AppBootstrap::destroyModuleScopedSession() {
     if (pollingSvc_) {
         pollingSvc_->stop();
     }
-    if (mainWindow_) {
+    if (!keepWindow && mainWindow_) {
         delete mainWindow_;
         mainWindow_ = nullptr;
     }
@@ -339,8 +343,12 @@ void AppBootstrap::destroyModuleScopedSession() {
 }
 
 void AppBootstrap::showMainWindow() {
-    mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
-    mainWindow_->show();
+    if (!mainWindow_) {
+        mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
+        mainWindow_->show();
+    } else {
+        mainWindow_->finishModuleSwitch(adminVm_.get(), workerVm_.get());
+    }
 
     QObject::connect(
         stateMachine_.get(),
@@ -385,7 +393,7 @@ void AppBootstrap::switchToModuleUid(const std::string& uid) {
                       " from_module_id=" + std::to_string(activeModuleId_) +
                       " to_module_id=" + std::to_string(newModuleId));
 
-    destroyModuleScopedSession();
+    destroyModuleScopedSession(true);
     activeModuleUid_ = uid;
     activeModuleId_ = newModuleId;
     syncModuleStatuses();

@@ -159,12 +159,50 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
     sideLayout->addStretch();
 
     // ── Стек экранов ───────────────────────────────────────────────────────────
-    stack_      = new QStackedWidget(central);
+    stack_ = new QStackedWidget(central);
+
+    switchingPage_ = new QWidget(central);
+    switchingPage_->setStyleSheet("QWidget { background: #102217; }");
+    auto* switchingLayout = new QVBoxLayout(switchingPage_);
+    switchingLayout->setContentsMargins(64, 56, 64, 56);
+    switchingLayout->addStretch();
+
+    auto* switchingCard = new QFrame(switchingPage_);
+    switchingCard->setFrameShape(QFrame::StyledPanel);
+    switchingCard->setMinimumSize(760, 260);
+    switchingCard->setMaximumWidth(920);
+    switchingCard->setStyleSheet(
+        "QFrame { background: #F6FAF7; border: 1px solid #AFC8B8; "
+        "border-radius: 8px; }");
+
+    auto* switchingCardLayout = new QVBoxLayout(switchingCard);
+    switchingCardLayout->setContentsMargins(40, 36, 40, 36);
+    switchingCardLayout->setSpacing(18);
+
+    auto* switchingTitle = new QLabel(QString::fromUtf8("Переключаем модуль"), switchingCard);
+    switchingTitle->setFont(QFont("Segoe UI", 30, QFont::Bold));
+    switchingTitle->setStyleSheet("color: #102217;");
+    switchingTitle->setAlignment(Qt::AlignCenter);
+
+    auto* switchingText = new QLabel(
+        QString::fromUtf8("Подождите, данные нового модуля загружаются..."),
+        switchingCard);
+    switchingText->setFont(QFont("Segoe UI", 18));
+    switchingText->setStyleSheet("color: #31533D;");
+    switchingText->setAlignment(Qt::AlignCenter);
+    switchingText->setWordWrap(true);
+
+    switchingCardLayout->addWidget(switchingTitle);
+    switchingCardLayout->addWidget(switchingText);
+    switchingLayout->addWidget(switchingCard, 0, Qt::AlignCenter);
+    switchingLayout->addStretch();
+
     workerView_ = new WorkerView(*workerVm, central);
     adminView_  = new AdminView(adminVm,    central);
 
     stack_->addWidget(workerView_);
     stack_->addWidget(adminView_);
+    stack_->addWidget(switchingPage_);
     stack_->setCurrentWidget(workerView_);
 
     root->addWidget(sideRail);
@@ -174,9 +212,51 @@ void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,
 
 void MainWindow::wireSignals() {
     connect(workerBtn_, &QPushButton::clicked, this, [this]() {
-        stack_->setCurrentWidget(workerView_);
+        if (workerView_) {
+            stack_->setCurrentWidget(workerView_);
+        }
     });
     connect(adminBtn_, &QPushButton::clicked, this, [this]() {
-        stack_->setCurrentWidget(adminView_);
+        if (adminView_) {
+            stack_->setCurrentWidget(adminView_);
+        }
     });
+}
+
+void MainWindow::beginModuleSwitch() {
+    restoreAdminPageAfterSwitch_ =
+        stack_ && adminView_ && stack_->currentWidget() == adminView_;
+
+    workerBtn_->setEnabled(false);
+    adminBtn_->setEnabled(false);
+
+    if (workerView_) {
+        stack_->removeWidget(workerView_);
+        delete workerView_;
+        workerView_ = nullptr;
+    }
+    if (adminView_) {
+        stack_->removeWidget(adminView_);
+        delete adminView_;
+        adminView_ = nullptr;
+    }
+
+    if (switchingPage_) {
+        stack_->setCurrentWidget(switchingPage_);
+    }
+}
+
+void MainWindow::finishModuleSwitch(AdminViewModel* adminVm,
+                                    WorkerViewModel* workerVm) {
+    workerView_ = new WorkerView(*workerVm, centralWidget());
+    adminView_  = new AdminView(adminVm, centralWidget());
+
+    stack_->insertWidget(0, workerView_);
+    stack_->insertWidget(1, adminView_);
+    stack_->setCurrentWidget(restoreAdminPageAfterSwitch_
+                                 ? static_cast<QWidget*>(adminView_)
+                                 : static_cast<QWidget*>(workerView_));
+
+    workerBtn_->setEnabled(true);
+    adminBtn_->setEnabled(true);
 }
