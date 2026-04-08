@@ -31,7 +31,10 @@ void RfidModuleMonitorService::start() {
     }
 
     lastSeen_ = std::chrono::steady_clock::now();
-    moduleOnline_ = false;
+    const auto module = moduleRepo_.getById(config_.moduleId);
+    moduleOnline_ =
+        module.has_value() &&
+        module->status == domain::ModuleStatus::Online;
     thread_ = std::thread(&RfidModuleMonitorService::monitorLoop, this);
 }
 

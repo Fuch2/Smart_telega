@@ -181,6 +181,7 @@ add_executable(integration_tests
     tests/integration/order_workflow_repository_test.cpp
     tests/integration/order_import_service_test.cpp
     tests/integration/workflow_service_test.cpp
+    tests/integration/rfid_module_monitor_test.cpp
 )
 
 target_include_directories(integration_tests PRIVATE
