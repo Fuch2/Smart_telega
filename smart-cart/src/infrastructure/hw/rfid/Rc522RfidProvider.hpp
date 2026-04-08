@@ -26,7 +26,7 @@ public:
 
     /// Синхронно прочитать UID метки за ограниченное время.
     /// Возвращает hex-строку UID или std::nullopt, если метка не найдена.
-    std::optional<std::string> readOnce(int timeoutMs);
+    std::optional<std::string> readOnce(int timeoutMs) override;
 
 private:
     void pollLoop();

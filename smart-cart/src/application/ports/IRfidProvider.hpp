@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <string>
 
 namespace smartcart::application::ports {
@@ -24,6 +25,10 @@ public:
 
     /// Проверить, активен ли ридер.
     virtual bool isActive() const = 0;
+
+    /// Синхронно прочитать UID метки.
+    /// Возвращает UID либо std::nullopt, если метка не обнаружена.
+    virtual std::optional<std::string> readOnce(int timeoutMs) = 0;
 };
 
 } // namespace smartcart::application::ports

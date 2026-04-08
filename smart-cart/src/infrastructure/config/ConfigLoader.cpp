@@ -35,6 +35,8 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "debounce_ms",         cfg.debounceMs);
     readOptional(j, "stable_confirm_ms",   cfg.stableConfirmMs);
     readOptional(j, "rfid_read_timeout_ms", cfg.rfidReadTimeoutMs);
+    readOptional(j, "rfid_poll_ms",        cfg.rfidPollMs);
+    readOptional(j, "rfid_offline_timeout_ms", cfg.rfidOfflineTimeoutMs);
     readOptional(j, "led_mapping_path",    cfg.ledMappingPath);
     readOptional(j, "module_profile_path", cfg.moduleProfilePath);
     readOptional(j, "slot_to_led_map",     cfg.slotToLedMap);
@@ -65,6 +67,12 @@ void ConfigLoader::validate(AppConfig& cfg) {
     if (cfg.rfidReadTimeoutMs == 0)
         throw std::runtime_error(
             "ConfigLoader: rfid_read_timeout_ms must be > 0");
+    if (cfg.rfidPollMs == 0)
+        throw std::runtime_error(
+            "ConfigLoader: rfid_poll_ms must be > 0");
+    if (cfg.rfidOfflineTimeoutMs < cfg.rfidPollMs)
+        throw std::runtime_error(
+            "ConfigLoader: rfid_offline_timeout_ms must be >= rfid_poll_ms");
     if (!cfg.slotToLedMap.empty() && cfg.slotToLedMap.size() != 24)
         throw std::runtime_error(
             "ConfigLoader: slot_to_led_map must contain 24 entries");

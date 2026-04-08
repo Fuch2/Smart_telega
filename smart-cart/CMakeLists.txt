@@ -57,6 +57,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/ReplaceReelService.cpp
     src/application/services/RecoveryService.cpp
     src/application/services/Stm32PollingService.cpp
+    src/application/services/RfidModuleMonitorService.cpp
     src/application/services/OrderImportService.cpp
     src/application/services/WorkflowService.cpp
     src/application/services/AdminDiagnosticsService.cpp

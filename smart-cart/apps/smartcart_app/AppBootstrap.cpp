@@ -29,7 +29,15 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
 
     moduleRepo_ = std::make_unique<db::ModuleRepositorySqlite>(*conn_);
     eventLogger_ = std::make_unique<logging::SqliteEventLogger>(conn_->handle());
+
+    if (cfg_.rfidEnabled) {
+        rfidProvider_ = std::make_unique<hw::rfid::Rc522RfidProvider>(
+            cfg_.rfidSpiDevice
+        );
+    }
+
     activeModuleId_ = resolveActiveModuleId();
+    syncModuleStatuses();
 
     reelRepo_   = std::make_unique<db::ReelRepositorySqlite>(*conn_);
     opRepo_     = std::make_unique<db::OperationRepositorySqlite>(*conn_);
@@ -166,6 +174,26 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
         adminDiagnosticsCfg
     );
 
+    if (cfg_.rfidEnabled &&
+        rfidProvider_ &&
+        !activeModuleUid_.empty())
+    {
+        RfidModuleMonitorConfig monitorCfg;
+        monitorCfg.moduleId = activeModuleId_;
+        monitorCfg.pollMs = static_cast<int>(cfg_.rfidPollMs);
+        monitorCfg.readTimeoutMs = static_cast<int>(cfg_.rfidReadTimeoutMs);
+        monitorCfg.offlineTimeoutMs =
+            static_cast<int>(cfg_.rfidOfflineTimeoutMs);
+        monitorCfg.expectedUid = activeModuleUid_;
+
+        rfidMonitorSvc_ = std::make_unique<RfidModuleMonitorService>(
+            *rfidProvider_,
+            *moduleRepo_,
+            *eventLogger_,
+            monitorCfg
+        );
+    }
+
     // ── 6. State machine ──────────────────────────────────────────────────────
     stateMachine_ = std::make_unique<AppStateMachine>(
         *startupSvc_,
@@ -194,6 +222,9 @@ AppBootstrap::~AppBootstrap() {
     if (stm32Link_) {
         stm32Link_->setEventCallback({});
     }
+    if (rfidMonitorSvc_) {
+        rfidMonitorSvc_->stop();
+    }
     if (pollingSvc_) {
         pollingSvc_->stop();
     }
@@ -215,8 +246,10 @@ int AppBootstrap::resolveActiveModuleId() {
     }
 
     try {
-        infrastructure::hw::rfid::Rc522RfidProvider rfidReader(cfg_.rfidSpiDevice);
-        const auto uid = rfidReader.readOnce(static_cast<int>(cfg_.rfidReadTimeoutMs));
+        if (!rfidProvider_) {
+            return 1;
+        }
+        const auto uid = rfidProvider_->readOnce(static_cast<int>(cfg_.rfidReadTimeoutMs));
         if (!uid.has_value() || uid->empty()) {
             eventLogger_->log("WARN",
                               "RfidModuleDetectionFallback",
@@ -265,6 +298,20 @@ int AppBootstrap::resolveActiveModuleId() {
     return 1;
 }
 
+void AppBootstrap::syncModuleStatuses() {
+    for (auto module : moduleRepo_->getAll()) {
+        const auto targetStatus =
+            (module.id == activeModuleId_)
+                ? smartcart::domain::ModuleStatus::Online
+                : smartcart::domain::ModuleStatus::Offline;
+        if (module.status == targetStatus) {
+            continue;
+        }
+        module.status = targetStatus;
+        moduleRepo_->update(module);
+    }
+}
+
 void AppBootstrap::launch() {
     // mockLink_ == nullptr в prod-режиме → MainWindow не покажет demo-панель
     mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
@@ -283,6 +330,9 @@ void AppBootstrap::launch() {
                     }
                 });
                 pollingSvc_->start();
+                if (rfidMonitorSvc_) {
+                    rfidMonitorSvc_->start();
+                }
             }
         }
     );
