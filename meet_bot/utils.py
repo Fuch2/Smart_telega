@@ -42,6 +42,23 @@ MESSAGES = {
     "no_slots_selected": (
         "⚠️ Ты не выбрал ни одного временного слота. Выбери хотя бы один."
     ),
+    "ask_custom_time_single": (
+        "🕐 Отправь своё время для даты {date} в формате <code>ЧЧ:ММ</code>.\n"
+        "Например: <code>16:00</code>"
+    ),
+    "ask_custom_time_multiple": (
+        "🕐 Отправь своё время для отмеченных дат ({dates}) в формате <code>ЧЧ:ММ</code>.\n"
+        "Например: <code>16:00</code>"
+    ),
+    "invalid_custom_time": (
+        "❌ Не удалось распознать время. Используй формат <code>ЧЧ:ММ</code>, например <code>16:00</code>."
+    ),
+    "custom_time_no_dates": (
+        "⚠️ Сначала выбери дату или отметь даты, к которым нужно добавить время."
+    ),
+    "custom_time_added": (
+        "✅ Добавил время {time}. Теперь этот слот виден всем участникам этой встречи."
+    ),
     "invalid_deadline": (
         "❌ Не удалось распознать дату. Попробуй так:\n"
         "• <code>12 апреля 18:00</code>\n"
@@ -53,6 +70,28 @@ MESSAGES = {
     ),
     "meeting_created": (
         "✅ Встреча создана! Анонс отправлен в чат."
+    ),
+    "private_welcome": (
+        "👋 Привет! Я бот для организации встреч.\n"
+        "Здесь можно открыть свой календарь, проверить интеграции и перейти к активным встречам."
+    ),
+    "personal_calendar_empty": (
+        "📭 У тебя пока нет активных встреч в личном календаре."
+    ),
+    "personal_calendar_header": (
+        "📅 Твой календарь встреч:\n{lines}"
+    ),
+    "integrations_header": (
+        "🔗 Интеграции\n\n"
+        "Google Calendar: {google_status}\n"
+        "Todoist: {todoist_status}\n\n"
+        "Экран уже подготовлен. Подключение OAuth добавим следующим этапом."
+    ),
+    "integration_not_connected": (
+        "не подключено"
+    ),
+    "integration_connected": (
+        "подключено"
     ),
     "announce_template": (
         "📅 Встреча: <b>{title}</b>\n"
@@ -68,6 +107,12 @@ MESSAGES = {
     "vote_saved": (
         "✅ Готово! Твой выбор сохранён.\n"
         "Результаты будут объявлены после дедлайна."
+    ),
+    "votes_overview_empty": (
+        "👥 Пока никто не сохранил свой выбор."
+    ),
+    "votes_overview_template": (
+        "👥 Кто уже отметил время:\n{lines}"
     ),
     "deadline_passed": (
         "⏰ Дедлайн истёк, изменения недоступны."
@@ -108,12 +153,20 @@ MESSAGES = {
     "results_no_common": (
         "📊 Встреча «{title}»\n\n"
         "👥 Участников: {total}\n\n"
+        "👤 Голосовали: {participants}\n\n"
         "😔 Общего удобного времени не найдено."
     ),
     "results_found": (
         "📊 Встреча «{title}»\n\n"
         "👥 Участников: {total}\n\n"
+        "👤 Голосовали: {participants}\n\n"
         "✅ Подходящее время для всех:\n{slots}"
+    ),
+    "results_confirmed": (
+        "✅ Встреча «{title}» состоится!\n\n"
+        "👥 Участников: {total}\n\n"
+        "👤 Голосовали: {participants}\n\n"
+        "📅 Финальное время: {slot}"
     ),
 }
 
@@ -125,6 +178,8 @@ MONTH_MAP = {
     "мая": 5, "июня": 6, "июля": 7, "августа": 8,
     "сентября": 9, "октября": 10, "ноября": 11, "декабря": 12,
 }
+
+WEEKDAY_SHORT = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
 
 
 # ─── ПАРСИНГ ДЕДЛАЙНА ─────────────────────────────────────────────────────────
@@ -186,6 +241,20 @@ def parse_deadline(text: str) -> Optional[datetime]:
     return None
 
 
+def parse_time_input(text: str) -> Optional[str]:
+    """Парсит время в формате HH:MM или H:MM."""
+    text = text.strip()
+    match = re.match(r"^(\d{1,2}):(\d{2})$", text)
+    if not match:
+        return None
+
+    hour, minute = (int(x) for x in match.groups())
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+
+    return f"{hour:02d}:{minute:02d}"
+
+
 # ─── УТИЛИТЫ ВРЕМЕНИ ──────────────────────────────────────────────────────────
 
 def now_moscow() -> datetime:
@@ -210,3 +279,43 @@ def slot_to_display(slot_str: str) -> str:
     """Преобразует 'YYYY-MM-DD HH:MM' → 'ДД.ММ.ГГГГ ЧЧ:ММ'."""
     dt = parse_slot_datetime(slot_str)
     return dt.strftime("%d.%m.%Y %H:%M")
+
+
+def slot_to_compact_display(slot_str: str) -> str:
+    """Преобразует слот в формат 'чт 10.04 18:00'."""
+    dt = parse_slot_datetime(slot_str)
+    return f"{WEEKDAY_SHORT[dt.weekday()]} {dt.strftime('%d.%m %H:%M')}"
+
+
+def format_participant_names(participants: list[dict]) -> str:
+    names = [p["username"] for p in participants if p.get("username")]
+    return ", ".join(names) if names else "—"
+
+
+def format_participant_votes(votes: list[dict]) -> str:
+    if not votes:
+        return MESSAGES["votes_overview_empty"]
+
+    grouped: dict[tuple[int, str], list[str]] = {}
+    order: list[tuple[int, str]] = []
+
+    for row in votes:
+        user_id = row["user_id"]
+        username = row.get("username") or f"User {user_id}"
+        key = (user_id, username)
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+
+        slot_datetime = row.get("slot_datetime")
+        if slot_datetime:
+            grouped[key].append(slot_to_compact_display(slot_datetime))
+
+    lines = []
+    for key in order:
+        username = key[1]
+        slots = grouped[key]
+        slots_text = ", ".join(slots) if slots else "пока без выбранного времени"
+        lines.append(f"• {username} — {slots_text}")
+
+    return MESSAGES["votes_overview_template"].format(lines="\n".join(lines))

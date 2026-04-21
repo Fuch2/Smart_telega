@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS cart_workflow (
                              CHECK (state IN (
                                  'FREE',
                                  'ORDER_LOADED',
+                                 'LOADING_FEEDERS',
                                  'PICKING_MATERIALS',
                                  'READY_FOR_FEEDER_PREP',
                                  'FEEDER_PREP',

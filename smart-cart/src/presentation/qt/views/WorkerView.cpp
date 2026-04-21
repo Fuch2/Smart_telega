@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 
@@ -433,6 +434,10 @@ void WorkerView::setupUi() {
 
     arrivedFeederButton_ =
         makeWorkflowButton(QString::fromUtf8("Прибыла к питателям"));
+    startFeederLoadingButton_ =
+        makeWorkflowButton(QString::fromUtf8("Загрузка питателей"));
+    completeFeederLoadingButton_ =
+        makeWorkflowButton(QString::fromUtf8("Питатели загружены"));
     startFeederPrepButton_ =
         makeWorkflowButton(QString::fromUtf8("Начать подготовку"));
     feederPrepDoneButton_ =
@@ -452,16 +457,18 @@ void WorkerView::setupUi() {
     returnLeftoverButton_ =
         makeWorkflowButton(QString::fromUtf8("Вернуть остаток"));
 
-    workflowLayout->addWidget(arrivedFeederButton_, 0, 0);
-    workflowLayout->addWidget(startFeederPrepButton_, 0, 1);
-    workflowLayout->addWidget(feederPrepDoneButton_, 0, 2);
-    workflowLayout->addWidget(arrivedLineButton_, 1, 0);
-    workflowLayout->addWidget(startIssuingButton_, 1, 1);
-    workflowLayout->addWidget(issueButton_, 1, 2);
-    workflowLayout->addWidget(completeIssuingButton_, 2, 0);
-    workflowLayout->addWidget(inspectLeftoversButton_, 2, 1);
-    workflowLayout->addWidget(startReturnButton_, 2, 2);
-    workflowLayout->addWidget(returnLeftoverButton_, 3, 0, 1, 3);
+    workflowLayout->addWidget(startFeederLoadingButton_, 0, 0);
+    workflowLayout->addWidget(completeFeederLoadingButton_, 0, 1);
+    workflowLayout->addWidget(arrivedFeederButton_, 0, 2);
+    workflowLayout->addWidget(startFeederPrepButton_, 1, 0);
+    workflowLayout->addWidget(feederPrepDoneButton_, 1, 1);
+    workflowLayout->addWidget(arrivedLineButton_, 1, 2);
+    workflowLayout->addWidget(startIssuingButton_, 2, 0);
+    workflowLayout->addWidget(issueButton_, 2, 1);
+    workflowLayout->addWidget(completeIssuingButton_, 2, 2);
+    workflowLayout->addWidget(inspectLeftoversButton_, 3, 0);
+    workflowLayout->addWidget(startReturnButton_, 3, 1);
+    workflowLayout->addWidget(returnLeftoverButton_, 3, 2);
     workflowRootLayout->addWidget(routeTitle);
     workflowRootLayout->addLayout(workflowLayout);
     rightLayout->addWidget(workflowFrame);
@@ -512,6 +519,10 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onBarcodeSubmitted);
     connect(cancelButton_, &QPushButton::clicked,
             this, &WorkerView::onCancelClicked);
+    connect(startFeederLoadingButton_, &QPushButton::clicked,
+            this, &WorkerView::onStartFeederLoadingClicked);
+    connect(completeFeederLoadingButton_, &QPushButton::clicked,
+            this, &WorkerView::onCompleteFeederLoadingClicked);
     connect(arrivedFeederButton_, &QPushButton::clicked,
             this, &WorkerView::onArrivedFeederClicked);
     connect(startFeederPrepButton_, &QPushButton::clicked,
@@ -600,11 +611,53 @@ void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
 }
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
+    showStagePopupIfNeeded(stateKey);
+
+    const bool barcodeAllowed =
+        moduleOnline_ &&
+        (stateKey == QStringLiteral("PICKING_MATERIALS") ||
+         stateKey == QStringLiteral("ISSUING_TO_LINE") ||
+         stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+         stateKey == QStringLiteral("RETURNING_LEFTOVERS"));
+    if (barcodeEdit_) {
+        barcodeEdit_->setEnabled(barcodeAllowed);
+    }
+    if (scanButton_) {
+        scanButton_->setEnabled(barcodeAllowed);
+    }
+
+    if (stateKey == QStringLiteral("ORDER_LOADED")) {
+        updateScanActionText(stateKey);
+        updateActionHint(stateKey);
+        setWorkflowActionsEnabled(true, false, false, false, false,
+                                  false, false, false, false, false, false, false);
+        focusBarcodeInput();
+        return;
+    }
+
+    if (stateKey == QStringLiteral("LOADING_FEEDERS")) {
+        updateScanActionText(stateKey);
+        updateActionHint(stateKey);
+        setWorkflowActionsEnabled(false, true, false, false, false,
+                                  false, false, false, false, false, false, false);
+        focusBarcodeInput();
+        return;
+    }
+
+    if (stateKey == QStringLiteral("PICKING_MATERIALS")) {
+        updateScanActionText(stateKey);
+        updateActionHint(stateKey);
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  false, false, false, false, false, false, false);
+        focusBarcodeInput();
+        return;
+    }
+
     if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
-        setWorkflowActionsEnabled(true, true, false, false, false,
-                                  false, false, false, false, false);
+        setWorkflowActionsEnabled(false, false, true, true, false,
+                                  false, false, false, false, false, false, false);
         focusBarcodeInput();
         return;
     }
@@ -612,8 +665,8 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     if (stateKey == QStringLiteral("FEEDER_PREP")) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
-        setWorkflowActionsEnabled(false, false, true, false, false,
-                                  false, false, false, false, false);
+        setWorkflowActionsEnabled(false, false, false, false, true,
+                                  false, false, false, false, false, false, false);
         focusBarcodeInput();
         return;
     }
@@ -621,8 +674,8 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     if (stateKey == QStringLiteral("READY_FOR_LINE")) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
-        setWorkflowActionsEnabled(false, false, false, true, true,
-                                  false, false, false, false, false);
+        setWorkflowActionsEnabled(false, false, false, false, false,
+                                  true, true, false, false, false, false, false);
         focusBarcodeInput();
         return;
     }
@@ -631,7 +684,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
-                                  true, true, false, false, false);
+                                  false, false, true, true, false, false, false);
         focusBarcodeInput();
         return;
     }
@@ -640,7 +693,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
-                                  false, false, true, false, false);
+                                  false, false, false, false, true, false, false);
         focusBarcodeInput();
         return;
     }
@@ -649,7 +702,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
-                                  false, false, true, true, true);
+                                  false, false, false, false, true, true, true);
         focusBarcodeInput();
         return;
     }
@@ -658,7 +711,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
         updateScanActionText(stateKey);
         updateActionHint(stateKey);
         setWorkflowActionsEnabled(false, false, false, false, false,
-                                  false, false, true, false, true);
+                                  false, false, false, false, true, false, true);
         focusBarcodeInput();
         return;
     }
@@ -666,7 +719,7 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     updateScanActionText(stateKey);
     updateActionHint(stateKey);
     setWorkflowActionsEnabled(false, false, false, false, false,
-                              false, false, false, false, false);
+                              false, false, false, false, false, false, false);
     focusBarcodeInput();
 }
 
@@ -685,7 +738,42 @@ void WorkerView::onImportOrderClicked() {
     if (path.isEmpty()) {
         return;
     }
-    viewModel_.importOrderFromFile(path);
+
+    QMessageBox cartStateBox(this);
+    cartStateBox.setWindowTitle(QString::fromUtf8("Состояние тележки"));
+    cartStateBox.setTextFormat(Qt::RichText);
+    cartStateBox.setText(QStringLiteral(
+        "<div style=\"font-size:20px; font-weight:700; color:#102217;\">"
+        "Выберите состояние тележки</div>"
+        "<div style=\"font-size:14px; color:#31533D; margin-top:10px;\">"
+        "Если тележка пустая, оператор сначала загрузит питатели. "
+        "Если тележка была в работе, считаем, что питатели уже находятся в тележке, "
+        "и сразу переходим к подбору материалов.</div>"));
+
+    auto* emptyButton = cartStateBox.addButton(
+        QString::fromUtf8("Тележка пустая"),
+        QMessageBox::AcceptRole);
+    auto* inWorkButton = cartStateBox.addButton(
+        QString::fromUtf8("Была в работе"),
+        QMessageBox::ActionRole);
+    cartStateBox.addButton(QString::fromUtf8("Отмена"), QMessageBox::RejectRole);
+    cartStateBox.setDefaultButton(qobject_cast<QPushButton*>(emptyButton));
+    cartStateBox.setStyleSheet(
+        "QMessageBox { background: #F6FAF7; }"
+        "QLabel { min-width: 560px; }"
+        "QPushButton { min-width: 150px; min-height: 42px; "
+        "border-radius: 8px; font-size: 14px; font-weight: bold; "
+        "padding: 8px 14px; }");
+    cartStateBox.exec();
+
+    if (cartStateBox.clickedButton() == nullptr ||
+        cartStateBox.buttonRole(cartStateBox.clickedButton()) == QMessageBox::RejectRole)
+    {
+        return;
+    }
+
+    const bool skipFeederLoading = cartStateBox.clickedButton() == inWorkButton;
+    viewModel_.importOrderFromFile(path, skipFeederLoading);
     focusBarcodeInput();
 }
 
@@ -699,6 +787,16 @@ void WorkerView::onBarcodeSubmitted() {
 
 void WorkerView::onCancelClicked() {
     viewModel_.cancelCurrentOperation();
+    focusBarcodeInput();
+}
+
+void WorkerView::onStartFeederLoadingClicked() {
+    viewModel_.startFeederLoading();
+    focusBarcodeInput();
+}
+
+void WorkerView::onCompleteFeederLoadingClicked() {
+    viewModel_.completeFeederLoading();
     focusBarcodeInput();
 }
 
@@ -829,7 +927,14 @@ void WorkerView::updateActionHint(const QString& stateKey) {
     }
 
     if (stateKey == QStringLiteral("ORDER_LOADED") ||
-        stateKey == QStringLiteral("PICKING_MATERIALS"))
+        stateKey == QStringLiteral("LOADING_FEEDERS"))
+    {
+        actionHintLabel_->setText(
+            QString::fromUtf8("Загрузите питатели в пустую тележку и подтвердите этап"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("PICKING_MATERIALS"))
     {
         actionHintLabel_->setText(
             QString::fromUtf8("Сканируйте материал и кладите его в подсказанный слот"));
@@ -881,7 +986,76 @@ void WorkerView::updateActionHint(const QString& stateKey) {
     actionHintLabel_->setText(QString::fromUtf8("Следуйте текущему этапу"));
 }
 
-void WorkerView::setWorkflowActionsEnabled(bool arrivedFeeder,
+void WorkerView::showStagePopupIfNeeded(const QString& stateKey) {
+    if (!moduleOnline_ ||
+        stateKey == lastStagePopupKey_ ||
+        stateKey == QStringLiteral("FREE"))
+    {
+        return;
+    }
+
+    const QString title = stagePopupTitle(stateKey);
+    if (title.isEmpty()) {
+        lastStagePopupKey_ = stateKey;
+        return;
+    }
+
+    lastStagePopupKey_ = stateKey;
+
+    QMessageBox box(this);
+    box.setWindowTitle(QString::fromUtf8("Этап маршрута"));
+    box.setTextFormat(Qt::RichText);
+    box.setText(QStringLiteral(
+        "<div align=\"center\" style=\"font-size:34px; font-weight:800; "
+        "color:#102217; padding:24px;\">%1</div>").arg(title.toHtmlEscaped()));
+    box.setStandardButtons(QMessageBox::Ok);
+    box.button(QMessageBox::Ok)->setText(QString::fromUtf8("Понятно"));
+    box.setStyleSheet(
+        "QMessageBox { background: #F6FAF7; }"
+        "QLabel { min-width: 520px; }"
+        "QPushButton { min-width: 160px; min-height: 44px; "
+        "background: #2F8F57; color: #FFFFFF; border-radius: 8px; "
+        "font-size: 16px; font-weight: bold; padding: 8px 14px; }");
+    box.exec();
+}
+
+QString WorkerView::stagePopupTitle(const QString& stateKey) {
+    if (stateKey == QStringLiteral("ORDER_LOADED")) {
+        return QString::fromUtf8("ЗАКАЗ ЗАГРУЖЕН");
+    }
+    if (stateKey == QStringLiteral("LOADING_FEEDERS")) {
+        return QString::fromUtf8("ЗАГРУЗКА ПИТАТЕЛЕЙ");
+    }
+    if (stateKey == QStringLiteral("PICKING_MATERIALS")) {
+        return QString::fromUtf8("ПОДБОР МАТЕРИАЛОВ");
+    }
+    if (stateKey == QStringLiteral("READY_FOR_FEEDER_PREP")) {
+        return QString::fromUtf8("К ЗОНЕ ПОДГОТОВКИ ПИТАТЕЛЕЙ");
+    }
+    if (stateKey == QStringLiteral("FEEDER_PREP")) {
+        return QString::fromUtf8("ПОДГОТОВКА ПИТАТЕЛЕЙ");
+    }
+    if (stateKey == QStringLiteral("READY_FOR_LINE")) {
+        return QString::fromUtf8("К ЛИНИИ SMT");
+    }
+    if (stateKey == QStringLiteral("ISSUING_TO_LINE")) {
+        return QString::fromUtf8("ВЫДАЧА НА ЛИНИЮ");
+    }
+    if (stateKey == QStringLiteral("ORDER_COMPLETED")) {
+        return QString::fromUtf8("ЗАКАЗ ЗАВЕРШЁН");
+    }
+    if (stateKey == QStringLiteral("LEFTOVERS_DETECTED")) {
+        return QString::fromUtf8("ОБНАРУЖЕНЫ ОСТАТКИ");
+    }
+    if (stateKey == QStringLiteral("RETURNING_LEFTOVERS")) {
+        return QString::fromUtf8("ВОЗВРАТ ОСТАТКОВ");
+    }
+    return {};
+}
+
+void WorkerView::setWorkflowActionsEnabled(bool startFeederLoading,
+                                           bool completeFeederLoading,
+                                           bool arrivedFeeder,
                                            bool startFeederPrep,
                                            bool feederPrepDone,
                                            bool arrivedLine,
@@ -891,6 +1065,8 @@ void WorkerView::setWorkflowActionsEnabled(bool arrivedFeeder,
                                            bool inspectLeftovers,
                                            bool startReturn,
                                            bool returnLeftover) {
+    startFeederLoadingButton_->setEnabled(startFeederLoading);
+    completeFeederLoadingButton_->setEnabled(completeFeederLoading);
     arrivedFeederButton_->setEnabled(arrivedFeeder);
     startFeederPrepButton_->setEnabled(startFeederPrep);
     feederPrepDoneButton_->setEnabled(feederPrepDone);

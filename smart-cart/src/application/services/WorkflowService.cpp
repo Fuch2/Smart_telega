@@ -122,6 +122,48 @@ WorkflowActionResult WorkflowService::notifyMaterialPlaced() {
     return ok("Подбор завершён. Перевезите тележку в зону подготовки питателей");
 }
 
+WorkflowActionResult WorkflowService::startFeederLoading() {
+    if (auto guard = requireState(domain::CartWorkflowState::OrderLoaded,
+                                  "startFeederLoading");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::LoadingFeeders);
+    logSafe("INFO", "FeederLoadingStarted", "Загрузка питателей в тележку начата");
+    return ok("Загрузите питатели в тележку");
+}
+
+WorkflowActionResult WorkflowService::completeFeederLoading() {
+    if (auto guard = requireState(domain::CartWorkflowState::LoadingFeeders,
+                                  "completeFeederLoading");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::PickingMaterials);
+    logSafe("INFO", "FeederLoadingCompleted", "Питатели загружены в тележку");
+    logSafe("INFO", "NextStep", "Начните подбор материалов по заказу");
+    return ok("Питатели загружены. Начните подбор материалов");
+}
+
+WorkflowActionResult WorkflowService::skipFeederLoading() {
+    if (auto guard = requireState(domain::CartWorkflowState::OrderLoaded,
+                                  "skipFeederLoading");
+        !guard)
+    {
+        return guard;
+    }
+
+    workflowRepo_.setState(domain::CartWorkflowState::PickingMaterials);
+    logSafe("INFO", "FeederLoadingSkipped",
+            "Тележка была в работе, загрузка питателей пропущена");
+    logSafe("INFO", "NextStep", "Начните подбор материалов по заказу");
+    return ok("Тележка была в работе. Начните подбор материалов");
+}
+
 WorkflowActionResult WorkflowService::markCartArrivedToFeederPrep() {
     if (auto guard = requireState(domain::CartWorkflowState::ReadyForFeederPrep,
                                   "markCartArrivedToFeederPrep");

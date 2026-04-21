@@ -37,6 +37,8 @@ private slots:
     void onImportOrderClicked();
     void onBarcodeSubmitted();
     void onCancelClicked();
+    void onStartFeederLoadingClicked();
+    void onCompleteFeederLoadingClicked();
     void onArrivedFeederClicked();
     void onStartFeederPrepClicked();
     void onFeederPrepDoneClicked();
@@ -71,6 +73,8 @@ private:
     QPushButton*    startImportButton_ = nullptr;
     QPushButton*    scanButton_   = nullptr;
     QPushButton*    cancelButton_ = nullptr;
+    QPushButton*    startFeederLoadingButton_ = nullptr;
+    QPushButton*    completeFeederLoadingButton_ = nullptr;
     QPushButton*    arrivedFeederButton_ = nullptr;
     QPushButton*    startFeederPrepButton_ = nullptr;
     QPushButton*    feederPrepDoneButton_ = nullptr;
@@ -83,6 +87,7 @@ private:
     QPushButton*    returnLeftoverButton_ = nullptr;
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
+    QString         lastStagePopupKey_;
 
     void setupUi();
     void connectSignals();
@@ -90,7 +95,11 @@ private:
     void updateVisiblePage();
     void updateScanActionText(const QString& stateKey);
     void updateActionHint(const QString& stateKey);
-    void setWorkflowActionsEnabled(bool arrivedFeeder,
+    void showStagePopupIfNeeded(const QString& stateKey);
+    static QString stagePopupTitle(const QString& stateKey);
+    void setWorkflowActionsEnabled(bool startFeederLoading,
+                                   bool completeFeederLoading,
+                                   bool arrivedFeeder,
                                    bool startFeederPrep,
                                    bool feederPrepDone,
                                    bool arrivedLine,

@@ -144,6 +144,8 @@ TEST_F(WorkflowServiceTest, PickingCompletesAfterAllOrderItemsPlaced) {
     orderRepo_->addItem(makeItem(orderId, "R-150 10%", 2));
     orderRepo_->addItem(makeItem(orderId, "R-250 20%", 4));
     workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+    ASSERT_TRUE(workflowSvc_->startFeederLoading());
+    ASSERT_TRUE(workflowSvc_->completeFeederLoading());
 
     Stm32PollingService polling(link,
                                 *reelRepo_,
@@ -166,6 +168,28 @@ TEST_F(WorkflowServiceTest, PickingCompletesAfterAllOrderItemsPlaced) {
     EXPECT_EQ(workflowRepo_->get().state,
               domain::CartWorkflowState::ReadyForFeederPrep);
     EXPECT_EQ(countEvents(conn_->handle(), "PickingCompleted"), 1);
+}
+
+TEST_F(WorkflowServiceTest, FeederLoadingTransitionsBeforePicking) {
+    const int orderId = addOrder("ORDER-FEEDER-LOADING");
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    EXPECT_TRUE(workflowSvc_->startFeederLoading());
+    EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::LoadingFeeders);
+    EXPECT_EQ(countEvents(conn_->handle(), "FeederLoadingStarted"), 1);
+
+    EXPECT_TRUE(workflowSvc_->completeFeederLoading());
+    EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::PickingMaterials);
+    EXPECT_EQ(countEvents(conn_->handle(), "FeederLoadingCompleted"), 1);
+}
+
+TEST_F(WorkflowServiceTest, FeederLoadingCanBeSkippedForCartAlreadyInWork) {
+    const int orderId = addOrder("ORDER-FEEDERS-ALREADY-LOADED");
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+
+    EXPECT_TRUE(workflowSvc_->skipFeederLoading());
+    EXPECT_EQ(workflowRepo_->get().state, domain::CartWorkflowState::PickingMaterials);
+    EXPECT_EQ(countEvents(conn_->handle(), "FeederLoadingSkipped"), 1);
 }
 
 TEST_F(WorkflowServiceTest, FeederPrepTransitionsValidateState) {

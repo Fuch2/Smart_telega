@@ -30,6 +30,10 @@ public:
 
     WorkflowActionResult notifyMaterialPlaced();
 
+    WorkflowActionResult startFeederLoading();
+    WorkflowActionResult completeFeederLoading();
+    WorkflowActionResult skipFeederLoading();
+
     WorkflowActionResult markCartArrivedToFeederPrep();
     WorkflowActionResult startFeederPrep();
     WorkflowActionResult markFeederPrepCompleted();

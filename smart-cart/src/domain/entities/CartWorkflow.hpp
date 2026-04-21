@@ -11,20 +11,22 @@ namespace smartcart::domain {
 enum class CartWorkflowState : std::uint8_t {
     Free               = 0,
     OrderLoaded        = 1,
-    PickingMaterials   = 2,
-    ReadyForFeederPrep = 3,
-    FeederPrep         = 4,
-    ReadyForLine       = 5,
-    IssuingToLine      = 6,
-    OrderCompleted     = 7,
-    LeftoversDetected  = 8,
-    ReturningLeftovers = 9,
+    LoadingFeeders     = 2,
+    PickingMaterials   = 3,
+    ReadyForFeederPrep = 4,
+    FeederPrep         = 5,
+    ReadyForLine       = 6,
+    IssuingToLine      = 7,
+    OrderCompleted     = 8,
+    LeftoversDetected  = 9,
+    ReturningLeftovers = 10,
 };
 
 inline std::string_view toString(CartWorkflowState state) {
     switch (state) {
         case CartWorkflowState::Free:               return "FREE";
         case CartWorkflowState::OrderLoaded:        return "ORDER_LOADED";
+        case CartWorkflowState::LoadingFeeders:     return "LOADING_FEEDERS";
         case CartWorkflowState::PickingMaterials:   return "PICKING_MATERIALS";
         case CartWorkflowState::ReadyForFeederPrep: return "READY_FOR_FEEDER_PREP";
         case CartWorkflowState::FeederPrep:         return "FEEDER_PREP";
@@ -40,6 +42,7 @@ inline std::string_view toString(CartWorkflowState state) {
 inline CartWorkflowState cartWorkflowStateFromString(std::string_view value) {
     if (value == "FREE")                  return CartWorkflowState::Free;
     if (value == "ORDER_LOADED")          return CartWorkflowState::OrderLoaded;
+    if (value == "LOADING_FEEDERS")       return CartWorkflowState::LoadingFeeders;
     if (value == "PICKING_MATERIALS")     return CartWorkflowState::PickingMaterials;
     if (value == "READY_FOR_FEEDER_PREP") return CartWorkflowState::ReadyForFeederPrep;
     if (value == "FEEDER_PREP")           return CartWorkflowState::FeederPrep;

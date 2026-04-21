@@ -109,7 +109,8 @@ void WorkerViewModel::cancelCurrentOperation() {
     stateMachine_.cancelCurrentOperation();
 }
 
-void WorkerViewModel::importOrderFromFile(const QString& path) {
+void WorkerViewModel::importOrderFromFile(const QString& path,
+                                          bool skipFeederLoading) {
     if (path.trimmed().isEmpty()) {
         return;
     }
@@ -124,9 +125,37 @@ void WorkerViewModel::importOrderFromFile(const QString& path) {
         return;
     }
 
+    if (skipFeederLoading) {
+        const auto skipResult = workflowSvc_.skipFeederLoading();
+        if (!skipResult) {
+            emit errorOccurred(QString::fromStdString(skipResult.message));
+            reload();
+            return;
+        }
+
+        emit operationStateChanged(QString::fromUtf8("Подбор материалов"),
+                                   QString::fromStdString(skipResult.message));
+        reload();
+        return;
+    }
+
     emit operationStateChanged(QString::fromUtf8("Заказ загружен"),
                                QString::fromStdString(result.message));
     reload();
+}
+
+void WorkerViewModel::startFeederLoading() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Загрузка питателей недоступна"))) {
+        return;
+    }
+    handleWorkflowResult(workflowSvc_.startFeederLoading());
+}
+
+void WorkerViewModel::completeFeederLoading() {
+    if (!ensureActiveModuleOnline(QString::fromUtf8("Загрузка питателей недоступна"))) {
+        return;
+    }
+    handleWorkflowResult(workflowSvc_.completeFeederLoading());
 }
 
 void WorkerViewModel::markCartArrivedToFeederPrep() {
@@ -578,6 +607,7 @@ QString WorkerViewModel::workflowLabel(CartWorkflowState state) {
     switch (state) {
         case CartWorkflowState::Free:               return QString::fromUtf8("Тележка свободна");
         case CartWorkflowState::OrderLoaded:        return QString::fromUtf8("Заказ загружен");
+        case CartWorkflowState::LoadingFeeders:     return QString::fromUtf8("Загрузка питателей");
         case CartWorkflowState::PickingMaterials:   return QString::fromUtf8("Подбор материалов");
         case CartWorkflowState::ReadyForFeederPrep: return QString::fromUtf8("Готова к подготовке питателей");
         case CartWorkflowState::FeederPrep:         return QString::fromUtf8("Подготовка питателей");

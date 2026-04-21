@@ -8,16 +8,16 @@ import pytz
 from config import TIMEZONE, SCHEDULER_INTERVAL
 from database import (
     get_all_active_meetings,
-    close_meeting,
+    finalize_meeting,
     get_participants,
-    get_common_slots,          # ← было: get_slots (не существует)
+    get_common_slots,
 )
 from utils import (
     MESSAGES,
     now_moscow,
+    format_participant_names,
     slot_to_display,
 )
-from keyboards.inline import build_announce_keyboard
 
 logger = logging.getLogger(__name__)
 TZ = pytz.timezone(TIMEZONE)
@@ -38,8 +38,14 @@ async def check_deadlines(bot: Bot) -> None:
                 logger.info(
                     f"Дедлайн встречи #{meeting['id']} '{meeting['title']}' истёк. Закрываю."
                 )
-                await close_meeting(meeting["id"])
-                await publish_results(bot, meeting)
+                common_slots = await get_common_slots(meeting["id"])
+                final_slot = common_slots[0] if common_slots else None
+                await finalize_meeting(
+                    meeting_id=meeting["id"],
+                    finalized_at=now.isoformat(),
+                    final_slot_datetime=final_slot,
+                )
+                await publish_results(bot, meeting, final_slot)
 
         except Exception as e:
             logger.error(
@@ -47,32 +53,30 @@ async def check_deadlines(bot: Bot) -> None:
             )
 
 
-async def publish_results(bot: Bot, meeting: dict) -> None:
+async def publish_results(bot: Bot, meeting: dict, final_slot: str | None = None) -> None:
     """Публикует итоги встречи в групповой чат."""
     meeting_id = meeting["id"]
     title = meeting["title"]
     group_chat_id = meeting["group_chat_id"]
     message_id = meeting.get("message_id")
 
-    common_slots = await get_common_slots(meeting_id)        # ← было: find_common_slots
     participants = await get_participants(meeting_id)
-    participant_names = (
-        ", ".join(p["username"] for p in participants) if participants else "—"
-    )
+    participant_names = format_participant_names(participants)
 
-    if common_slots:
-        slots_lines = "\n".join(
-            f"• {slot_to_display(s)}" for s in common_slots  # ← get_common_slots возвращает list[str]
-        )
-        result_text = MESSAGES["results_found"].format(       # ← было: "result_found"
-            title=title,
-            total=len(participants),                          # ← шаблон требует {total}, не {participants}
-            slots=slots_lines,
-        )
-    else:
-        result_text = MESSAGES["results_no_common"].format(   # ← было: "result_not_found"
+    if not participants:
+        result_text = MESSAGES["results_no_participants"].format(title=title)
+    elif final_slot:
+        result_text = MESSAGES["results_confirmed"].format(
             title=title,
             total=len(participants),
+            participants=participant_names,
+            slot=slot_to_display(final_slot),
+        )
+    else:
+        result_text = MESSAGES["results_no_common"].format(
+            title=title,
+            total=len(participants),
+            participants=participant_names,
         )
 
     try:

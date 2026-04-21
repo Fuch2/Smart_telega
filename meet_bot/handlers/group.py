@@ -20,16 +20,16 @@ from config import TIMEZONE
 from database import (
     get_active_meetings_by_group,
     cancel_meeting,
-    count_participants,
     get_common_slots,
+    get_participants,
 )
 from keyboards.inline import (
-    build_announce_keyboard,
     build_meetings_list_keyboard,
 )
 from utils import (
     MESSAGES,
     format_datetime_moscow,
+    format_participant_names,
 )
 
 logger = logging.getLogger(__name__)
@@ -133,9 +133,9 @@ async def cmd_results(message: Message, bot: Bot) -> None:
 async def _send_results(chat_id: int, meeting: dict, bot: Bot) -> None:
     meeting_id       = meeting["id"]
     common           = await get_common_slots(meeting_id)
-    total            = await count_participants(meeting_id)
-    deadline_dt      = datetime.fromisoformat(meeting["deadline"])
-    deadline_display = format_datetime_moscow(deadline_dt)
+    participants     = await get_participants(meeting_id)
+    total            = len(participants)
+    participants_txt = format_participant_names(participants)
 
     if total == 0:
         text = MESSAGES["results_no_participants"].format(title=meeting["title"])
@@ -143,6 +143,7 @@ async def _send_results(chat_id: int, meeting: dict, bot: Bot) -> None:
         text = MESSAGES["results_no_common"].format(
             title=meeting["title"],
             total=total,
+            participants=participants_txt,
         )
     else:
         slots_lines = "\n".join(
@@ -152,6 +153,7 @@ async def _send_results(chat_id: int, meeting: dict, bot: Bot) -> None:
         text = MESSAGES["results_found"].format(
             title=meeting["title"],
             total=total,
+            participants=participants_txt,
             slots=slots_lines,
         )
 

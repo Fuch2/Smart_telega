@@ -54,6 +54,7 @@ CREATE TABLE cart_workflow_new (
                              CHECK (state IN (
                                  'FREE',
                                  'ORDER_LOADED',
+                                 'LOADING_FEEDERS',
                                  'PICKING_MATERIALS',
                                  'READY_FOR_FEEDER_PREP',
                                  'FEEDER_PREP',

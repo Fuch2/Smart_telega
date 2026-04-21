@@ -255,8 +255,7 @@ BarcodeScanResult Stm32PollingService::recordBarcodeScan(
                              "Нет активного заказа",
                              "BarcodeRejected");
     }
-    if (workflow.state != domain::CartWorkflowState::OrderLoaded &&
-        workflow.state != domain::CartWorkflowState::PickingMaterials)
+    if (workflow.state != domain::CartWorkflowState::PickingMaterials)
     {
         return rejectBarcode(domain::ErrorCode::Unknown,
                              "Заказ сейчас не находится на этапе подбора",
@@ -300,8 +299,6 @@ BarcodeScanResult Stm32PollingService::recordBarcodeScan(
                 item->targetSlot
             };
         }
-
-        workflowRepo_.setState(domain::CartWorkflowState::PickingMaterials);
 
         std::ostringstream accepted;
         accepted << "barcode=" << normalized

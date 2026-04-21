@@ -7,6 +7,7 @@ using namespace smartcart::domain;
 TEST(CartWorkflowDomainTest, WorkflowStateConvertsToStableDbString) {
     EXPECT_EQ(toString(CartWorkflowState::Free), "FREE");
     EXPECT_EQ(toString(CartWorkflowState::OrderLoaded), "ORDER_LOADED");
+    EXPECT_EQ(toString(CartWorkflowState::LoadingFeeders), "LOADING_FEEDERS");
     EXPECT_EQ(toString(CartWorkflowState::PickingMaterials), "PICKING_MATERIALS");
     EXPECT_EQ(toString(CartWorkflowState::ReadyForFeederPrep), "READY_FOR_FEEDER_PREP");
     EXPECT_EQ(toString(CartWorkflowState::FeederPrep), "FEEDER_PREP");
@@ -20,6 +21,7 @@ TEST(CartWorkflowDomainTest, WorkflowStateConvertsToStableDbString) {
 TEST(CartWorkflowDomainTest, WorkflowStateParsesDbString) {
     EXPECT_EQ(cartWorkflowStateFromString("FREE"), CartWorkflowState::Free);
     EXPECT_EQ(cartWorkflowStateFromString("ORDER_LOADED"), CartWorkflowState::OrderLoaded);
+    EXPECT_EQ(cartWorkflowStateFromString("LOADING_FEEDERS"), CartWorkflowState::LoadingFeeders);
     EXPECT_EQ(cartWorkflowStateFromString("PICKING_MATERIALS"), CartWorkflowState::PickingMaterials);
     EXPECT_EQ(cartWorkflowStateFromString("READY_FOR_FEEDER_PREP"), CartWorkflowState::ReadyForFeederPrep);
     EXPECT_EQ(cartWorkflowStateFromString("FEEDER_PREP"), CartWorkflowState::FeederPrep);

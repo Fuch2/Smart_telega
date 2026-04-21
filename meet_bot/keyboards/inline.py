@@ -21,7 +21,7 @@ class CalendarCallback(CallbackData, prefix="cal"):
 
 
 class SlotActionCallback(CallbackData, prefix="slotact"):
-    """mode / done / noop / prev / next / toggle_date"""
+    """mode / done / noop / prev / next / toggle_date / add_custom"""
     action: str
     value: int = 0   # используется для prev/next (индекс) и toggle_date (индекс даты)
 
@@ -34,6 +34,10 @@ class SlotCallback(CallbackData, prefix="slot"):
 class MeetingActionCallback(CallbackData, prefix="meet"):
     action: str
     meeting_id: int
+
+
+class PrivateMenuCallback(CallbackData, prefix="priv"):
+    action: str
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -51,6 +55,39 @@ def decode_slot_key(slot_key: str) -> str:
 def slot_to_display(slot_str: str) -> str:
     dt = datetime.strptime(slot_str, "%Y-%m-%d %H:%M")
     return dt.strftime("%d.%m.%Y %H:%M")
+
+
+def _truncate_button_text(text: str, limit: int = 60) -> str:
+    return text if len(text) <= limit else f"{text[:limit - 1]}…"
+
+
+def default_slots_for_date(date_str: str) -> list[str]:
+    d = datetime.strptime(date_str, "%Y-%m-%d")
+    hours = WEEKEND_HOURS if d.weekday() >= 5 else WEEKDAY_HOURS
+    return [f"{hour:02d}:00" for hour in hours]
+
+
+def build_available_slots_by_date(
+    dates: list[str],
+    custom_slots: list[str] | None = None,
+) -> dict[str, list[str]]:
+    result: dict[str, set[str]] = {
+        date_str: set(default_slots_for_date(date_str))
+        for date_str in dates
+    }
+
+    for slot_str in custom_slots or []:
+        parts = slot_str.split(" ", 1)
+        if len(parts) != 2:
+            continue
+        date_str, time_str = parts
+        if date_str in result:
+            result[date_str].add(time_str)
+
+    return {
+        date_str: sorted(times)
+        for date_str, times in result.items()
+    }
 
 
 # ─── КАЛЕНДАРЬ ────────────────────────────────────────────────────────────────
@@ -145,6 +182,7 @@ def build_slots_keyboard(
     mode: str,                             # "same" | "per_date"
     current_date_index: int = 0,
     same_time_dates: set[int] | None = None,  # индексы дат, выбранных для "same"
+    available_slots_by_date: dict[str, list[str]] | None = None,
 ) -> InlineKeyboardMarkup:
     """
     mode="same"     — показываем чекбоксы дат + слоты; выбранные даты получат одно время
@@ -152,6 +190,8 @@ def build_slots_keyboard(
     """
     if same_time_dates is None:
         same_time_dates = set()
+    if available_slots_by_date is None:
+        available_slots_by_date = build_available_slots_by_date(dates)
 
     builder = InlineKeyboardBuilder()
     total = len(dates)
@@ -197,25 +237,17 @@ def build_slots_keyboard(
             ))
 
             # Часы — объединение по отмеченным датам
-            all_hours: set[int] = set()
+            all_times: set[str] = set()
             for i in same_time_dates:
-                d = datetime.strptime(dates[i], "%Y-%m-%d")
-                hours = WEEKEND_HOURS if d.weekday() >= 5 else WEEKDAY_HOURS
-                all_hours.update(hours)
+                all_times.update(available_slots_by_date.get(dates[i], []))
 
-            # Текущие общие слоты — берём из первой отмеченной даты как эталон
-            first_date = dates[next(iter(sorted(same_time_dates)))]
-            current_same_slots = selected_slots.get(f"__same_{first_date}", set())
-            # Используем специальный ключ __same для хранения "общего" выбора
-            # Реальный ключ в selected_slots для режима same: "__same"
             current_same_slots = selected_slots.get("__same__", set())
 
             row_slots = []
-            for hour in sorted(all_hours):
-                slot_key = f"{hour:02d}:00"
-                safe_key = encode_slot_key(slot_key)
-                is_selected = slot_key in current_same_slots
-                label = f"{'✅ ' if is_selected else ''}{hour:02d}:00"
+            for time_str in sorted(all_times):
+                safe_key = encode_slot_key(time_str)
+                is_selected = time_str in current_same_slots
+                label = f"{'✅ ' if is_selected else ''}{time_str}"
                 row_slots.append(InlineKeyboardButton(
                     text=label,
                     callback_data=SlotCallback(slot_key=safe_key).pack(),
@@ -225,6 +257,11 @@ def build_slots_keyboard(
                     row_slots = []
             if row_slots:
                 builder.row(*row_slots)
+
+            builder.row(InlineKeyboardButton(
+                text="➕ Добавить своё время",
+                callback_data=SlotActionCallback(action="add_custom").pack(),
+            ))
 
             builder.row(InlineKeyboardButton(
                 text="✅ Применить к отмеченным датам",
@@ -261,16 +298,14 @@ def build_slots_keyboard(
             ),
         )
 
-        is_weekend = d.weekday() >= 5
-        hours = WEEKEND_HOURS if is_weekend else WEEKDAY_HOURS
         slots_for_date = selected_slots.get(date_str, set())
+        available_times = available_slots_by_date.get(date_str, default_slots_for_date(date_str))
 
         row_slots = []
-        for hour in hours:
-            slot_key = f"{hour:02d}:00"
-            safe_key = encode_slot_key(slot_key)
-            is_selected = slot_key in slots_for_date
-            label = f"{'✅ ' if is_selected else ''}{hour:02d}:00"
+        for time_str in available_times:
+            safe_key = encode_slot_key(time_str)
+            is_selected = time_str in slots_for_date
+            label = f"{'✅ ' if is_selected else ''}{time_str}"
             row_slots.append(InlineKeyboardButton(
                 text=label,
                 callback_data=SlotCallback(slot_key=safe_key).pack(),
@@ -280,6 +315,11 @@ def build_slots_keyboard(
                 row_slots = []
         if row_slots:
             builder.row(*row_slots)
+
+        builder.row(InlineKeyboardButton(
+            text="➕ Добавить своё время",
+            callback_data=SlotActionCallback(action="add_custom").pack(),
+        ))
 
     # ── Кнопка «Готово» ───────────────────────────────────────────────────────
     builder.row(InlineKeyboardButton(
@@ -316,4 +356,46 @@ def build_meetings_list_keyboard(meetings: list, bot_username: str) -> InlineKey
             text="🗓 Выбрать время",
             url=f"https://t.me/{bot_username}?start=vote_{meeting['id']}",
         ))
+    return builder.as_markup()
+
+
+def build_private_home_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(
+        text="📅 Календарь",
+        callback_data=PrivateMenuCallback(action="calendar").pack(),
+    ))
+    builder.row(InlineKeyboardButton(
+        text="🔗 Интеграции",
+        callback_data=PrivateMenuCallback(action="integrations").pack(),
+    ))
+    return builder.as_markup()
+
+
+def build_personal_calendar_keyboard(
+    meetings: list[dict],
+    bot_username: str,
+    chat_titles: dict[int, str],
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for meeting in meetings:
+        source = chat_titles.get(meeting["group_chat_id"], str(meeting["group_chat_id"]))
+        button_text = _truncate_button_text(f"🗓 {meeting['title']} • {source}")
+        builder.row(InlineKeyboardButton(
+            text=button_text,
+            url=f"https://t.me/{bot_username}?start=vote_{meeting['id']}",
+        ))
+    builder.row(InlineKeyboardButton(
+        text="⬅️ Назад",
+        callback_data=PrivateMenuCallback(action="home").pack(),
+    ))
+    return builder.as_markup()
+
+
+def build_integrations_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(
+        text="⬅️ Назад",
+        callback_data=PrivateMenuCallback(action="home").pack(),
+    ))
     return builder.as_markup()

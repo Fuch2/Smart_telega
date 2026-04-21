@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytz
 from aiogram import Router, F, Bot
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
@@ -11,9 +11,15 @@ from aiogram.types import Message, CallbackQuery
 from config import TIMEZONE
 from database import (
     get_meeting,
+    get_meeting_custom_slots,
+    get_user_active_meetings,
+    get_user_integrations,
+    remember_meeting_access,
     add_user_slot,
+    add_meeting_custom_slot,
     delete_user_slots,
     get_user_slots,
+    get_participant_votes,
     upsert_participant,
     count_participants,
     save_message_id,
@@ -22,17 +28,24 @@ from database import (
 from keyboards.inline import (
     build_calendar,
     build_slots_keyboard,
+    build_available_slots_by_date,
     build_announce_keyboard,
+    build_private_home_keyboard,
+    build_personal_calendar_keyboard,
+    build_integrations_keyboard,
     CalendarCallback,
     SlotCallback,
     SlotActionCallback,
+    PrivateMenuCallback,
     decode_slot_key,
 )
 from utils import (
     MESSAGES,
     now_moscow,
     format_datetime_moscow,
+    format_participant_votes,
     parse_deadline,
+    parse_time_input,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,6 +63,7 @@ class MeetingCreation(StatesGroup):
 class VoteFlow(StatesGroup):
     choosing_dates = State()
     choosing_slots = State()
+    waiting_custom_time = State()
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -76,6 +90,109 @@ def _restore_slots_dict(saved_slots: list[str]) -> dict[str, set[str]]:
             d_str, t_str = parts
             result.setdefault(d_str, set()).add(t_str)
     return result
+
+
+def _meeting_relation_label(meeting: dict) -> str:
+    tags = []
+    if meeting.get("is_creator"):
+        tags.append("организатор")
+    if meeting.get("has_voted"):
+        tags.append("голос сохранён")
+    elif meeting.get("has_opened"):
+        tags.append("ещё не голосовал")
+    return ", ".join(tags) if tags else "ещё не голосовал"
+
+
+def _integration_status_map(integrations: list[dict]) -> dict[str, str]:
+    providers = {item["provider"] for item in integrations}
+    return {
+        "google": MESSAGES["integration_connected"] if "google" in providers else MESSAGES["integration_not_connected"],
+        "todoist": MESSAGES["integration_connected"] if "todoist" in providers else MESSAGES["integration_not_connected"],
+    }
+
+
+async def _get_chat_titles(bot: Bot, meetings: list[dict]) -> dict[int, str]:
+    titles: dict[int, str] = {}
+    for meeting in meetings:
+        chat_id = meeting["group_chat_id"]
+        if chat_id in titles:
+            continue
+        try:
+            chat = await bot.get_chat(chat_id)
+            titles[chat_id] = getattr(chat, "title", None) or str(chat_id)
+        except Exception:
+            titles[chat_id] = str(chat_id)
+    return titles
+
+
+async def _send_personal_calendar(message: Message, bot: Bot, user_id: int) -> None:
+    meetings = await get_user_active_meetings(user_id)
+    if not meetings:
+        await message.answer(MESSAGES["personal_calendar_empty"])
+        return
+
+    chat_titles = await _get_chat_titles(bot, meetings)
+    lines = []
+    for meeting in meetings:
+        deadline_dt = datetime.fromisoformat(meeting["deadline"])
+        source = chat_titles.get(meeting["group_chat_id"], str(meeting["group_chat_id"]))
+        status = _meeting_relation_label(meeting)
+        lines.append(
+            "\n".join([
+                f"• <b>{meeting['title']}</b>",
+                f"Источник: {source}",
+                f"Дедлайн: {format_datetime_moscow(deadline_dt)}",
+                f"Статус: {status}",
+            ])
+        )
+
+    bot_info = await bot.get_me()
+    await message.answer(
+        MESSAGES["personal_calendar_header"].format(lines="\n\n".join(lines)),
+        reply_markup=build_personal_calendar_keyboard(meetings, bot_info.username, chat_titles),
+    )
+
+
+async def _send_private_home(message: Message) -> None:
+    await message.answer(
+        MESSAGES["private_welcome"],
+        reply_markup=build_private_home_keyboard(),
+    )
+
+
+async def _send_integrations(message: Message, user_id: int) -> None:
+    integrations = await get_user_integrations(user_id)
+    statuses = _integration_status_map(integrations)
+    await message.answer(
+        MESSAGES["integrations_header"].format(
+            google_status=statuses["google"],
+            todoist_status=statuses["todoist"],
+        ),
+        reply_markup=build_integrations_keyboard(),
+    )
+
+
+async def _build_slots_reply_markup(
+    meeting_id: int,
+    dates: list[str],
+    slots_dict: dict[str, set[str]],
+    slot_mode: str,
+    current_date_index: int,
+    same_time_dates: set[int],
+    same_slots: set[str],
+):
+    custom_slots = await get_meeting_custom_slots(meeting_id)
+    available_slots_by_date = build_available_slots_by_date(dates, custom_slots)
+    selected_slots = dict(slots_dict)
+    selected_slots["__same__"] = set(same_slots)
+    return build_slots_keyboard(
+        dates=dates,
+        selected_slots=selected_slots,
+        mode=slot_mode,
+        current_date_index=current_date_index,
+        same_time_dates=same_time_dates,
+        available_slots_by_date=available_slots_by_date,
+    )
 
 
 # ─── /start ───────────────────────────────────────────────────────────────────
@@ -134,6 +251,12 @@ async def cmd_start_private(message: Message, state: FSMContext, bot: Bot) -> No
             await message.answer(MESSAGES["deadline_passed"])
             return
 
+        await remember_meeting_access(
+            meeting_id=meeting_id,
+            user_id=message.from_user.id,
+            accessed_at=now_moscow().isoformat(),
+        )
+
         # Восстанавливаем ранее сохранённые слоты из БД
         saved_slots  = await get_user_slots(meeting_id, message.from_user.id)
         saved_dates  = sorted(set(s.split(" ")[0] for s in saved_slots))
@@ -148,6 +271,7 @@ async def cmd_start_private(message: Message, state: FSMContext, bot: Bot) -> No
             current_date_index=0,
             same_time_dates=[],
             same_slots=[],
+            custom_slot_targets=[],
         )
 
         deadline_display = format_datetime_moscow(deadline_dt)
@@ -157,6 +281,8 @@ async def cmd_start_private(message: Message, state: FSMContext, bot: Bot) -> No
                 deadline=deadline_display,
             )
         )
+        votes = await get_participant_votes(meeting_id)
+        await message.answer(format_participant_votes(votes))
 
         now = now_moscow()
         kb  = build_calendar(now.year, now.month, set(saved_dates))
@@ -165,10 +291,36 @@ async def cmd_start_private(message: Message, state: FSMContext, bot: Bot) -> No
         return
 
     # ── /start без payload ────────────────────────────────────────────────────
-    await message.answer(
-        "👋 Привет! Я бот для организации встреч.\n"
-        "Перейди в групповой чат и нажми кнопку «Создать встречу» или «Выбрать время»."
-    )
+    await state.clear()
+    await _send_private_home(message)
+
+
+@router.message(Command("calendar"), F.chat.type == "private")
+async def cmd_calendar_private(message: Message, bot: Bot) -> None:
+    await _send_personal_calendar(message, bot, message.from_user.id)
+
+
+@router.message(Command("integrations"), F.chat.type == "private")
+async def cmd_integrations_private(message: Message) -> None:
+    await _send_integrations(message, message.from_user.id)
+
+
+@router.callback_query(PrivateMenuCallback.filter(F.action == "calendar"), F.message.chat.type == "private")
+async def private_menu_calendar(callback: CallbackQuery, bot: Bot) -> None:
+    await _send_personal_calendar(callback.message, bot, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(PrivateMenuCallback.filter(F.action == "integrations"), F.message.chat.type == "private")
+async def private_menu_integrations(callback: CallbackQuery) -> None:
+    await _send_integrations(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(PrivateMenuCallback.filter(F.action == "home"), F.message.chat.type == "private")
+async def private_menu_home(callback: CallbackQuery) -> None:
+    await _send_private_home(callback.message)
+    await callback.answer()
 
 
 # ─── СОЗДАНИЕ: название ───────────────────────────────────────────────────────
@@ -304,13 +456,16 @@ async def vote_calendar(
             current_date_index=0,
             same_time_dates=[],
             same_slots=[],
+            custom_slot_targets=[],
         )
-        kb = build_slots_keyboard(
+        kb = await _build_slots_reply_markup(
+            meeting_id=meeting_id,
             dates=sorted_dates,
-            selected_slots=slots_dict,
-            mode="per_date",
+            slots_dict=slots_dict,
+            slot_mode="per_date",
             current_date_index=0,
             same_time_dates=set(),
+            same_slots=set(),
         )
         await callback.message.edit_text(MESSAGES["ask_slots_mode"], reply_markup=kb)
         await state.set_state(VoteFlow.choosing_slots)
@@ -344,21 +499,26 @@ async def vote_slot_action(
 
     # ── Переключение режима ───────────────────────────────────────────────────
     if action == "mode":
+        if slot_mode == "same" and same_time_dates and same_slots:
+            for i in same_time_dates:
+                slots_dict[sorted_dates[i]] = set(same_slots)
         slot_mode = "same" if slot_mode == "per_date" else "per_date"
-        # Сбрасываем только временное состояние same, основные слоты сохраняем
         await state.update_data(
+            slots_dict=_slots_dict_to_state(slots_dict),
             slot_mode=slot_mode,
             current_date_index=0,
             same_time_dates=[],
             same_slots=[],
         )
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots=slots_dict,
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=0,
                 same_time_dates=set(),
+                same_slots=set(),
             )
         )
         await callback.answer()
@@ -369,12 +529,14 @@ async def vote_slot_action(
         new_index = callback_data.value
         await state.update_data(current_date_index=new_index)
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots=slots_dict,
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=new_index,
                 same_time_dates=same_time_dates,
+                same_slots=same_slots,
             )
         )
         await callback.answer()
@@ -389,14 +551,39 @@ async def vote_slot_action(
             same_time_dates.add(i)
         await state.update_data(same_time_dates=list(same_time_dates))
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots={**slots_dict, "__same__": same_slots},
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=current_date_index,
                 same_time_dates=same_time_dates,
+                same_slots=same_slots,
             )
         )
+        await callback.answer()
+        return
+
+    # ── Добавить своё время ───────────────────────────────────────────────────
+    if action == "add_custom":
+        if slot_mode == "per_date":
+            target_dates = [sorted_dates[current_date_index]]
+            target_label = datetime.strptime(target_dates[0], "%Y-%m-%d").strftime("%d.%m.%Y")
+            prompt = MESSAGES["ask_custom_time_single"].format(date=target_label)
+        else:
+            if not same_time_dates:
+                await callback.answer(MESSAGES["custom_time_no_dates"], show_alert=True)
+                return
+            target_dates = [sorted_dates[i] for i in sorted(same_time_dates)]
+            dates_label = ", ".join(
+                datetime.strptime(date_str, "%Y-%m-%d").strftime("%d.%m")
+                for date_str in target_dates
+            )
+            prompt = MESSAGES["ask_custom_time_multiple"].format(dates=dates_label)
+
+        await state.update_data(custom_slot_targets=target_dates)
+        await state.set_state(VoteFlow.waiting_custom_time)
+        await callback.message.answer(prompt)
         await callback.answer()
         return
 
@@ -418,12 +605,14 @@ async def vote_slot_action(
             same_slots=[],
         )
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots=slots_dict,
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=current_date_index,
                 same_time_dates=set(),
+                same_slots=set(),
             )
         )
         await callback.answer("✅ Время применено!")
@@ -431,6 +620,10 @@ async def vote_slot_action(
 
     # ── Готово ────────────────────────────────────────────────────────────────
     if action == "done":
+        if slot_mode == "same" and same_time_dates and same_slots:
+            for i in same_time_dates:
+                slots_dict[sorted_dates[i]] = set(same_slots)
+
         final_slots = sorted(
             f"{date_str} {time_str}"
             for date_str, times in slots_dict.items()
@@ -475,9 +668,76 @@ async def vote_slot_action(
                 logger.warning(f"Не удалось обновить анонс встречи #{meeting_id}: {e}")
 
         await callback.message.edit_text(MESSAGES["vote_saved"])
+        votes = await get_participant_votes(meeting_id)
+        await callback.message.answer(format_participant_votes(votes))
         await state.clear()
         await callback.answer()
         logger.info(f"Пользователь {user_id} сохранил слоты для встречи #{meeting_id}.")
+
+
+@router.message(VoteFlow.waiting_custom_time, F.chat.type == "private")
+async def vote_custom_time_input(message: Message, state: FSMContext) -> None:
+    time_str = parse_time_input(message.text)
+    if time_str is None:
+        await message.answer(MESSAGES["invalid_custom_time"])
+        return
+
+    data               = await state.get_data()
+    meeting_id         = data.get("meeting_id")
+    sorted_dates       = data.get("selected_dates", [])
+    slot_mode          = data.get("slot_mode", "per_date")
+    current_date_index = data.get("current_date_index", 0)
+    slots_dict         = _slots_dict_from_state(data.get("slots_dict", {}))
+    same_time_dates    = set(data.get("same_time_dates", []))
+    same_slots         = set(data.get("same_slots", []))
+    target_dates       = data.get("custom_slot_targets", [])
+
+    if not target_dates:
+        if slot_mode == "per_date" and sorted_dates:
+            target_dates = [sorted_dates[current_date_index]]
+        elif slot_mode == "same" and same_time_dates:
+            target_dates = [sorted_dates[i] for i in sorted(same_time_dates)]
+
+    if not target_dates:
+        await state.set_state(VoteFlow.choosing_slots)
+        await message.answer(MESSAGES["custom_time_no_dates"])
+        return
+
+    for date_str in target_dates:
+        await add_meeting_custom_slot(
+            meeting_id=meeting_id,
+            slot_datetime=f"{date_str} {time_str}",
+            created_by=message.from_user.id,
+        )
+
+    if slot_mode == "per_date":
+        date_str = target_dates[0]
+        slots_for_date = slots_dict.get(date_str, set())
+        slots_for_date.add(time_str)
+        slots_dict[date_str] = slots_for_date
+    else:
+        same_slots.add(time_str)
+
+    await state.update_data(
+        slots_dict=_slots_dict_to_state(slots_dict),
+        same_slots=list(same_slots),
+        custom_slot_targets=[],
+    )
+    await state.set_state(VoteFlow.choosing_slots)
+
+    reply_markup = await _build_slots_reply_markup(
+        meeting_id=meeting_id,
+        dates=sorted_dates,
+        slots_dict=slots_dict,
+        slot_mode=slot_mode,
+        current_date_index=current_date_index,
+        same_time_dates=same_time_dates,
+        same_slots=same_slots,
+    )
+    await message.answer(
+        MESSAGES["custom_time_added"].format(time=time_str),
+        reply_markup=reply_markup,
+    )
 
 
 # ─── ГОЛОСОВАНИЕ: toggle слота ────────────────────────────────────────────────
@@ -509,12 +769,14 @@ async def vote_slot_toggle(
         await state.update_data(slots_dict=_slots_dict_to_state(slots_dict))
 
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots=slots_dict,
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=current_date_index,
                 same_time_dates=same_time_dates,
+                same_slots=same_slots,
             )
         )
 
@@ -526,12 +788,14 @@ async def vote_slot_toggle(
         await state.update_data(same_slots=list(same_slots))
 
         await callback.message.edit_reply_markup(
-            reply_markup=build_slots_keyboard(
+            reply_markup=await _build_slots_reply_markup(
+                meeting_id=meeting_id,
                 dates=sorted_dates,
-                selected_slots={**slots_dict, "__same__": same_slots},
-                mode=slot_mode,
+                slots_dict=slots_dict,
+                slot_mode=slot_mode,
                 current_date_index=current_date_index,
                 same_time_dates=same_time_dates,
+                same_slots=same_slots,
             )
         )
 

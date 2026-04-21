@@ -62,7 +62,10 @@ public Q_SLOTS:
     void onBarcodeScanned(const QString& barcode);
     void onSlotPhysicalChange(int slotIndex, bool occupied);
     void cancelCurrentOperation();
-    void importOrderFromFile(const QString& path);
+    void importOrderFromFile(const QString& path,
+                             bool skipFeederLoading = false);
+    void startFeederLoading();
+    void completeFeederLoading();
     void markCartArrivedToFeederPrep();
     void startFeederPrep();
     void markFeederPrepCompleted();

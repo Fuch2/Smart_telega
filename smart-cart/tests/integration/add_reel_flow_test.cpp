@@ -205,7 +205,7 @@ TEST_F(AddReelFlowTest, PollingScanThenPa1_CreatesRecordAndCompletesOperation) {
     item.materialType = "reel";
     item.targetSlot = 2;
     orderRepo_->addItem(item);
-    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::PickingMaterials);
 
     Stm32PollingService svc(link,
                             *reelRepo_,
@@ -269,7 +269,7 @@ TEST_F(AddReelFlowTest, SwitchEventScanThenPa1_CreatesRecordAndCompletesOperatio
     item.materialType = "reel";
     item.targetSlot = 1;
     orderRepo_->addItem(item);
-    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::PickingMaterials);
 
     Stm32PollingService svc(link,
                             *reelRepo_,
@@ -410,7 +410,7 @@ TEST_F(AddReelFlowTest, SnapshotFallbackWaitsForEventPreferredPath) {
     item.materialType = "reel";
     item.targetSlot = 1;
     orderRepo_->addItem(item);
-    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::PickingMaterials);
 
     Stm32PollingService svc(link,
                             *reelRepo_,
@@ -493,7 +493,7 @@ TEST_F(AddReelFlowTest, PollingScanThenWrongPa2_DoesNotCreateReel) {
     item.materialType = "reel";
     item.targetSlot = 2;
     orderRepo_->addItem(item);
-    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::OrderLoaded);
+    workflowRepo_->setCurrentOrder(orderId, domain::CartWorkflowState::PickingMaterials);
 
     Stm32PollingService svc(link,
                             *reelRepo_,

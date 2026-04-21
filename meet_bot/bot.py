@@ -49,6 +49,8 @@ async def set_bot_commands(bot: Bot) -> None:
     await bot.set_my_commands(
         commands=[
             BotCommand(command="start", description="👋 Начать"),
+            BotCommand(command="calendar", description="📅 Мой календарь"),
+            BotCommand(command="integrations", description="🔗 Интеграции"),
         ],
         scope=BotCommandScopeAllPrivateChats(),
     )
