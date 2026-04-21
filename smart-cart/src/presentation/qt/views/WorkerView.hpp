@@ -97,6 +97,8 @@ private:
     void updateActionHint(const QString& stateKey);
     void showStagePopupIfNeeded(const QString& stateKey);
     static QString stagePopupTitle(const QString& stateKey);
+    bool askCartWasAlreadyInWork();
+    void showLargeStageDialog(const QString& title);
     void setWorkflowActionsEnabled(bool startFeederLoading,
                                    bool completeFeederLoading,
                                    bool arrivedFeeder,

@@ -6,6 +6,7 @@
 #include "WorkerView.hpp"
 
 #include <QApplication>
+#include <QDialog>
 #include <QEvent>
 #include <QFont>
 #include <QFileDialog>
@@ -19,7 +20,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 
@@ -739,40 +739,7 @@ void WorkerView::onImportOrderClicked() {
         return;
     }
 
-    QMessageBox cartStateBox(this);
-    cartStateBox.setWindowTitle(QString::fromUtf8("Состояние тележки"));
-    cartStateBox.setTextFormat(Qt::RichText);
-    cartStateBox.setText(QStringLiteral(
-        "<div style=\"font-size:20px; font-weight:700; color:#102217;\">"
-        "Выберите состояние тележки</div>"
-        "<div style=\"font-size:14px; color:#31533D; margin-top:10px;\">"
-        "Если тележка пустая, оператор сначала загрузит питатели. "
-        "Если тележка была в работе, считаем, что питатели уже находятся в тележке, "
-        "и сразу переходим к подбору материалов.</div>"));
-
-    auto* emptyButton = cartStateBox.addButton(
-        QString::fromUtf8("Тележка пустая"),
-        QMessageBox::AcceptRole);
-    auto* inWorkButton = cartStateBox.addButton(
-        QString::fromUtf8("Была в работе"),
-        QMessageBox::ActionRole);
-    cartStateBox.addButton(QString::fromUtf8("Отмена"), QMessageBox::RejectRole);
-    cartStateBox.setDefaultButton(qobject_cast<QPushButton*>(emptyButton));
-    cartStateBox.setStyleSheet(
-        "QMessageBox { background: #F6FAF7; }"
-        "QLabel { min-width: 560px; }"
-        "QPushButton { min-width: 150px; min-height: 42px; "
-        "border-radius: 8px; font-size: 14px; font-weight: bold; "
-        "padding: 8px 14px; }");
-    cartStateBox.exec();
-
-    if (cartStateBox.clickedButton() == nullptr ||
-        cartStateBox.buttonRole(cartStateBox.clickedButton()) == QMessageBox::RejectRole)
-    {
-        return;
-    }
-
-    const bool skipFeederLoading = cartStateBox.clickedButton() == inWorkButton;
+    const bool skipFeederLoading = askCartWasAlreadyInWork();
     viewModel_.importOrderFromFile(path, skipFeederLoading);
     focusBarcodeInput();
 }
@@ -1002,21 +969,7 @@ void WorkerView::showStagePopupIfNeeded(const QString& stateKey) {
 
     lastStagePopupKey_ = stateKey;
 
-    QMessageBox box(this);
-    box.setWindowTitle(QString::fromUtf8("Этап маршрута"));
-    box.setTextFormat(Qt::RichText);
-    box.setText(QStringLiteral(
-        "<div align=\"center\" style=\"font-size:34px; font-weight:800; "
-        "color:#102217; padding:24px;\">%1</div>").arg(title.toHtmlEscaped()));
-    box.setStandardButtons(QMessageBox::Ok);
-    box.button(QMessageBox::Ok)->setText(QString::fromUtf8("Понятно"));
-    box.setStyleSheet(
-        "QMessageBox { background: #F6FAF7; }"
-        "QLabel { min-width: 520px; }"
-        "QPushButton { min-width: 160px; min-height: 44px; "
-        "background: #2F8F57; color: #FFFFFF; border-radius: 8px; "
-        "font-size: 16px; font-weight: bold; padding: 8px 14px; }");
-    box.exec();
+    showLargeStageDialog(title);
 }
 
 QString WorkerView::stagePopupTitle(const QString& stateKey) {
@@ -1051,6 +1004,111 @@ QString WorkerView::stagePopupTitle(const QString& stateKey) {
         return QString::fromUtf8("ВОЗВРАТ ОСТАТКОВ");
     }
     return {};
+}
+
+bool WorkerView::askCartWasAlreadyInWork() {
+    QDialog dialog(this);
+    dialog.setWindowTitle(QString::fromUtf8("Состояние тележки"));
+    dialog.setModal(true);
+    dialog.setStyleSheet(
+        "QDialog { background: #F6FAF7; }"
+        "QLabel { color: #102217; background: transparent; }"
+        "QPushButton { background: #E6F0E9; color: #173025; "
+        "border: 1px solid #B8D0BF; border-radius: 8px; "
+        "font-size: 15px; font-weight: bold; padding: 12px 16px; }"
+        "QPushButton:hover { background: #D7E8DC; }"
+        "QPushButton#primary { background: #2F8F57; color: #FFFFFF; "
+        "border-color: #2F8F57; }"
+    );
+
+    auto* root = new QVBoxLayout(&dialog);
+    root->setContentsMargins(26, 24, 26, 22);
+    root->setSpacing(16);
+
+    auto* title = new QLabel(QString::fromUtf8("СОСТОЯНИЕ ТЕЛЕЖКИ"), &dialog);
+    title->setFont(QFont("Segoe UI", 22, QFont::Bold));
+    title->setAlignment(Qt::AlignCenter);
+
+    auto* text = new QLabel(
+        QString::fromUtf8(
+            "Если тележка пустая, оператор сначала загрузит питатели.\n"
+            "Если тележка была в работе, считаем, что питатели уже находятся "
+            "в тележке, и сразу переходим к подбору материалов."),
+        &dialog);
+    text->setFont(QFont("Segoe UI", 14));
+    text->setAlignment(Qt::AlignCenter);
+    text->setWordWrap(true);
+    text->setMinimumWidth(620);
+
+    auto* buttons = new QHBoxLayout();
+    buttons->setSpacing(12);
+
+    auto* inWorkButton = new QPushButton(QString::fromUtf8("Была в работе"), &dialog);
+    auto* cancelButton = new QPushButton(QString::fromUtf8("Отмена"), &dialog);
+    auto* emptyButton = new QPushButton(QString::fromUtf8("Тележка пустая"), &dialog);
+    emptyButton->setObjectName(QStringLiteral("primary"));
+
+    for (auto* button : {inWorkButton, cancelButton, emptyButton}) {
+        button->setMinimumHeight(54);
+        button->setMinimumWidth(180);
+    }
+
+    buttons->addWidget(inWorkButton);
+    buttons->addWidget(cancelButton);
+    buttons->addWidget(emptyButton);
+
+    root->addWidget(title);
+    root->addWidget(text);
+    root->addLayout(buttons);
+
+    bool alreadyInWork = false;
+    connect(inWorkButton, &QPushButton::clicked, &dialog, [&]() {
+        alreadyInWork = true;
+        dialog.accept();
+    });
+    connect(emptyButton, &QPushButton::clicked, &dialog, [&]() {
+        alreadyInWork = false;
+        dialog.accept();
+    });
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return false;
+    }
+    return alreadyInWork;
+}
+
+void WorkerView::showLargeStageDialog(const QString& titleText) {
+    QDialog dialog(this);
+    dialog.setWindowTitle(QString::fromUtf8("Этап маршрута"));
+    dialog.setModal(true);
+    dialog.setStyleSheet(
+        "QDialog { background: #F6FAF7; }"
+        "QLabel { color: #102217; background: transparent; }"
+        "QPushButton { background: #2F8F57; color: #FFFFFF; "
+        "border: 1px solid #2F8F57; border-radius: 8px; "
+        "font-size: 16px; font-weight: bold; padding: 10px 18px; }"
+        "QPushButton:hover { background: #3CA86A; }"
+    );
+
+    auto* root = new QVBoxLayout(&dialog);
+    root->setContentsMargins(34, 30, 34, 26);
+    root->setSpacing(22);
+
+    auto* title = new QLabel(titleText, &dialog);
+    title->setFont(QFont("Segoe UI", 34, QFont::Bold));
+    title->setAlignment(Qt::AlignCenter);
+    title->setWordWrap(true);
+    title->setMinimumWidth(620);
+
+    auto* okButton = new QPushButton(QString::fromUtf8("Понятно"), &dialog);
+    okButton->setMinimumSize(180, 52);
+
+    root->addWidget(title);
+    root->addWidget(okButton, 0, Qt::AlignCenter);
+
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    dialog.exec();
 }
 
 void WorkerView::setWorkflowActionsEnabled(bool startFeederLoading,
