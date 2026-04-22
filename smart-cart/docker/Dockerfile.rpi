@@ -29,7 +29,11 @@ WORKDIR /src
 COPY . /src
 
 RUN cmake -S /src -B /build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    && cmake --build /build --target smart_cart_ui integration_tests \
+    && cmake --build /build --target \
+        smart_cart_ui \
+        frame_codec_tests \
+        domain_tests \
+        integration_tests \
     && ctest --test-dir /build --output-on-failure \
     && mkdir -p /opt/smartcart \
     && cp /build/build_qt/smart_cart_ui /opt/smartcart/smart_cart_ui \
