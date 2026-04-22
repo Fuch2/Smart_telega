@@ -44,7 +44,8 @@ void ReelRepositorySqlite::ensureSchema() {
         "  serial     TEXT    NOT NULL UNIQUE COLLATE NOCASE,"
         "  slot_count INTEGER NOT NULL DEFAULT 24,"
         "  firmware   TEXT    NOT NULL DEFAULT '',"
-        "  status     TEXT    NOT NULL DEFAULT 'OFFLINE'"
+        "  status     TEXT    NOT NULL DEFAULT 'OFFLINE',"
+        "  kind       TEXT    NOT NULL DEFAULT 'REEL'"
         ");"
     );
 

@@ -612,6 +612,7 @@ void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
     showStagePopupIfNeeded(stateKey);
+    showModuleStatePopupIfNeeded(stateKey);
 
     const bool barcodeAllowed =
         moduleOnline_ &&
@@ -1006,6 +1007,52 @@ QString WorkerView::stagePopupTitle(const QString& stateKey) {
     return {};
 }
 
+void WorkerView::showModuleStatePopupIfNeeded(const QString& stateKey) {
+    if (!moduleOnline_) {
+        return;
+    }
+    if (stateKey == QStringLiteral("FREE")) {
+        lastModuleStatePopupKey_.clear();
+        return;
+    }
+    if (stateKey == lastModuleStatePopupKey_) {
+        return;
+    }
+
+    const QString title = moduleStatePopupTitle(stateKey);
+    if (title.isEmpty()) {
+        return;
+    }
+
+    const QString body = viewModel_.moduleStateTextForStage(stateKey).trimmed();
+    if (body.isEmpty()) {
+        return;
+    }
+
+    lastModuleStatePopupKey_ = stateKey;
+    showModuleStateDialog(title, body);
+}
+
+QString WorkerView::moduleStatePopupTitle(const QString& stateKey) {
+    if (stateKey == QStringLiteral("LOADING_FEEDERS") ||
+        stateKey == QStringLiteral("READY_FOR_FEEDER_PREP") ||
+        stateKey == QStringLiteral("FEEDER_PREP") ||
+        stateKey == QStringLiteral("READY_FOR_LINE"))
+    {
+        return QString::fromUtf8("СОСТОЯНИЕ МОДУЛЯ ПИТАТЕЛЕЙ");
+    }
+
+    if (stateKey == QStringLiteral("PICKING_MATERIALS") ||
+        stateKey == QStringLiteral("ISSUING_TO_LINE") ||
+        stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+        stateKey == QStringLiteral("RETURNING_LEFTOVERS"))
+    {
+        return QString::fromUtf8("СОСТОЯНИЕ МОДУЛЯ КАТУШЕК");
+    }
+
+    return {};
+}
+
 bool WorkerView::askCartWasAlreadyInWork() {
     QDialog dialog(this);
     dialog.setWindowTitle(QString::fromUtf8("Состояние тележки"));
@@ -1105,6 +1152,49 @@ void WorkerView::showLargeStageDialog(const QString& titleText) {
     okButton->setMinimumSize(180, 52);
 
     root->addWidget(title);
+    root->addWidget(okButton, 0, Qt::AlignCenter);
+
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    dialog.exec();
+}
+
+void WorkerView::showModuleStateDialog(const QString& titleText,
+                                       const QString& bodyText) {
+    QDialog dialog(this);
+    dialog.setWindowTitle(titleText);
+    dialog.setModal(true);
+    dialog.setStyleSheet(
+        "QDialog { background: #F6FAF7; }"
+        "QLabel { color: #102217; background: transparent; }"
+        "QTextEdit { background: #FFFFFF; color: #102217; "
+        "border: 1px solid #C7D8CC; border-radius: 8px; padding: 10px; }"
+        "QPushButton { background: #2F8F57; color: #FFFFFF; "
+        "border: 1px solid #2F8F57; border-radius: 8px; "
+        "font-size: 16px; font-weight: bold; padding: 10px 18px; }"
+        "QPushButton:hover { background: #3CA86A; }"
+    );
+
+    auto* root = new QVBoxLayout(&dialog);
+    root->setContentsMargins(28, 24, 28, 24);
+    root->setSpacing(16);
+
+    auto* title = new QLabel(titleText, &dialog);
+    title->setFont(QFont("Segoe UI", 24, QFont::Bold));
+    title->setAlignment(Qt::AlignCenter);
+    title->setWordWrap(true);
+    title->setMinimumWidth(640);
+
+    auto* body = new QTextEdit(&dialog);
+    body->setReadOnly(true);
+    body->setPlainText(bodyText);
+    body->setFont(QFont("Segoe UI", 13));
+    body->setMinimumSize(640, 260);
+
+    auto* okButton = new QPushButton(QString::fromUtf8("Понятно"), &dialog);
+    okButton->setMinimumSize(180, 52);
+
+    root->addWidget(title);
+    root->addWidget(body);
     root->addWidget(okButton, 0, Qt::AlignCenter);
 
     connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);

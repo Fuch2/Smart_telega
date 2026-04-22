@@ -38,6 +38,7 @@ public:
     // slotItems() — не slots() во избежание конфликта с Qt-макросом
     const QVector<SlotCellData>& slotItems()  const noexcept { return slots_; }
     QString                      stateLabel() const;
+    QString                      moduleStateTextForStage(const QString& stateKey);
 
     smartcart::application::AppStateMachine& stateMachineRef() noexcept {
         return stateMachine_;

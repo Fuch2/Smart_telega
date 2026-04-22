@@ -88,6 +88,7 @@ private:
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
     QString         lastStagePopupKey_;
+    QString         lastModuleStatePopupKey_;
 
     void setupUi();
     void connectSignals();
@@ -97,8 +98,11 @@ private:
     void updateActionHint(const QString& stateKey);
     void showStagePopupIfNeeded(const QString& stateKey);
     static QString stagePopupTitle(const QString& stateKey);
+    void showModuleStatePopupIfNeeded(const QString& stateKey);
+    static QString moduleStatePopupTitle(const QString& stateKey);
     bool askCartWasAlreadyInWork();
     void showLargeStageDialog(const QString& title);
+    void showModuleStateDialog(const QString& title, const QString& body);
     void setWorkflowActionsEnabled(bool startFeederLoading,
                                    bool completeFeederLoading,
                                    bool arrivedFeeder,

@@ -1,3 +1,7 @@
 build/
 build/
 smart-cart/build/
+runtime/
+*.db
+*.db-*
+*.log

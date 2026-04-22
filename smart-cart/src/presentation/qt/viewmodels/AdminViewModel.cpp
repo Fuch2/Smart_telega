@@ -19,7 +19,8 @@ static ModuleItem toItem(const ModuleInfo& m) {
         QString::fromStdString(m.serial),
         m.slotCount,
         QString::fromStdString(m.firmware),
-        QString::fromStdString(std::string{toString(m.status)})
+        QString::fromStdString(std::string{toString(m.status)}),
+        QString::fromStdString(std::string{toString(m.kind)})
     };
 }
 
@@ -185,7 +186,11 @@ void AdminViewModel::updateModule(int id, const QString& serial, int slotCount,
         emit errorOccurred("Serial уже существует");
         return;
     }
-    repo_.update(toDomain(id, serial, slotCount, firmware, status));
+    auto module = toDomain(id, serial, slotCount, firmware, status);
+    if (const auto existing = repo_.getById(id); existing.has_value()) {
+        module.kind = existing->kind;
+    }
+    repo_.update(module);
     reload();
     emit infoOccurred("Модуль обновлён");
 }

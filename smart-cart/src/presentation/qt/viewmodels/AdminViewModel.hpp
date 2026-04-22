@@ -17,6 +17,7 @@ struct ModuleItem {
     int     slotCount{24};
     QString firmware;
     QString status;   // "ONLINE" / "OFFLINE" / "MAINT"
+    QString kind;     // "REEL" / "FEEDER" / "UNKNOWN"
 };
 
 class AdminViewModel final : public QObject {

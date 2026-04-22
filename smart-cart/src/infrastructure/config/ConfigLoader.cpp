@@ -3,6 +3,7 @@
 #include "ConfigLoader.hpp"
 #include <fstream>
 #include <stdexcept>
+#include <utility>
 #include <nlohmann/json.hpp>
 
 namespace smartcart::infrastructure::config {
@@ -13,6 +14,32 @@ template <typename T>
 void readOptional(const json& j, const char* key, T& out) {
     if (j.contains(key) && !j.at(key).is_null())
         out = j.at(key).get<T>();
+}
+
+std::vector<ModuleChannelConfig> readModuleChannels(const json& j) {
+    std::vector<ModuleChannelConfig> out;
+    if (!j.contains("module_channels") || j.at("module_channels").is_null()) {
+        return out;
+    }
+    if (!j.at("module_channels").is_array()) {
+        throw std::runtime_error("ConfigLoader: module_channels must be an array");
+    }
+
+    for (const auto& item : j.at("module_channels")) {
+        ModuleChannelConfig channel;
+        readOptional(item, "enabled", channel.enabled);
+        readOptional(item, "name", channel.name);
+        readOptional(item, "rfid_uid", channel.rfidUid);
+        readOptional(item, "kind", channel.kind);
+        readOptional(item, "stm32_device", channel.stm32Device);
+        readOptional(item, "slot_count", channel.slotCount);
+        readOptional(item, "switch_tracked_channels", channel.trackedChannels);
+        readOptional(item, "switch_ignored_channels", channel.ignoredChannels);
+        readOptional(item, "switch_channel_to_slot_map", channel.channelToSlotMap);
+        out.push_back(std::move(channel));
+    }
+
+    return out;
 }
 } // namespace
 
@@ -29,6 +56,9 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "sqlite_path",         cfg.sqlitePath);
     readOptional(j, "stm32_device",        cfg.stm32Device);
     readOptional(j, "rfid_spi_device",     cfg.rfidSpiDevice);
+    readOptional(j, "rfid_spi_devices",    cfg.rfidSpiDevices);
+    readOptional(j, "rfid_module_roles",   cfg.rfidModuleKinds);
+    cfg.moduleChannels = readModuleChannels(j);
     readOptional(j, "demo_mode",           cfg.demoMode);
     readOptional(j, "rfid_enabled",        cfg.rfidEnabled);
     readOptional(j, "stm32_poll_ms",       cfg.stm32PollMs);
@@ -55,8 +85,90 @@ void ConfigLoader::validate(AppConfig& cfg) {
         throw std::runtime_error("ConfigLoader: sqlite_path is empty");
     if (!cfg.demoMode && cfg.stm32Device.empty())
         throw std::runtime_error("ConfigLoader: stm32_device is empty");
-    if (cfg.rfidEnabled && cfg.rfidSpiDevice.empty())
-        throw std::runtime_error("ConfigLoader: rfid_spi_device is empty");
+    if (cfg.rfidEnabled && cfg.rfidSpiDevice.empty() && cfg.rfidSpiDevices.empty())
+        throw std::runtime_error(
+            "ConfigLoader: rfid_spi_device or rfid_spi_devices is required");
+    if (cfg.rfidSpiDevices.empty() && !cfg.rfidSpiDevice.empty()) {
+        cfg.rfidSpiDevices.push_back(cfg.rfidSpiDevice);
+    }
+    for (const auto& device : cfg.rfidSpiDevices) {
+        if (device.empty())
+            throw std::runtime_error(
+                "ConfigLoader: rfid_spi_devices must not contain empty values");
+    }
+    for (const auto& [uid, kind] : cfg.rfidModuleKinds) {
+        if (uid.empty()) {
+            throw std::runtime_error(
+                "ConfigLoader: rfid_module_roles contains empty uid");
+        }
+        if (kind != "REEL" && kind != "reel" &&
+            kind != "FEEDER" && kind != "feeder" &&
+            kind != "UNKNOWN" && kind != "unknown")
+        {
+            throw std::runtime_error(
+                "ConfigLoader: rfid_module_roles values must be REEL/FEEDER/UNKNOWN");
+        }
+    }
+    for (auto& channel : cfg.moduleChannels) {
+        if (!channel.enabled) {
+            continue;
+        }
+        if (channel.name.empty()) {
+            channel.name = !channel.rfidUid.empty()
+                ? channel.rfidUid
+                : channel.stm32Device;
+        }
+        if (channel.name.empty()) {
+            throw std::runtime_error(
+                "ConfigLoader: enabled module channel must have name/rfid_uid/stm32_device");
+        }
+        if (channel.rfidUid.empty()) {
+            throw std::runtime_error(
+                "ConfigLoader: enabled module channel must have rfid_uid");
+        }
+        if (channel.stm32Device.empty()) {
+            throw std::runtime_error(
+                "ConfigLoader: enabled module channel must have stm32_device");
+        }
+        if (channel.kind != "REEL" && channel.kind != "reel" &&
+            channel.kind != "FEEDER" && channel.kind != "feeder" &&
+            channel.kind != "UNKNOWN" && channel.kind != "unknown")
+        {
+            throw std::runtime_error(
+                "ConfigLoader: module_channels.kind must be REEL/FEEDER/UNKNOWN");
+        }
+        if (channel.slotCount <= 0 || channel.slotCount > 24) {
+            throw std::runtime_error(
+                "ConfigLoader: module_channels.slot_count must be 1..24");
+        }
+        if (channel.trackedChannels.empty()) {
+            channel.trackedChannels = cfg.switchTrackedChannels;
+        }
+        if (channel.ignoredChannels.empty()) {
+            channel.ignoredChannels = cfg.switchIgnoredChannels;
+        }
+        if (channel.channelToSlotMap.empty()) {
+            channel.channelToSlotMap = cfg.switchChannelToSlotMap;
+        }
+        for (const int channelIndex : channel.trackedChannels) {
+            if (channelIndex < 0 || channelIndex >= channel.slotCount) {
+                throw std::runtime_error(
+                    "ConfigLoader: module_channels.switch_tracked_channels values must fit slot_count");
+            }
+        }
+        for (const int channelIndex : channel.ignoredChannels) {
+            if (channelIndex < 0 || channelIndex >= channel.slotCount) {
+                throw std::runtime_error(
+                    "ConfigLoader: module_channels.switch_ignored_channels values must fit slot_count");
+            }
+        }
+        if (!channel.channelToSlotMap.empty() &&
+            channel.channelToSlotMap.size() != 24)
+        {
+            throw std::runtime_error(
+                "ConfigLoader: module_channels.switch_channel_to_slot_map must contain 24 entries");
+        }
+    }
     if (cfg.stm32PollMs == 0)
         throw std::runtime_error("ConfigLoader: stm32_poll_ms must be > 0");
     if (cfg.debounceMs == 0)

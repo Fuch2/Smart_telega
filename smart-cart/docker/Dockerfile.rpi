@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        build-essential \
+        cmake \
+        ninja-build \
+        pkg-config \
+        qt6-base-dev \
+        libsqlite3-dev \
+        libspdlog-dev \
+        nlohmann-json3-dev \
+        libgtest-dev \
+        libgl1 \
+        libxkbcommon-x11-0 \
+        libxcb-cursor0 \
+        libxcb-icccm4 \
+        libxcb-image0 \
+        libxcb-keysyms1 \
+        libxcb-render-util0 \
+        libxcb-shape0 \
+        libxcb-xinerama0 \
+        libxcb-xinput0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . /src
+
+RUN cmake -S /src -B /build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build /build --target smart_cart_ui integration_tests \
+    && ctest --test-dir /build --output-on-failure \
+    && mkdir -p /opt/smartcart \
+    && cp /build/build_qt/smart_cart_ui /opt/smartcart/smart_cart_ui \
+    && cp -a /build/build_qt/config /opt/smartcart/config \
+    && cp -a /build/build_qt/migrations /opt/smartcart/migrations
+
+WORKDIR /data
+
+ENV QT_QPA_PLATFORM=xcb
+ENV QT_X11_NO_MITSHM=1
+
+CMD ["/opt/smartcart/smart_cart_ui"]

@@ -11,6 +11,12 @@ enum class ModuleStatus : std::uint8_t {
     Maint   = 2,
 };
 
+enum class ModuleKind : std::uint8_t {
+    Reel    = 0,
+    Feeder  = 1,
+    Unknown = 2,
+};
+
 inline std::string_view toString(ModuleStatus s) {
     switch (s) {
         case ModuleStatus::Online:  return "ONLINE";
@@ -27,6 +33,22 @@ inline ModuleStatus moduleStatusFromString(std::string_view s) {
     return ModuleStatus::Offline;
 }
 
+inline std::string_view toString(ModuleKind k) {
+    switch (k) {
+        case ModuleKind::Reel:    return "REEL";
+        case ModuleKind::Feeder:  return "FEEDER";
+        case ModuleKind::Unknown: return "UNKNOWN";
+    }
+    return "UNKNOWN";
+}
+
+inline ModuleKind moduleKindFromString(std::string_view s) {
+    if (s == "REEL" || s == "reel")       return ModuleKind::Reel;
+    if (s == "FEEDER" || s == "feeder")   return ModuleKind::Feeder;
+    if (s == "UNKNOWN" || s == "unknown") return ModuleKind::Unknown;
+    return ModuleKind::Unknown;
+}
+
 // Основная доменная сущность модуля (тележки/лотка)
 struct ModuleInfo {
     int         id{0};
@@ -34,6 +56,7 @@ struct ModuleInfo {
     int         slotCount{24};
     std::string firmware;
     ModuleStatus status{ModuleStatus::Offline};
+    ModuleKind   kind{ModuleKind::Reel};
 };
 
 } // namespace smartcart::domain

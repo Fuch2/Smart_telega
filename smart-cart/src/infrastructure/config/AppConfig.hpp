@@ -4,15 +4,31 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace smartcart::infrastructure::config {
+
+struct ModuleChannelConfig {
+    bool enabled{true};
+    std::string name;
+    std::string rfidUid;
+    std::string kind{"UNKNOWN"};
+    std::string stm32Device;
+    int slotCount{24};
+    std::vector<int> trackedChannels;
+    std::vector<int> ignoredChannels;
+    std::vector<int> channelToSlotMap;
+};
 
 struct AppConfig {
     std::string logFile;            // путь к лог-файлу
     std::string sqlitePath;         // путь к БД
     std::string stm32Device{"/dev/ttyAMA0"};
     std::string rfidSpiDevice{"/dev/spidev0.0"};
+    std::vector<std::string> rfidSpiDevices;
+    std::unordered_map<std::string, std::string> rfidModuleKinds;
+    std::vector<ModuleChannelConfig> moduleChannels;
 
     bool demoMode{true};
     bool rfidEnabled{false};

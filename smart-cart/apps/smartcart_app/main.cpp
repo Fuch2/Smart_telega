@@ -5,6 +5,7 @@
 #include "infrastructure/db/repositories/OrderRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/ReelRepositorySqlite.hpp"
 #include "infrastructure/db/repositories/WorkflowRepositorySqlite.hpp"
+#include "infrastructure/hw/rfid/MultiRc522RfidProvider.hpp"
 #include "infrastructure/hw/rfid/Rc522RfidProvider.hpp"
 #include "infrastructure/logging/SqliteEventLogger.hpp"
 #include "application/services/OrderImportService.hpp"
@@ -17,6 +18,7 @@
 #include <filesystem>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -65,25 +67,50 @@ int runRfidWatch(const smartcart::infrastructure::config::AppConfig& config) {
         return 2;
     }
 
-    smartcart::infrastructure::hw::rfid::Rc522RfidProvider provider(
-        config.rfidSpiDevice);
+    std::unique_ptr<smartcart::application::ports::IRfidProvider> provider;
+    if (config.rfidSpiDevices.size() > 1) {
+        provider =
+            std::make_unique<smartcart::infrastructure::hw::rfid::MultiRc522RfidProvider>(
+                config.rfidSpiDevices);
+    } else {
+        const auto device = config.rfidSpiDevices.empty()
+            ? config.rfidSpiDevice
+            : config.rfidSpiDevices.front();
+        provider =
+            std::make_unique<smartcart::infrastructure::hw::rfid::Rc522RfidProvider>(
+                device);
+    }
 
-    std::cout << "RFID watch started on " << config.rfidSpiDevice << "\n";
+    std::cout << "RFID watch started on";
+    for (const auto& device : config.rfidSpiDevices) {
+        std::cout << " " << device;
+    }
+    std::cout << "\n";
     std::cout << "Press Ctrl+C to stop.\n";
 
     std::optional<std::string> lastUid;
     bool lastWasNoTag = false;
 
     while (true) {
-        const auto uid =
-            provider.readOnce(static_cast<int>(config.rfidReadTimeoutMs));
+        const auto uids =
+            provider->readAllOnce(static_cast<int>(config.rfidReadTimeoutMs));
 
-        if (uid.has_value() && !uid->empty()) {
-            if (!lastUid.has_value() || *lastUid != *uid || lastWasNoTag) {
-                std::cout << "[" << nowText() << "] UID: " << *uid << "\n";
+        if (!uids.empty()) {
+            const std::string text = [&uids]() {
+                std::string out;
+                for (const auto& uid : uids) {
+                    if (!out.empty()) {
+                        out += ", ";
+                    }
+                    out += uid;
+                }
+                return out;
+            }();
+            if (!lastUid.has_value() || *lastUid != text || lastWasNoTag) {
+                std::cout << "[" << nowText() << "] UID: " << text << "\n";
                 std::cout.flush();
             }
-            lastUid = uid;
+            lastUid = text;
             lastWasNoTag = false;
         } else {
             if (!lastWasNoTag) {

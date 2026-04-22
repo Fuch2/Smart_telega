@@ -1,0 +1,11 @@
+[Unit]
+Description=Run SmartCart auto deploy periodically
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=60s
+Persistent=true
+Unit=smartcart-autodeploy.service
+
+[Install]
+WantedBy=timers.target

@@ -9,11 +9,64 @@
 #include <QDateTime>
 #include <QStringList>
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
 using namespace smartcart::application;
 using namespace smartcart::domain;
+
+namespace {
+
+std::optional<ModuleKind> requiredModuleKindForStage(const QString& stateKey) {
+    if (stateKey == QStringLiteral("LOADING_FEEDERS") ||
+        stateKey == QStringLiteral("READY_FOR_FEEDER_PREP") ||
+        stateKey == QStringLiteral("FEEDER_PREP") ||
+        stateKey == QStringLiteral("READY_FOR_LINE"))
+    {
+        return ModuleKind::Feeder;
+    }
+
+    if (stateKey == QStringLiteral("PICKING_MATERIALS") ||
+        stateKey == QStringLiteral("ISSUING_TO_LINE") ||
+        stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+        stateKey == QStringLiteral("RETURNING_LEFTOVERS"))
+    {
+        return ModuleKind::Reel;
+    }
+
+    return std::nullopt;
+}
+
+QString moduleKindLabel(ModuleKind kind) {
+    switch (kind) {
+        case ModuleKind::Reel:    return QString::fromUtf8("модуль катушек");
+        case ModuleKind::Feeder:  return QString::fromUtf8("модуль питателей");
+        case ModuleKind::Unknown: return QString::fromUtf8("модуль без типа");
+    }
+    return QString::fromUtf8("модуль без типа");
+}
+
+QString moduleStatusLabel(ModuleStatus status) {
+    switch (status) {
+        case ModuleStatus::Online:  return QString::fromUtf8("онлайн");
+        case ModuleStatus::Offline: return QString::fromUtf8("офлайн");
+        case ModuleStatus::Maint:   return QString::fromUtf8("обслуживание");
+    }
+    return QString::fromUtf8("неизвестно");
+}
+
+QString slotStateLabel(SlotState state) {
+    switch (state) {
+        case SlotState::Free:     return QString::fromUtf8("свободно");
+        case SlotState::Occupied: return QString::fromUtf8("занято");
+        case SlotState::Reserved: return QString::fromUtf8("резерв");
+        case SlotState::Error:    return QString::fromUtf8("ошибка");
+    }
+    return QString::fromUtf8("неизвестно");
+}
+
+} // namespace
 
 WorkerViewModel::WorkerViewModel(
     ports::IModuleRepository&    moduleRepo,
@@ -58,6 +111,85 @@ QString WorkerViewModel::stateLabel() const {
         case AppState::Error:        return QString::fromUtf8("Ошибка");
     }
     return QString::fromUtf8("Неизвестно");
+}
+
+QString WorkerViewModel::moduleStateTextForStage(const QString& stateKey) {
+    const auto requiredKind = requiredModuleKindForStage(stateKey);
+    if (!requiredKind.has_value()) {
+        return {};
+    }
+
+    QStringList lines;
+    lines << QString::fromUtf8("Нужен %1.")
+                 .arg(moduleKindLabel(*requiredKind));
+
+    bool foundModule = false;
+    for (const auto& module : moduleRepo_.getAll()) {
+        if (module.kind != *requiredKind) {
+            continue;
+        }
+
+        foundModule = true;
+        lines << QString();
+        lines << QString::fromUtf8("#%1 · %2 · %3")
+                     .arg(module.id)
+                     .arg(QString::fromStdString(module.serial).toHtmlEscaped())
+                     .arg(moduleStatusLabel(module.status));
+
+        const auto domainSlots = reelRepo_.getSlotStates(module.id);
+        int freeCount = 0;
+        int occupiedCount = 0;
+        int reservedCount = 0;
+        int errorCount = 0;
+        QStringList occupiedSlots;
+        for (const auto& slot : domainSlots) {
+            switch (slot.state) {
+                case SlotState::Free:     ++freeCount; break;
+                case SlotState::Occupied: ++occupiedCount; break;
+                case SlotState::Reserved: ++reservedCount; break;
+                case SlotState::Error:    ++errorCount; break;
+            }
+
+            if (slot.state != SlotState::Free) {
+                occupiedSlots << QString::fromUtf8("слот %1: %2")
+                                     .arg(slot.slotIndex)
+                                     .arg(slotStateLabel(slot.state));
+            }
+        }
+
+        lines << QString::fromUtf8("Слоты: занято %1, свободно %2, резерв %3, ошибки %4")
+                     .arg(occupiedCount)
+                     .arg(freeCount)
+                     .arg(reservedCount)
+                     .arg(errorCount);
+
+        if (domainSlots.empty()) {
+            lines << QString::fromUtf8("Состояние слотов ещё не получено от STM32.");
+        } else if (occupiedSlots.isEmpty()) {
+            lines << QString::fromUtf8("Все позиции сейчас свободны.");
+        } else {
+            lines << QString::fromUtf8("Непустые позиции:");
+            lines << occupiedSlots;
+        }
+
+        const auto activeRecords = reelRepo_.getActiveByModule(module.id);
+        if (!activeRecords.empty()) {
+            lines << QString::fromUtf8("Активные записи:");
+            for (const auto& record : activeRecords) {
+                lines << QString::fromUtf8("%1 → слот %2")
+                             .arg(QString::fromStdString(record.barcode))
+                             .arg(record.slotIndex);
+            }
+        }
+    }
+
+    if (!foundModule) {
+        lines << QString::fromUtf8(
+            "В базе пока нет модуля нужного типа. Проверьте RFID-метку "
+            "и настройку rfid_module_roles в config.json.");
+    }
+
+    return lines.join('\n');
 }
 
 void WorkerViewModel::submitBarcode(const QString& barcode) {
@@ -541,10 +673,11 @@ void WorkerViewModel::rebuildModuleStatus() {
 
     emit activeModuleUpdated(
         QString::fromUtf8(
-            "Активный модуль: <b>#%1</b> · %2 · "
-            "<span style=\"color:%3; font-weight:700;\">● %4</span>")
+            "Активный модуль: <b>#%1</b> · %2 · %3 · "
+            "<span style=\"color:%4; font-weight:700;\">● %5</span>")
             .arg(module->id)
             .arg(QString::fromStdString(module->serial).toHtmlEscaped())
+            .arg(moduleKindLabel(module->kind))
             .arg(statusColor)
             .arg(statusText));
     emit activeModuleAvailabilityChanged(module->status == ModuleStatus::Online);

@@ -16,12 +16,14 @@
 #include "infrastructure/hw/stm32/UartStm32Link.hpp"
 #include "infrastructure/hw/stm32/MockStm32Link.hpp"
 #include "infrastructure/hw/rfid/Rc522RfidProvider.hpp"
+#include "infrastructure/hw/rfid/MultiRc522RfidProvider.hpp"
 #include "application/services/StartupService.hpp"
 #include "application/services/AddReelService.hpp"
 #include "application/services/ReplaceReelService.hpp"
 #include "application/services/RecoveryService.hpp"
 #include "application/services/RfidModuleMonitorService.hpp"
 #include "application/services/Stm32PollingService.hpp"
+#include "application/services/ModuleSnapshotPollingService.hpp"
 #include "application/services/OrderImportService.hpp"
 #include "application/services/WorkflowService.hpp"
 #include "application/services/AdminDiagnosticsService.hpp"
@@ -50,6 +52,8 @@ public:
     void launch();
 
 private:
+    struct ModuleChannelRuntime;
+
     smartcart::infrastructure::config::AppConfig cfg_;
 
     std::unique_ptr<smartcart::infrastructure::db::SqliteConnection>          conn_;
@@ -82,12 +86,18 @@ private:
     smartcart::infrastructure::hw::stm32::MockStm32Link* mockLink_ = nullptr;
     int activeModuleId_ = 1;
     std::string activeModuleUid_;
+    std::string activeStm32Device_;
+    std::vector<std::unique_ptr<ModuleChannelRuntime>> moduleChannelRuntimes_;
 
     std::vector<int> slotToLedMap_;
     void buildSlotToLedMap();
     int resolveActiveModuleId();
     void syncModuleStatuses();
     int ensureModuleForUid(const std::string& uid);
+    void buildActiveStm32Link();
+    void buildModuleChannelRuntimes();
+    void startModuleChannelRuntimes();
+    void destroyModuleChannelRuntimes();
     void buildModuleScopedSession();
     void destroyModuleScopedSession(bool keepWindow = false);
     void showMainWindow();

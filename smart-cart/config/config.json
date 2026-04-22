@@ -5,6 +5,19 @@
   "stm32_device": "/dev/ttyAMA0",
   "rfid_enabled": true,
   "rfid_spi_device": "/dev/spidev0.0",
+  "rfid_spi_devices": [
+    "/dev/spidev0.0",
+    "/dev/spidev0.1",
+    "/dev/spidev0.2",
+    "/dev/spidev0.3",
+    "/dev/spidev0.4",
+    "/dev/spidev0.5"
+  ],
+  "rfid_module_roles": {
+    "E201FC03": "REEL",
+    "E3906D2D": "FEEDER"
+  },
+  "module_channels": [],
   "rfid_read_timeout_ms": 350,
   "rfid_poll_ms": 500,
   "rfid_offline_timeout_ms": 3000,

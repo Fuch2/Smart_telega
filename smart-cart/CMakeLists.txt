@@ -45,6 +45,7 @@ add_library(smartcart_infra OBJECT
     # ── infrastructure: hw/rfid ───────────────────────────────────────────────
     src/infrastructure/hw/rfid/MockRfidProvider.cpp
     src/infrastructure/hw/rfid/Rc522RfidProvider.cpp
+    src/infrastructure/hw/rfid/MultiRc522RfidProvider.cpp
 
     # ── infrastructure: logging ───────────────────────────────────────────────
     src/infrastructure/logging/LoggerFactory.cpp
@@ -57,6 +58,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/ReplaceReelService.cpp
     src/application/services/RecoveryService.cpp
     src/application/services/Stm32PollingService.cpp
+    src/application/services/ModuleSnapshotPollingService.cpp
     src/application/services/RfidModuleMonitorService.cpp
     src/application/services/OrderImportService.cpp
     src/application/services/WorkflowService.cpp
@@ -182,6 +184,7 @@ add_executable(integration_tests
     tests/integration/order_import_service_test.cpp
     tests/integration/workflow_service_test.cpp
     tests/integration/rfid_module_monitor_test.cpp
+    tests/integration/module_snapshot_polling_test.cpp
 )
 
 target_include_directories(integration_tests PRIVATE

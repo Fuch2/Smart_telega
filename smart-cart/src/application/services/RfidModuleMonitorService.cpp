@@ -2,6 +2,7 @@
 
 #include "domain/entities/ModuleInfo.hpp"
 
+#include <algorithm>
 #include <sstream>
 #include <utility>
 
@@ -54,34 +55,39 @@ void RfidModuleMonitorService::stop() {
 
 void RfidModuleMonitorService::monitorLoop() {
     while (running_.load()) {
-        const auto uid = rfidProvider_.readOnce(config_.readTimeoutMs);
+        const auto uids = rfidProvider_.readAllOnce(config_.readTimeoutMs);
         const auto now = std::chrono::steady_clock::now();
 
-        if (uid.has_value() && !uid->empty()) {
-            if (uid == config_.expectedUid) {
+        if (!uids.empty()) {
+            const auto matchingUid = std::find(
+                uids.begin(),
+                uids.end(),
+                config_.expectedUid);
+
+            if (matchingUid != uids.end()) {
                 lastSeen_ = now;
                 lastUnexpectedUid_.clear();
                 notifiedSwitchUid_.clear();
                 if (!moduleOnline_) {
                     setModuleOnline(true);
                 }
-            } else if (*uid != lastUnexpectedUid_) {
-                lastUnexpectedUid_ = *uid;
+            } else if (const auto& uid = uids.front(); uid != lastUnexpectedUid_) {
+                lastUnexpectedUid_ = uid;
                 lastUnexpectedSeen_ = now;
                 logSafe("WARN",
                         "RfidUnexpectedModule",
-                        "Обнаружена чужая RFID-метка: uid=" + *uid +
+                        "Обнаружена чужая RFID-метка: uid=" + uid +
                         ", ожидается uid=" + config_.expectedUid);
             } else {
                 const auto seenFor =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
                         now - lastUnexpectedSeen_);
                 if (switchCb_ &&
-                    *uid != notifiedSwitchUid_ &&
+                    lastUnexpectedUid_ != notifiedSwitchUid_ &&
                     seenFor.count() >= 800)
                 {
-                    notifiedSwitchUid_ = *uid;
-                    switchCb_(*uid);
+                    notifiedSwitchUid_ = lastUnexpectedUid_;
+                    switchCb_(lastUnexpectedUid_);
                 }
             }
         } else if (moduleOnline_) {
