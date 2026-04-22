@@ -30,7 +30,7 @@ cp "${SMARTCART_DIR}/deploy/rpi/systemd/smartcart-autodeploy.timer" \
 
 systemctl --user daemon-reload
 systemctl --user enable --now smartcart-autodeploy.timer
-systemctl --user start smartcart-autodeploy.service
+systemctl --user start --no-block smartcart-autodeploy.service
 
 if command -v loginctl >/dev/null 2>&1; then
     loginctl enable-linger "${USER}" >/dev/null 2>&1 || true

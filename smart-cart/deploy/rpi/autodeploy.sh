@@ -46,7 +46,7 @@ if [ "${SMARTCART_FORCE_BUILD:-0}" = "1" ] ||
    [ "${before}" != "${after}" ] ||
    ! docker image inspect smartcart-ui:local >/dev/null 2>&1; then
     log "Собираю Docker-образ smartcart-ui..."
-    ${compose} -f "${COMPOSE_FILE}" build smartcart-ui
+    COMPOSE_BAKE=false ${compose} -f "${COMPOSE_FILE}" build smartcart-ui
 else
     log "Новых коммитов нет, образ уже существует."
 fi

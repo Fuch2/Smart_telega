@@ -69,6 +69,11 @@ journalctl --user -u smartcart-autodeploy.service -n 100 -f
 docker logs -f smartcart-ui
 ```
 
+Если сборка долго висит на строке вида `docker/dockerfile:1` и показывает
+`0B / 13MB`, это проблема скачивания служебного Docker frontend с Docker Hub.
+В текущем Dockerfile эта лишняя зависимость убрана. После обновления кода нужно
+перезапустить автодеплой.
+
 ## Остановка
 
 ```bash
