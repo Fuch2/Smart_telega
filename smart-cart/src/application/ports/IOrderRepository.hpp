@@ -24,6 +24,9 @@ public:
     virtual std::optional<domain::OrderItem> findItemByBarcode(
         int orderId,
         const std::string& barcode) = 0;
+    virtual std::optional<domain::OrderItem> findItemByScannedBarcode(
+        int orderId,
+        const std::string& scannedBarcode) = 0;
 
     virtual bool updateOrderStatus(int id, domain::OrderStatus status) = 0;
     virtual bool updateItemStatus(int id, domain::OrderItemStatus status) = 0;

@@ -75,6 +75,7 @@ WorkerViewModel::WorkerViewModel(
     ports::IOrderRepository&     orderRepo,
     ports::IWorkflowRepository&  workflowRepo,
     services::OrderImportService& orderImportSvc,
+    services::BomOrderImportService& bomOrderImportSvc,
     services::WorkflowService& workflowSvc,
     AppStateMachine&             stateMachine,
     QObject*                     parent)
@@ -85,6 +86,7 @@ WorkerViewModel::WorkerViewModel(
     , orderRepo_(orderRepo)
     , workflowRepo_(workflowRepo)
     , orderImportSvc_(orderImportSvc)
+    , bomOrderImportSvc_(bomOrderImportSvc)
     , workflowSvc_(workflowSvc)
     , stateMachine_(stateMachine)
 {
@@ -250,7 +252,12 @@ void WorkerViewModel::importOrderFromFile(const QString& path,
         return;
     }
 
-    const auto result = orderImportSvc_.importFromFile(path.toStdString());
+    const QString lowerPath = path.trimmed().toLower();
+    const bool isBom = lowerPath.endsWith(QStringLiteral(".xlsx")) ||
+                       lowerPath.endsWith(QStringLiteral(".xls"));
+    const auto result = isBom
+        ? bomOrderImportSvc_.importFromFile(path.toStdString())
+        : orderImportSvc_.importFromFile(path.toStdString());
     if (!result) {
         emit errorOccurred(QString::fromStdString(result.message));
         reload();
@@ -566,8 +573,13 @@ void WorkerViewModel::rebuildWorkflowSummary() {
                         break;
                 }
 
-                QString line = QString::fromUtf8("%1 → слот %2 [%3]")
-                    .arg(QString::fromStdString(item.barcode))
+                const QString itemLabel = item.partNumber.empty()
+                    ? QString::fromStdString(item.barcode)
+                    : QString::fromStdString(item.partNumber);
+                QString line = QString::fromUtf8("P%1 · %2 ×%3 → слот %4 [%5]")
+                    .arg(item.usagePriority)
+                    .arg(itemLabel)
+                    .arg(item.requiredQuantity)
                     .arg(item.targetSlot)
                     .arg(itemStatusLabel(item.status));
                 if (item.currentSlot.has_value()) {

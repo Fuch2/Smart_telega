@@ -732,9 +732,9 @@ void WorkerView::onErrorOccurred(const QString& message) {
 void WorkerView::onImportOrderClicked() {
     const QString path = QFileDialog::getOpenFileName(
         this,
-        QString::fromUtf8("Выберите JSON заказа"),
+        QString::fromUtf8("Выберите заказ или BOM"),
         QString(),
-        QString::fromUtf8("JSON (*.json);;Все файлы (*)")
+        QString::fromUtf8("Заказ или BOM (*.json *.xlsx *.xls);;JSON (*.json);;Excel BOM (*.xlsx *.xls);;Все файлы (*)")
     );
     if (path.isEmpty()) {
         return;

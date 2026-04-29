@@ -7,6 +7,7 @@
 #include "application/ports/IWorkflowRepository.hpp"
 #include "application/ports/IModuleRepository.hpp"
 #include "application/services/OrderImportService.hpp"
+#include "application/services/BomOrderImportService.hpp"
 #include "application/services/WorkflowService.hpp"
 #include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Slot.hpp"
@@ -30,6 +31,7 @@ public:
         smartcart::application::ports::IOrderRepository&     orderRepo,
         smartcart::application::ports::IWorkflowRepository&  workflowRepo,
         smartcart::application::services::OrderImportService& orderImportSvc,
+        smartcart::application::services::BomOrderImportService& bomOrderImportSvc,
         smartcart::application::services::WorkflowService& workflowSvc,
         smartcart::application::AppStateMachine&             stateMachine,
         QObject*                                             parent = nullptr
@@ -95,6 +97,7 @@ private:
     smartcart::application::ports::IOrderRepository&     orderRepo_;
     smartcart::application::ports::IWorkflowRepository&  workflowRepo_;
     smartcart::application::services::OrderImportService& orderImportSvc_;
+    smartcart::application::services::BomOrderImportService& bomOrderImportSvc_;
     smartcart::application::services::WorkflowService& workflowSvc_;
     smartcart::application::AppStateMachine&             stateMachine_;
 

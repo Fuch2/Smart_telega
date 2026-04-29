@@ -25,6 +25,9 @@ public:
     std::optional<domain::OrderItem> findItemByBarcode(
         int orderId,
         const std::string& barcode) override;
+    std::optional<domain::OrderItem> findItemByScannedBarcode(
+        int orderId,
+        const std::string& scannedBarcode) override;
 
     bool updateOrderStatus(int id, domain::OrderStatus status) override;
     bool updateItemStatus(int id, domain::OrderItemStatus status) override;

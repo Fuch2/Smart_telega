@@ -243,7 +243,7 @@ WorkflowActionResult WorkflowService::markItemIssued(const std::string& barcode)
                       "MaterialIssueFailed");
     }
 
-    const auto item = orderRepo_.findItemByBarcode(*orderId, barcode);
+    const auto item = orderRepo_.findItemByScannedBarcode(*orderId, barcode);
     if (!item.has_value()) {
         return reject(domain::ErrorCode::ReelNotFound,
                       "Материал не найден в текущем заказе: " + barcode,

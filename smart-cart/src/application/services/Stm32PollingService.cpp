@@ -263,7 +263,7 @@ BarcodeScanResult Stm32PollingService::recordBarcodeScan(
     }
 
     const auto item =
-        orderRepo_.findItemByBarcode(*workflow.currentOrderId, normalized);
+        orderRepo_.findItemByScannedBarcode(*workflow.currentOrderId, normalized);
     if (!item.has_value()) {
         return rejectBarcode(domain::ErrorCode::ReelNotFound,
                              "Материал не найден в текущем заказе: " + normalized,

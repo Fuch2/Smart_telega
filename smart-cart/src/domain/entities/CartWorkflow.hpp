@@ -126,7 +126,10 @@ struct OrderItem {
     int id{0};
     int orderId{0};
     std::string barcode;
+    std::string partNumber;
     std::string materialType;
+    int requiredQuantity{1};
+    int usagePriority{3};
     int targetSlot{0}; // 1..N
     std::optional<int> currentSlot;
     OrderItemStatus status{OrderItemStatus::Pending};

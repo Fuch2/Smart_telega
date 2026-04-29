@@ -17,7 +17,8 @@ const char* kOrderColumns =
     "FROM orders";
 
 const char* kItemColumns =
-    "SELECT id, order_id, barcode, material_type, target_slot,"
+    "SELECT id, order_id, barcode, part_number, material_type,"
+    "       required_quantity, usage_priority, target_slot,"
     "       current_slot, status, updated_at "
     "FROM order_items";
 
@@ -25,6 +26,44 @@ void throwOnPrepareError(sqlite3* db, int rc, const char* where) {
     if (rc != SQLITE_OK) {
         throw std::runtime_error(std::string(where) + ": " + sqlite3_errmsg(db));
     }
+}
+
+bool columnExists(sqlite3* db,
+                  const std::string& tableName,
+                  const std::string& columnName) {
+    const std::string sql = "PRAGMA table_info(" + tableName + ");";
+    sqlite3_stmt* stmt = nullptr;
+    throwOnPrepareError(db,
+                        sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr),
+                        "OrderRepositorySqlite::columnExists prepare");
+
+    bool found = false;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* text = sqlite3_column_text(stmt, 1);
+        if (text != nullptr &&
+            columnName == reinterpret_cast<const char*>(text))
+        {
+            found = true;
+            break;
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    return found;
+}
+
+void addColumnIfMissing(SqliteConnection& conn,
+                        const std::string& tableName,
+                        const std::string& columnName,
+                        const std::string& definition) {
+    if (columnExists(conn.handle(), tableName, columnName)) {
+        return;
+    }
+
+    conn.execute(
+        "ALTER TABLE " + tableName +
+        " ADD COLUMN " + columnName + " " + definition + ";"
+    );
 }
 
 } // namespace
@@ -58,7 +97,10 @@ void OrderRepositorySqlite::ensureSchema() {
         "  id            INTEGER PRIMARY KEY AUTOINCREMENT,"
         "  order_id      INTEGER NOT NULL,"
         "  barcode       TEXT    NOT NULL,"
+        "  part_number   TEXT    NOT NULL DEFAULT '',"
         "  material_type TEXT    NOT NULL DEFAULT 'reel',"
+        "  required_quantity INTEGER NOT NULL DEFAULT 1,"
+        "  usage_priority INTEGER NOT NULL DEFAULT 3,"
         "  target_slot   INTEGER NOT NULL,"
         "  current_slot  INTEGER,"
         "  status        TEXT    NOT NULL DEFAULT 'PENDING',"
@@ -69,9 +111,20 @@ void OrderRepositorySqlite::ensureSchema() {
         ");"
     );
 
+    addColumnIfMissing(conn_, "order_items", "part_number",
+                       "TEXT NOT NULL DEFAULT ''");
+    addColumnIfMissing(conn_, "order_items", "required_quantity",
+                       "INTEGER NOT NULL DEFAULT 1");
+    addColumnIfMissing(conn_, "order_items", "usage_priority",
+                       "INTEGER NOT NULL DEFAULT 3");
+
     conn_.execute(
         "CREATE INDEX IF NOT EXISTS idx_orders_status "
         "ON orders(module_id, status, updated_at);"
+    );
+    conn_.execute(
+        "CREATE INDEX IF NOT EXISTS idx_order_items_part_number "
+        "ON order_items(order_id, part_number);"
     );
 }
 
@@ -101,16 +154,20 @@ domain::OrderItem OrderRepositorySqlite::rowToItem(sqlite3_stmt* stmt) {
     item.orderId = sqlite3_column_int(stmt, 1);
     item.barcode =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-    item.materialType =
+    item.partNumber =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-    item.targetSlot = sqlite3_column_int(stmt, 4);
-    if (sqlite3_column_type(stmt, 5) != SQLITE_NULL) {
-        item.currentSlot = sqlite3_column_int(stmt, 5);
+    item.materialType =
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+    item.requiredQuantity = sqlite3_column_int(stmt, 5);
+    item.usagePriority = sqlite3_column_int(stmt, 6);
+    item.targetSlot = sqlite3_column_int(stmt, 7);
+    if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) {
+        item.currentSlot = sqlite3_column_int(stmt, 8);
     }
     item.status = domain::orderItemStatusFromString(
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
     item.updatedAt =
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
     return item;
 }
 
@@ -143,9 +200,10 @@ int OrderRepositorySqlite::addOrder(const domain::OrderInfo& order) {
 
 int OrderRepositorySqlite::addItem(const domain::OrderItem& item) {
     const char* sql =
-        "INSERT INTO order_items(order_id, barcode, material_type,"
+        "INSERT INTO order_items(order_id, barcode, part_number, material_type,"
+        "                        required_quantity, usage_priority,"
         "                        target_slot, current_slot, status) "
-        "VALUES(?, ?, ?, ?, ?, ?);";
+        "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
@@ -155,14 +213,17 @@ int OrderRepositorySqlite::addItem(const domain::OrderItem& item) {
     const std::string status{domain::toString(item.status)};
     sqlite3_bind_int(stmt, 1, item.orderId);
     sqlite3_bind_text(stmt, 2, item.barcode.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, item.materialType.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, item.targetSlot);
+    sqlite3_bind_text(stmt, 3, item.partNumber.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, item.materialType.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 5, item.requiredQuantity);
+    sqlite3_bind_int(stmt, 6, item.usagePriority);
+    sqlite3_bind_int(stmt, 7, item.targetSlot);
     if (item.currentSlot.has_value()) {
-        sqlite3_bind_int(stmt, 5, *item.currentSlot);
+        sqlite3_bind_int(stmt, 8, *item.currentSlot);
     } else {
-        sqlite3_bind_null(stmt, 5);
+        sqlite3_bind_null(stmt, 8);
     }
-    sqlite3_bind_text(stmt, 6, status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 9, status.c_str(), -1, SQLITE_TRANSIENT);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -261,6 +322,45 @@ OrderRepositorySqlite::findItemByBarcode(int orderId,
                         "OrderRepositorySqlite::findItemByBarcode prepare");
     sqlite3_bind_int(stmt, 1, orderId);
     sqlite3_bind_text(stmt, 2, barcode.c_str(), -1, SQLITE_TRANSIENT);
+
+    std::optional<domain::OrderItem> result;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        result = rowToItem(stmt);
+    }
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+std::optional<domain::OrderItem>
+OrderRepositorySqlite::findItemByScannedBarcode(
+    int orderId,
+    const std::string& scannedBarcode) {
+    const std::string sql =
+        std::string(kItemColumns) +
+        " WHERE order_id = ? AND ("
+        "   barcode = ? OR"
+        "   part_number = ? OR"
+        "   (part_number <> '' AND instr(?, part_number) > 0)"
+        " ) "
+        " ORDER BY CASE "
+        "   WHEN barcode = ? THEN 0 "
+        "   WHEN part_number = ? THEN 1 "
+        "   ELSE 2 "
+        " END, required_quantity DESC, id ASC "
+        " LIMIT 1;";
+
+    sqlite3_stmt* stmt = nullptr;
+    throwOnPrepareError(
+        conn_.handle(),
+        sqlite3_prepare_v2(conn_.handle(), sql.c_str(), -1, &stmt, nullptr),
+        "OrderRepositorySqlite::findItemByScannedBarcode prepare");
+
+    sqlite3_bind_int(stmt, 1, orderId);
+    sqlite3_bind_text(stmt, 2, scannedBarcode.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, scannedBarcode.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, scannedBarcode.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, scannedBarcode.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, scannedBarcode.c_str(), -1, SQLITE_TRANSIENT);
 
     std::optional<domain::OrderItem> result;
     if (sqlite3_step(stmt) == SQLITE_ROW) {

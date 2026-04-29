@@ -491,6 +491,8 @@ void AppBootstrap::buildModuleScopedSession() {
     orderImportCfg.moduleId = activeModuleId_;
     orderImportSvc_ = std::make_unique<OrderImportService>(
         *orderRepo_, *workflowRepo_, *reelRepo_, *eventLogger_, orderImportCfg);
+    bomOrderImportSvc_ =
+        std::make_unique<BomOrderImportService>(*orderImportSvc_);
 
     AdminDiagnosticsConfig adminDiagnosticsCfg;
     adminDiagnosticsCfg.moduleId = activeModuleId_;
@@ -543,6 +545,7 @@ void AppBootstrap::buildModuleScopedSession() {
         *orderRepo_,
         *workflowRepo_,
         *orderImportSvc_,
+        *bomOrderImportSvc_,
         *workflowSvc_,
         *stateMachine_);
 }
@@ -570,6 +573,7 @@ void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {
     adminVm_.reset();
     stateMachine_.reset();
     adminDiagnosticsSvc_.reset();
+    bomOrderImportSvc_.reset();
     orderImportSvc_.reset();
     workflowSvc_.reset();
     pollingSvc_.reset();

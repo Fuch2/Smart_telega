@@ -171,6 +171,9 @@ void printDiagnostics(
             std::cout << "\nOrder items:\n";
             for (const auto& item : orderRepo.getItems(order->id)) {
                 std::cout << "  " << item.barcode
+                          << " part_number=" << item.partNumber
+                          << " qty=" << item.requiredQuantity
+                          << " priority=" << item.usagePriority
                           << " target_slot=" << item.targetSlot
                           << " status=" << domain::toString(item.status);
                 if (item.currentSlot.has_value()) {

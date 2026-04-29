@@ -2,12 +2,15 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <exception>
 #include <fstream>
+#include <initializer_list>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
+#include <cstddef>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 
 namespace smartcart::application::services {
@@ -37,6 +40,28 @@ int readInt(const json& j, const char* key, int fallback = 0) {
         throw std::runtime_error(std::string("Поле должно быть целым числом: ") + key);
     }
     return j.at(key).get<int>();
+}
+
+std::string readFirstString(const json& j,
+                            std::initializer_list<const char*> keys,
+                            const std::string& fallback = {}) {
+    for (const char* key : keys) {
+        if (j.contains(key) && !j.at(key).is_null()) {
+            return readString(j, key, fallback);
+        }
+    }
+    return fallback;
+}
+
+int readFirstInt(const json& j,
+                 std::initializer_list<const char*> keys,
+                 int fallback = 0) {
+    for (const char* key : keys) {
+        if (j.contains(key) && !j.at(key).is_null()) {
+            return readInt(j, key, fallback);
+        }
+    }
+    return fallback;
 }
 
 domain::OrderInfo parseOrder(const json& j) {
@@ -69,16 +94,31 @@ std::vector<domain::OrderItem> parseItems(const json& j) {
         }
 
         domain::OrderItem item;
-        item.barcode = readString(raw, "barcode");
+        item.partNumber = readFirstString(raw, {"part_number", "PartNumber"});
+        item.barcode = readFirstString(
+            raw,
+            {"barcode", "part_number", "PartNumber"},
+            item.partNumber);
         item.materialType = readString(raw, "material_type", "reel");
+        item.requiredQuantity = readFirstInt(
+            raw,
+            {"required_quantity", "quantity", "Quantity"},
+            1);
         item.targetSlot = readInt(raw, "target_slot", 0);
         item.status = domain::OrderItemStatus::Pending;
 
+        if (item.partNumber.empty()) {
+            item.partNumber = item.barcode;
+        }
+
         if (item.barcode.empty()) {
-            throw std::runtime_error("barcode не должен быть пустым");
+            throw std::runtime_error("barcode/part_number не должен быть пустым");
         }
         if (item.materialType.empty()) {
             throw std::runtime_error("material_type не должен быть пустым");
+        }
+        if (item.requiredQuantity < 1) {
+            throw std::runtime_error("required_quantity должен быть >= 1");
         }
         if (item.targetSlot < 1) {
             throw std::runtime_error("target_slot должен быть >= 1");
@@ -92,6 +132,58 @@ std::vector<domain::OrderItem> parseItems(const json& j) {
     }
 
     return items;
+}
+
+void assignUsagePriorities(std::vector<domain::OrderItem>& items) {
+    int totalQuantity = 0;
+    for (const auto& item : items) {
+        totalQuantity += std::max(item.requiredQuantity, 1);
+    }
+    if (totalQuantity <= 0) {
+        return;
+    }
+
+    std::vector<std::size_t> indices(items.size());
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        indices[i] = i;
+    }
+
+    std::sort(indices.begin(), indices.end(),
+              [&items](std::size_t lhs, std::size_t rhs) {
+                  const auto& a = items[lhs];
+                  const auto& b = items[rhs];
+                  if (a.requiredQuantity != b.requiredQuantity) {
+                      return a.requiredQuantity > b.requiredQuantity;
+                  }
+                  return a.partNumber < b.partNumber;
+              });
+
+    int cumulative = 0;
+    for (std::size_t index : indices) {
+        const double shareBefore =
+            static_cast<double>(cumulative) /
+            static_cast<double>(totalQuantity);
+        if (shareBefore < 0.50) {
+            items[index].usagePriority = 1;
+        } else if (shareBefore < 0.85) {
+            items[index].usagePriority = 2;
+        } else {
+            items[index].usagePriority = 3;
+        }
+        cumulative += std::max(items[index].requiredQuantity, 1);
+    }
+}
+
+bool matchesScannedBarcode(const domain::OrderItem& item,
+                           const std::string& scannedBarcode) {
+    if (scannedBarcode == item.barcode ||
+        scannedBarcode == item.partNumber)
+    {
+        return true;
+    }
+
+    return !item.partNumber.empty() &&
+           scannedBarcode.find(item.partNumber) != std::string::npos;
 }
 
 json readJsonFile(const std::string& jsonPath) {
@@ -135,15 +227,17 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
         domain::OrderInfo order = parseOrder(j);
         order.moduleId = config_.moduleId;
         std::vector<domain::OrderItem> items = parseItems(j);
+        assignUsagePriorities(items);
 
-        std::unordered_set<std::string> orderBarcodes;
-        for (const auto& item : items) {
-            orderBarcodes.insert(item.barcode);
-        }
-
-        std::unordered_map<std::string, int> activeSlotByBarcode;
+        std::unordered_map<std::size_t, int> activeSlotByItemIndex;
         for (const auto& reel : reelRepo_.getActiveByModule(config_.moduleId)) {
-            if (orderBarcodes.find(reel.barcode) == orderBarcodes.end()) {
+            const auto match = std::find_if(
+                items.begin(),
+                items.end(),
+                [&reel](const domain::OrderItem& item) {
+                    return matchesScannedBarcode(item, reel.barcode);
+                });
+            if (match == items.end()) {
                 std::ostringstream msg;
                 msg << "В тележке есть остаток не из нового заказа: "
                     << reel.barcode << " slot=" << reel.slotIndex;
@@ -151,7 +245,9 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
                               msg.str(),
                               "OrderImportRejected");
             }
-            activeSlotByBarcode.emplace(reel.barcode, reel.slotIndex);
+            const auto index = static_cast<std::size_t>(
+                std::distance(items.begin(), match));
+            activeSlotByItemIndex.emplace(index, reel.slotIndex);
         }
 
         if (orderRepo_.findOrderByExternalId(order.externalOrderId).has_value()) {
@@ -161,10 +257,11 @@ OrderImportResult OrderImportService::importFromFile(const std::string& jsonPath
         }
 
         const int orderId = orderRepo_.addOrder(order);
-        for (auto& item : items) {
+        for (std::size_t index = 0; index < items.size(); ++index) {
+            auto& item = items[index];
             item.orderId = orderId;
-            if (const auto it = activeSlotByBarcode.find(item.barcode);
-                it != activeSlotByBarcode.end())
+            if (const auto it = activeSlotByItemIndex.find(index);
+                it != activeSlotByItemIndex.end())
             {
                 item.currentSlot = it->second;
                 item.status = domain::OrderItemStatus::Placed;
