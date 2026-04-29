@@ -1,0 +1,11 @@
+[Unit]
+Description=Check git and deploy SmartCart periodically
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=120s
+Persistent=true
+Unit=smartcart-deploy.service
+
+[Install]
+WantedBy=timers.target

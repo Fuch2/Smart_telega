@@ -1,0 +1,12 @@
+[Unit]
+Description=SmartCart native build and deploy
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__SMARTCART_SRC__
+Environment=SMARTCART_SRC=__SMARTCART_SRC__
+Environment=SMARTCART_ROOT=__SMARTCART_ROOT__
+ExecStart=__SMARTCART_SRC__/deploy/rpi/deploy_local.sh
+TimeoutStartSec=0

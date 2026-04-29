@@ -1,6 +1,4 @@
 build/
-build/
-smart-cart/build/
 runtime/
 *.db
 *.db-*
