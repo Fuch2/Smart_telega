@@ -1,0 +1,13 @@
+[Unit]
+Description=SmartCart read-only web dashboard
+After=network.target smartcart-ui.service
+
+[Service]
+Type=simple
+WorkingDirectory=__SMARTCART_ROOT__/shared
+ExecStart=/usr/bin/python3 __SMARTCART_ROOT__/current/tools/smartcart_web.py --db __SMARTCART_ROOT__/shared/smartcart.db --host 0.0.0.0 --port 8080
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

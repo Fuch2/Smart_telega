@@ -44,6 +44,8 @@ sudo apt install -y \
   nlohmann-json3-dev \
   libgtest-dev \
   sqlite3 \
+  python3 \
+  unzip \
   git
 ```
 
@@ -67,6 +69,7 @@ SMARTCART_DISPLAY=:10.0 ./deploy/rpi/install_runtime_service.sh
 
 ```text
 smartcart-ui.service      запускает текущую версию UI
+smartcart-web.service     запускает web-панель наблюдения
 smartcart-deploy.timer    периодически проверяет git
 smartcart-deploy.service  собирает и устанавливает новую версию
 ```
@@ -100,10 +103,29 @@ restart smartcart-ui.service
 
 ```bash
 systemctl --user status smartcart-ui.service
+systemctl --user status smartcart-web.service
 systemctl --user status smartcart-deploy.timer
 journalctl --user -u smartcart-ui.service -n 100 -f
+journalctl --user -u smartcart-web.service -n 100 -f
 journalctl --user -u smartcart-deploy.service -n 100 -f
 ```
+
+## Web-панель
+
+После успешного деплоя web-панель доступна в локальной сети:
+
+```text
+http://<ip-raspberry-pi>:8080
+```
+
+Она работает в режиме просмотра и читает SQLite:
+
+```text
+/opt/smartcart/shared/smartcart.db
+```
+
+Панель показывает текущий модуль, workflow, заказ, слоты, активные катушки и
+последние события.
 
 ## Откат
 

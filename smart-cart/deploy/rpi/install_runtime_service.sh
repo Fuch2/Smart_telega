@@ -27,6 +27,11 @@ sed \
     > "${USER_SYSTEMD_DIR}/smartcart-ui.service"
 
 sed \
+    -e "s#__SMARTCART_ROOT__#${SMARTCART_ROOT}#g" \
+    "${SMARTCART_SRC}/deploy/rpi/systemd/smartcart-web.service.in" \
+    > "${USER_SYSTEMD_DIR}/smartcart-web.service"
+
+sed \
     -e "s#__SMARTCART_SRC__#${SMARTCART_SRC}#g" \
     -e "s#__SMARTCART_ROOT__#${SMARTCART_ROOT}#g" \
     "${SMARTCART_SRC}/deploy/rpi/systemd/smartcart-deploy.service.in" \
@@ -38,6 +43,7 @@ cp "${SMARTCART_SRC}/deploy/rpi/systemd/smartcart-deploy.timer" \
 systemctl --user import-environment DISPLAY XAUTHORITY >/dev/null 2>&1 || true
 systemctl --user daemon-reload
 systemctl --user enable smartcart-ui.service
+systemctl --user enable smartcart-web.service
 systemctl --user enable --now smartcart-deploy.timer
 systemctl --user start --no-block smartcart-deploy.service
 
@@ -48,4 +54,5 @@ fi
 echo "Runtime SmartCart подготовлен."
 echo "Корень:  ${SMARTCART_ROOT}"
 echo "Экран:   ${DISPLAY_VALUE}"
+echo "Web:     http://<ip-raspberry-pi>:8080"
 echo "Автодеплой включён: systemctl --user status smartcart-deploy.timer"

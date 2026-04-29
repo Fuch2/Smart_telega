@@ -249,3 +249,26 @@ sqlite3 /opt/smartcart/shared/smartcart.db \
 sqlite3 /opt/smartcart/shared/smartcart.db \
   "select barcode, part_number, required_quantity, usage_priority, target_slot, status from order_items order by usage_priority, target_slot;"
 ```
+
+## Web-панель наблюдения
+
+Если web-панель включена, состояние тележки можно смотреть с ноутбука или другого
+компьютера в той же сети:
+
+```text
+http://<ip-raspberry-pi>:8080
+```
+
+Панель только показывает данные и не управляет тележкой.
+
+На странице видны:
+
+```text
+активный модуль
+текущий этап маршрута
+номер заказа
+прогресс материалов
+состояние слотов
+активные катушки
+последние события
+```

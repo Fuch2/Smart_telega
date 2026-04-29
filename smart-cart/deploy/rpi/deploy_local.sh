@@ -71,6 +71,9 @@ mkdir -p "${release_dir}"
 cp "${BUILD_DIR}/build_qt/smart_cart_ui" "${release_dir}/smart_cart_ui"
 cp -a "${BUILD_DIR}/build_qt/config" "${release_dir}/config"
 cp -a "${BUILD_DIR}/build_qt/migrations" "${release_dir}/migrations"
+mkdir -p "${release_dir}/tools"
+cp "${SMARTCART_SRC}/tools/smartcart_web.py" "${release_dir}/tools/smartcart_web.py"
+chmod +x "${release_dir}/tools/smartcart_web.py"
 printf '%s\n' "${release_id}" > "${release_dir}/VERSION"
 printf '%s\n' "${commit}" > "${release_dir}/COMMIT"
 
@@ -82,6 +85,13 @@ if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
     systemctl --user restart smartcart-ui.service
 else
     log "Сервис smartcart-ui.service ещё не установлен."
+fi
+
+if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
+    log "Перезапускаю smartcart-web.service..."
+    systemctl --user restart smartcart-web.service
+else
+    log "Сервис smartcart-web.service ещё не установлен."
 fi
 
 log "Готово: ${SMARTCART_ROOT}/current -> ${release_dir}"
