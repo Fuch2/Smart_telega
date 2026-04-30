@@ -156,12 +156,11 @@ int AppBootstrap::resolveActiveModuleId() {
         }
 
         activeModuleUid_ = *uid;
-        if (!isRfidUidConfigured(*uid) &&
-            !ensureRfidModuleRole(*uid).has_value())
-        {
+        if (!isRfidUidConfigured(*uid)) {
             eventLogger_->log("WARN",
-                              "RfidModuleRegistrationSkipped",
-                              "uid=" + *uid);
+                              "RfidUnknownModuleAtStartup",
+                              "uid=" + *uid +
+                                  " ожидает регистрации после открытия UI");
             activeModuleUid_.clear();
             return 1;
         }

@@ -970,7 +970,17 @@ void WorkerView::showStagePopupIfNeeded(const QString& stateKey) {
 
     lastStagePopupKey_ = stateKey;
 
-    showLargeStageDialog(title);
+    QTimer::singleShot(500, this, [this, stateKey, title]() {
+        if (!moduleOnline_ || stateKey != lastStagePopupKey_) {
+            return;
+        }
+        auto* topLevel = window();
+        if (!topLevel || !topLevel->isVisible() || !isVisible()) {
+            lastStagePopupKey_.clear();
+            return;
+        }
+        showLargeStageDialog(title);
+    });
 }
 
 QString WorkerView::stagePopupTitle(const QString& stateKey) {
@@ -1030,7 +1040,17 @@ void WorkerView::showModuleStatePopupIfNeeded(const QString& stateKey) {
     }
 
     lastModuleStatePopupKey_ = stateKey;
-    showModuleStateDialog(title, body);
+    QTimer::singleShot(650, this, [this, stateKey, title, body]() {
+        if (!moduleOnline_ || stateKey != lastModuleStatePopupKey_) {
+            return;
+        }
+        auto* topLevel = window();
+        if (!topLevel || !topLevel->isVisible() || !isVisible()) {
+            lastModuleStatePopupKey_.clear();
+            return;
+        }
+        showModuleStateDialog(title, body);
+    });
 }
 
 QString WorkerView::moduleStatePopupTitle(const QString& stateKey) {

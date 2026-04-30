@@ -66,8 +66,10 @@ std::vector<std::string> MultiRc522RfidProvider::readAllOnce(int timeoutMs) {
         return result;
     }
 
-    const int perReaderTimeout =
-        std::max(25, timeoutMs / static_cast<int>(readers_.size()));
+    // timeoutMs — это бюджет на один физический считыватель. Его нельзя
+    // делить между всеми spidev: при 6 настроенных CE реально подключённый
+    // RC522 получает слишком короткое окно и нестабильно видит метку.
+    const int perReaderTimeout = std::max(100, timeoutMs);
 
     for (auto& reader : readers_) {
         if (!reader) {

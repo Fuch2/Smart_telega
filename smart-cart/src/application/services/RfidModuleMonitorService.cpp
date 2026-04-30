@@ -59,6 +59,17 @@ void RfidModuleMonitorService::monitorLoop() {
         const auto now = std::chrono::steady_clock::now();
 
         if (!uids.empty()) {
+            if (config_.expectedUid.empty()) {
+                const auto& uid = uids.front();
+                if (switchCb_ && uid != notifiedSwitchUid_) {
+                    notifiedSwitchUid_ = uid;
+                    switchCb_(uid);
+                }
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds(config_.pollMs));
+                continue;
+            }
+
             const auto matchingUid = std::find(
                 uids.begin(),
                 uids.end(),
