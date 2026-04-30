@@ -8,6 +8,7 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QShowEvent;
 class QTextEdit;
 
 class WorkerView : public QWidget {
@@ -19,6 +20,7 @@ public:
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
+    void showEvent(QShowEvent* event) override;
 
 private slots:
     void onSlotsUpdated(QVector<SlotCellData> items);
@@ -87,6 +89,7 @@ private:
     QPushButton*    returnLeftoverButton_ = nullptr;
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
+    bool            modalPopupsReady_ = false;
     QString         lastStagePopupKey_;
     QString         lastModuleStatePopupKey_;
 

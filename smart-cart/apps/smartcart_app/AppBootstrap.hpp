@@ -91,6 +91,7 @@ private:
     int activeModuleId_ = 1;
     std::string activeModuleUid_;
     std::string activeStm32Device_;
+    bool moduleSwitchInProgress_ = false;
     std::vector<std::unique_ptr<ModuleChannelRuntime>> moduleChannelRuntimes_;
 
     std::vector<int> slotToLedMap_;

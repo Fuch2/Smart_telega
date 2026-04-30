@@ -772,6 +772,17 @@ void AppBootstrap::switchToModuleUid(const std::string& uid) {
     if (uid.empty() || uid == activeModuleUid_) {
         return;
     }
+    if (moduleSwitchInProgress_) {
+        return;
+    }
+
+    struct SwitchGuard {
+        bool& flag;
+        ~SwitchGuard() { flag = false; }
+    };
+
+    moduleSwitchInProgress_ = true;
+    SwitchGuard guard{moduleSwitchInProgress_};
 
     if (!isRfidUidConfigured(uid) &&
         !ensureRfidModuleRole(uid).has_value())

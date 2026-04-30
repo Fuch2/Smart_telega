@@ -61,8 +61,17 @@ void RfidModuleMonitorService::monitorLoop() {
         if (!uids.empty()) {
             if (config_.expectedUid.empty()) {
                 const auto& uid = uids.front();
-                if (switchCb_ && uid != notifiedSwitchUid_) {
+                const auto retryFor =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        now - lastSwitchNotifyAt_);
+                if (switchCb_ &&
+                    (uid != notifiedSwitchUid_ || retryFor.count() >= 2500))
+                {
                     notifiedSwitchUid_ = uid;
+                    lastSwitchNotifyAt_ = now;
+                    logSafe("INFO",
+                            "RfidModuleSwitchRequested",
+                            "uid=" + uid + " reason=no_active_uid");
                     switchCb_(uid);
                 }
                 std::this_thread::sleep_for(
@@ -83,6 +92,7 @@ void RfidModuleMonitorService::monitorLoop() {
                     setModuleOnline(true);
                 }
             } else if (const auto& uid = uids.front(); uid != lastUnexpectedUid_) {
+                markOfflineIfExpectedUidTimedOut(now);
                 lastUnexpectedUid_ = uid;
                 lastUnexpectedSeen_ = now;
                 logSafe("WARN",
@@ -90,28 +100,51 @@ void RfidModuleMonitorService::monitorLoop() {
                         "Обнаружена чужая RFID-метка: uid=" + uid +
                         ", ожидается uid=" + config_.expectedUid);
             } else {
+                markOfflineIfExpectedUidTimedOut(now);
                 const auto seenFor =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
                         now - lastUnexpectedSeen_);
+                const auto retryFor =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        now - lastSwitchNotifyAt_);
                 if (switchCb_ &&
-                    lastUnexpectedUid_ != notifiedSwitchUid_ &&
+                    (lastUnexpectedUid_ != notifiedSwitchUid_ ||
+                     retryFor.count() >= 2500) &&
                     seenFor.count() >= 800)
                 {
                     notifiedSwitchUid_ = lastUnexpectedUid_;
+                    lastSwitchNotifyAt_ = now;
+                    logSafe("INFO",
+                            "RfidModuleSwitchRequested",
+                            "uid=" + lastUnexpectedUid_ +
+                                " reason=unexpected_uid");
                     switchCb_(lastUnexpectedUid_);
                 }
             }
-        } else if (moduleOnline_) {
-            const auto offlineFor =
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                    now - lastSeen_);
-            if (offlineFor.count() >= config_.offlineTimeoutMs) {
-                setModuleOnline(false);
-            }
+        } else if (config_.expectedUid.empty()) {
+            notifiedSwitchUid_.clear();
+            lastUnexpectedUid_.clear();
+        } else {
+            markOfflineIfExpectedUidTimedOut(now);
         }
 
         std::this_thread::sleep_for(
             std::chrono::milliseconds(config_.pollMs));
+    }
+}
+
+void RfidModuleMonitorService::markOfflineIfExpectedUidTimedOut(
+    std::chrono::steady_clock::time_point now)
+{
+    if (!moduleOnline_ || config_.expectedUid.empty()) {
+        return;
+    }
+
+    const auto offlineFor =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - lastSeen_);
+    if (offlineFor.count() >= config_.offlineTimeoutMs) {
+        setModuleOnline(false);
     }
 }
 

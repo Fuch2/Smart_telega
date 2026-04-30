@@ -85,6 +85,24 @@ bool WorkerView::eventFilter(QObject* watched, QEvent* event) {
     return true;
 }
 
+void WorkerView::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+
+    if (modalPopupsReady_) {
+        return;
+    }
+
+    // Первый reload читает состояние из БД ещё во время сборки окна.
+    // Модальные подсказки должны появляться только после того, как оператор
+    // уже видит основной экран, иначе диалог визуально опережает приложение.
+    QTimer::singleShot(900, this, [this]() {
+        auto* topLevel = window();
+        if (topLevel && topLevel->isVisible() && isVisible()) {
+            modalPopupsReady_ = true;
+        }
+    });
+}
+
 void WorkerView::setupUi() {
     auto* rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
@@ -955,10 +973,11 @@ void WorkerView::updateActionHint(const QString& stateKey) {
 }
 
 void WorkerView::showStagePopupIfNeeded(const QString& stateKey) {
-    if (!moduleOnline_ ||
-        stateKey == lastStagePopupKey_ ||
-        stateKey == QStringLiteral("FREE"))
-    {
+    if (stateKey == QStringLiteral("FREE")) {
+        lastStagePopupKey_.clear();
+        return;
+    }
+    if (!moduleOnline_ || stateKey == lastStagePopupKey_) {
         return;
     }
 
@@ -970,8 +989,15 @@ void WorkerView::showStagePopupIfNeeded(const QString& stateKey) {
 
     lastStagePopupKey_ = stateKey;
 
+    if (!modalPopupsReady_) {
+        return;
+    }
+
     QTimer::singleShot(500, this, [this, stateKey, title]() {
-        if (!moduleOnline_ || stateKey != lastStagePopupKey_) {
+        if (!modalPopupsReady_ ||
+            !moduleOnline_ ||
+            stateKey != lastStagePopupKey_)
+        {
             return;
         }
         auto* topLevel = window();
@@ -1018,11 +1044,11 @@ QString WorkerView::stagePopupTitle(const QString& stateKey) {
 }
 
 void WorkerView::showModuleStatePopupIfNeeded(const QString& stateKey) {
-    if (!moduleOnline_) {
-        return;
-    }
     if (stateKey == QStringLiteral("FREE")) {
         lastModuleStatePopupKey_.clear();
+        return;
+    }
+    if (!moduleOnline_) {
         return;
     }
     if (stateKey == lastModuleStatePopupKey_) {
@@ -1040,8 +1066,15 @@ void WorkerView::showModuleStatePopupIfNeeded(const QString& stateKey) {
     }
 
     lastModuleStatePopupKey_ = stateKey;
+    if (!modalPopupsReady_) {
+        return;
+    }
+
     QTimer::singleShot(650, this, [this, stateKey, title, body]() {
-        if (!moduleOnline_ || stateKey != lastModuleStatePopupKey_) {
+        if (!modalPopupsReady_ ||
+            !moduleOnline_ ||
+            stateKey != lastModuleStatePopupKey_)
+        {
             return;
         }
         auto* topLevel = window();

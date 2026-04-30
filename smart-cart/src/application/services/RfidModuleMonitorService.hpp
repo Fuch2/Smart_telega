@@ -51,9 +51,12 @@ private:
     std::string lastUnexpectedUid_;
     std::chrono::steady_clock::time_point lastUnexpectedSeen_{};
     std::string notifiedSwitchUid_;
+    std::chrono::steady_clock::time_point lastSwitchNotifyAt_{};
     ModuleSwitchCallback switchCb_;
 
     void monitorLoop();
+    void markOfflineIfExpectedUidTimedOut(
+        std::chrono::steady_clock::time_point now);
     void setModuleOnline(bool online);
     void logSafe(std::string_view level,
                  std::string_view code,
