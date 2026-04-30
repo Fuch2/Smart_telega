@@ -10,9 +10,15 @@
 #include "presentation/qt/viewmodels/WorkerViewModel.hpp"
 
 #include <QApplication>
+#include <QInputDialog>
+#include <QMessageBox>
 #include <QMetaObject>
 #include <QObject>
+#include <QStringList>
 #include <algorithm>
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -79,6 +85,7 @@ AppBootstrap::AppBootstrap(const std::filesystem::path& configPath,
                            const std::filesystem::path& migrationsDir)
 {
     // ── 1. Config ─────────────────────────────────────────────────────────────
+    configPath_ = configPath;
     cfg_ = config::ConfigLoader::loadFromFile(configPath.string());
 
     // ── 2. DB ─────────────────────────────────────────────────────────────────
@@ -149,6 +156,16 @@ int AppBootstrap::resolveActiveModuleId() {
         }
 
         activeModuleUid_ = *uid;
+        if (!isRfidUidConfigured(*uid) &&
+            !ensureRfidModuleRole(*uid).has_value())
+        {
+            eventLogger_->log("WARN",
+                              "RfidModuleRegistrationSkipped",
+                              "uid=" + *uid);
+            activeModuleUid_.clear();
+            return 1;
+        }
+
         const std::string serial = "RFID-" + *uid;
 
         for (const auto& module : moduleRepo_->getAll()) {
@@ -252,6 +269,132 @@ int AppBootstrap::ensureModuleForUid(const std::string& uid) {
     module.kind = moduleKindForUid(cfg_, uid);
 
     return moduleRepo_->add(module);
+}
+
+bool AppBootstrap::isRfidUidConfigured(const std::string& uid) const {
+    if (uid.empty()) {
+        return false;
+    }
+
+    if (moduleChannelForUid(cfg_, uid) != nullptr) {
+        return true;
+    }
+
+    if (cfg_.rfidModuleKinds.find(uid) != cfg_.rfidModuleKinds.end()) {
+        return true;
+    }
+
+    const std::string serialKey = "RFID-" + uid;
+    return cfg_.rfidModuleKinds.find(serialKey) != cfg_.rfidModuleKinds.end();
+}
+
+std::optional<smartcart::domain::ModuleKind>
+AppBootstrap::ensureRfidModuleRole(const std::string& uid) {
+    if (uid.empty()) {
+        return std::nullopt;
+    }
+
+    if (isRfidUidConfigured(uid)) {
+        return moduleKindForUid(cfg_, uid);
+    }
+
+    const QStringList choices{
+        QString::fromUtf8("Модуль катушек (REEL)"),
+        QString::fromUtf8("Модуль питателей (FEEDER)"),
+        QString::fromUtf8("Неизвестный модуль (UNKNOWN)")
+    };
+
+    bool ok = false;
+    const QString choice = QInputDialog::getItem(
+        mainWindow_,
+        QString::fromUtf8("Новая RFID-метка"),
+        QString::fromUtf8(
+            "Обнаружена новая RFID-метка:\n%1\n\n"
+            "Выберите тип модуля. Выбор будет сохранён в config.json.")
+            .arg(QString::fromStdString(uid)),
+        choices,
+        0,
+        false,
+        &ok
+    );
+
+    if (!ok || choice.isEmpty()) {
+        eventLogger_->log("WARN",
+                          "RfidModuleRegistrationCancelled",
+                          "uid=" + uid);
+        return std::nullopt;
+    }
+
+    smartcart::domain::ModuleKind kind = smartcart::domain::ModuleKind::Unknown;
+    if (choice.contains(QStringLiteral("REEL"))) {
+        kind = smartcart::domain::ModuleKind::Reel;
+    } else if (choice.contains(QStringLiteral("FEEDER"))) {
+        kind = smartcart::domain::ModuleKind::Feeder;
+    }
+
+    if (!persistRfidModuleRole(uid, kind)) {
+        QMessageBox::warning(
+            mainWindow_,
+            QString::fromUtf8("RFID-модуль не сохранён"),
+            QString::fromUtf8(
+                "Не удалось записать новую RFID-метку в config.json.\n"
+                "Проверьте права на файл конфигурации.")
+        );
+        return std::nullopt;
+    }
+
+    return kind;
+}
+
+bool AppBootstrap::persistRfidModuleRole(
+    const std::string& uid,
+    smartcart::domain::ModuleKind kind)
+{
+    try {
+        nlohmann::json root;
+        {
+            std::ifstream in(configPath_);
+            if (!in.is_open()) {
+                throw std::runtime_error(
+                    "cannot open config: " + configPath_.string());
+            }
+            in >> root;
+        }
+
+        if (!root.contains("rfid_module_roles") ||
+            !root["rfid_module_roles"].is_object())
+        {
+            root["rfid_module_roles"] = nlohmann::json::object();
+        }
+
+        const std::string kindText{smartcart::domain::toString(kind)};
+        root["rfid_module_roles"][uid] = kindText;
+
+        {
+            std::ofstream out(configPath_, std::ios::trunc);
+            if (!out.is_open()) {
+                throw std::runtime_error(
+                    "cannot write config: " + configPath_.string());
+            }
+            out << root.dump(2) << '\n';
+        }
+
+        cfg_.rfidModuleKinds[uid] = kindText;
+        eventLogger_->log("INFO",
+                          "RfidModuleRoleSaved",
+                          "uid=" + uid + " kind=" + kindText +
+                              " config=" + configPath_.string());
+        return true;
+    } catch (const std::exception& ex) {
+        eventLogger_->log("ERROR",
+                          "RfidModuleRoleSaveFailed",
+                          "uid=" + uid + " error=" + ex.what());
+    } catch (...) {
+        eventLogger_->log("ERROR",
+                          "RfidModuleRoleSaveFailed",
+                          "uid=" + uid + " error=unknown");
+    }
+    return false;
 }
 
 void AppBootstrap::buildActiveStm32Link() {
@@ -608,12 +751,16 @@ void AppBootstrap::showMainWindow() {
                 });
                 pollingSvc_->start();
                 startModuleChannelRuntimes();
-                if (rfidMonitorSvc_) {
-                    rfidMonitorSvc_->start();
-                }
             }
         }
     );
+
+    // RFID должен работать даже на экране "Вставьте модуль".
+    // Иначе приложение, запущенное без метки рядом со считывателем,
+    // не сможет увидеть модуль и выйти из блокирующего экрана.
+    if (rfidMonitorSvc_) {
+        rfidMonitorSvc_->start();
+    }
 
     QMetaObject::invokeMethod(
         stateMachine_.get(),
@@ -624,6 +771,12 @@ void AppBootstrap::showMainWindow() {
 
 void AppBootstrap::switchToModuleUid(const std::string& uid) {
     if (uid.empty() || uid == activeModuleUid_) {
+        return;
+    }
+
+    if (!isRfidUidConfigured(uid) &&
+        !ensureRfidModuleRole(uid).has_value())
+    {
         return;
     }
 

@@ -33,6 +33,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,7 @@ private:
     struct ModuleChannelRuntime;
 
     smartcart::infrastructure::config::AppConfig cfg_;
+    std::filesystem::path configPath_;
 
     std::unique_ptr<smartcart::infrastructure::db::SqliteConnection>          conn_;
     std::unique_ptr<smartcart::infrastructure::db::ModuleRepositorySqlite>    moduleRepo_;
@@ -96,6 +98,11 @@ private:
     int resolveActiveModuleId();
     void syncModuleStatuses();
     int ensureModuleForUid(const std::string& uid);
+    bool isRfidUidConfigured(const std::string& uid) const;
+    std::optional<smartcart::domain::ModuleKind> ensureRfidModuleRole(
+        const std::string& uid);
+    bool persistRfidModuleRole(const std::string& uid,
+                               smartcart::domain::ModuleKind kind);
     void buildActiveStm32Link();
     void buildModuleChannelRuntimes();
     void startModuleChannelRuntimes();
