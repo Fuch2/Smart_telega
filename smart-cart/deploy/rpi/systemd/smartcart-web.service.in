@@ -1,6 +1,6 @@
 [Unit]
-Description=SmartCart read-only web dashboard
-After=network.target smartcart-ui.service
+Description=SmartCart operator web screen
+After=network.target
 
 [Service]
 Type=simple

@@ -69,12 +69,13 @@ SMARTCART_DISPLAY=:10.0 ./deploy/rpi/install_runtime_service.sh
 
 ```text
 smartcart-ui.service      запускает текущую версию UI
-smartcart-web.service     запускает web-панель наблюдения
+smartcart-web.service     запускает web-экран оператора
 smartcart-deploy.timer    периодически проверяет git
 smartcart-deploy.service  собирает и устанавливает новую версию
 ```
 
 Если текущий commit уже установлен, деплой ничего не пересобирает.
+При этом он всё равно запускает оба runtime-сервиса: Qt UI и web-экран.
 
 ## Сборка и установка новой версии
 
@@ -95,9 +96,29 @@ ctest
 copy release to /opt/smartcart/releases/<version>
 switch /opt/smartcart/current
 restart smartcart-ui.service
+restart smartcart-web.service
 ```
 
 Если сборка или тесты упали, текущая рабочая версия не переключается.
+
+## Запуск UI и web-экрана без пересборки
+
+Если релиз уже установлен и нужно просто поднять оба экрана:
+
+```bash
+cd ~/Documents/Smart_telega/smart-cart
+./deploy/rpi/start_runtime_services.sh
+```
+
+Скрипт запускает:
+
+```text
+smartcart-ui.service   Qt-приложение на экране Raspberry Pi
+smartcart-web.service  web-экран на порту 8080
+```
+
+Эти процессы независимы: если web-экран перезапускается, Qt не закрывается, и
+если Qt упал, web-экран всё равно может показывать состояние из SQLite.
 
 ## Просмотр логов
 
@@ -110,22 +131,28 @@ journalctl --user -u smartcart-web.service -n 100 -f
 journalctl --user -u smartcart-deploy.service -n 100 -f
 ```
 
-## Web-панель
+## Web-экран оператора
 
-После успешного деплоя web-панель доступна в локальной сети:
+После успешного деплоя web-экран доступен в локальной сети:
 
 ```text
 http://<ip-raspberry-pi>:8080
 ```
 
-Она работает в режиме просмотра и читает SQLite:
+На самой Raspberry Pi его можно открыть так:
+
+```text
+http://127.0.0.1:8080
+```
+
+Экран работает в режиме просмотра и читает SQLite:
 
 ```text
 /opt/smartcart/shared/smartcart.db
 ```
 
-Панель показывает текущий модуль, workflow, заказ, слоты, активные катушки и
-последние события.
+Он показывает крупный текущий этап, инструкцию для оператора, маршрут тележки,
+модули, слоты, материалы заказа, связь и последние события.
 
 ## Откат
 

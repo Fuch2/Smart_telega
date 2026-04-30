@@ -25,6 +25,24 @@ require_command cmake
 require_command ctest
 require_command systemctl
 
+start_runtime_services() {
+    systemctl --user daemon-reload
+
+    if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
+        log "Запускаю smartcart-ui.service..."
+        systemctl --user restart smartcart-ui.service
+    else
+        log "Сервис smartcart-ui.service ещё не установлен."
+    fi
+
+    if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
+        log "Запускаю smartcart-web.service..."
+        systemctl --user restart smartcart-web.service
+    else
+        log "Сервис smartcart-web.service ещё не установлен."
+    fi
+}
+
 if [ ! -d "${SMARTCART_ROOT}/releases" ] ||
    [ ! -d "${SMARTCART_ROOT}/shared" ]; then
     echo "Runtime-каталоги не готовы. Сначала выполни:" >&2
@@ -47,6 +65,7 @@ fi
 if [ "${SMARTCART_FORCE_DEPLOY:-0}" != "1" ] &&
    [ "${current_commit}" = "${commit}" ]; then
     log "Версия ${commit} уже установлена, пересборка не нужна."
+    start_runtime_services
     exit 0
 fi
 
@@ -79,19 +98,6 @@ printf '%s\n' "${commit}" > "${release_dir}/COMMIT"
 
 ln -sfnT "${release_dir}" "${SMARTCART_ROOT}/current"
 
-if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
-    log "Перезапускаю smartcart-ui.service..."
-    systemctl --user daemon-reload
-    systemctl --user restart smartcart-ui.service
-else
-    log "Сервис smartcart-ui.service ещё не установлен."
-fi
-
-if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
-    log "Перезапускаю smartcart-web.service..."
-    systemctl --user restart smartcart-web.service
-else
-    log "Сервис smartcart-web.service ещё не установлен."
-fi
+start_runtime_services
 
 log "Готово: ${SMARTCART_ROOT}/current -> ${release_dir}"
