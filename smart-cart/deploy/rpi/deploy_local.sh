@@ -76,6 +76,7 @@ jobs="$(jobs_count)"
 log "Собираю SmartCart (${jobs} потоков)..."
 cmake -S "${SMARTCART_SRC}" -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
 cmake --build "${BUILD_DIR}" --target \
+    smartcart_app \
     smart_cart_ui \
     frame_codec_tests \
     domain_tests \
@@ -87,6 +88,7 @@ ctest --test-dir "${BUILD_DIR}" --output-on-failure
 
 log "Устанавливаю релиз ${release_id}..."
 mkdir -p "${release_dir}"
+cp "${BUILD_DIR}/smartcart_app" "${release_dir}/smartcart_app"
 cp "${BUILD_DIR}/build_qt/smart_cart_ui" "${release_dir}/smart_cart_ui"
 cp -a "${BUILD_DIR}/build_qt/config" "${release_dir}/config"
 cp -a "${BUILD_DIR}/build_qt/migrations" "${release_dir}/migrations"

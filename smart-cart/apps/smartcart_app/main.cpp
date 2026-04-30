@@ -15,6 +15,8 @@
 #include <sqlite3.h>
 
 #include <cstddef>
+#include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <iomanip>
@@ -24,6 +26,7 @@
 #include <string>
 #include <thread>
 #include <ctime>
+#include <vector>
 
 // Макросы должны быть определены через CMake target_compile_definitions
 #ifndef CONFIG_DIR
@@ -44,7 +47,8 @@ void printUsage(const char* appName) {
         << "  " << appName << " --workflow-next\n"
         << "  " << appName << " --issue BARCODE\n"
         << "  " << appName << " --return-leftover BARCODE_OR_SLOT\n"
-        << "  " << appName << " --rfid-watch\n";
+        << "  " << appName << " --rfid-watch\n"
+        << "  " << appName << " --rfid-probe [/dev/spidev0.0 /dev/spidev0.1 ...]\n";
 }
 
 std::string nowText() {
@@ -123,6 +127,96 @@ int runRfidWatch(const smartcart::infrastructure::config::AppConfig& config) {
 
         std::this_thread::sleep_for(
             std::chrono::milliseconds(config.rfidPollMs));
+    }
+}
+
+std::vector<std::string> rfidDevicesFromArgs(
+    int argc,
+    char* argv[],
+    const smartcart::infrastructure::config::AppConfig& config)
+{
+    std::vector<std::string> devices;
+    for (int i = 2; i < argc; ++i) {
+        const std::string device = argv[i];
+        if (!device.empty()) {
+            devices.push_back(device);
+        }
+    }
+
+    if (!devices.empty()) {
+        return devices;
+    }
+
+    if (!config.rfidSpiDevices.empty()) {
+        return config.rfidSpiDevices;
+    }
+
+    if (!config.rfidSpiDevice.empty()) {
+        devices.push_back(config.rfidSpiDevice);
+    }
+    return devices;
+}
+
+int runRfidProbe(const smartcart::infrastructure::config::AppConfig& config,
+                 int argc,
+                 char* argv[])
+{
+    namespace rfid = smartcart::infrastructure::hw::rfid;
+
+    const auto devices = rfidDevicesFromArgs(argc, argv, config);
+    if (devices.empty()) {
+        std::cerr << "No RFID SPI devices configured\n";
+        return 2;
+    }
+
+    std::vector<std::unique_ptr<rfid::Rc522RfidProvider>> readers;
+    readers.reserve(devices.size());
+    for (const auto& device : devices) {
+        if (std::filesystem::exists(device)) {
+            readers.push_back(std::make_unique<rfid::Rc522RfidProvider>(device));
+        } else {
+            readers.push_back(nullptr);
+        }
+    }
+
+    const int timeoutMs = static_cast<int>(std::max<std::uint32_t>(
+        100,
+        config.rfidReadTimeoutMs
+    ));
+    const auto pollDelay = std::chrono::milliseconds(
+        std::max<std::uint32_t>(100, config.rfidPollMs)
+    );
+
+    std::vector<std::string> lastStatus(devices.size());
+
+    std::cout << "RFID probe started\n";
+    for (const auto& device : devices) {
+        std::cout << "  " << device << "\n";
+    }
+    std::cout << "Put tags near CE0/CE1 readers. Press Ctrl+C to stop.\n";
+
+    while (true) {
+        for (std::size_t index = 0; index < devices.size(); ++index) {
+            std::string status;
+            if (!readers[index]) {
+                status = "MISSING_DEVICE";
+            } else if (auto uid = readers[index]->readOnce(timeoutMs);
+                       uid.has_value() && !uid->empty())
+            {
+                status = "UID=" + *uid;
+            } else {
+                status = "NO_TAG";
+            }
+
+            if (status != lastStatus[index]) {
+                std::cout << "[" << nowText() << "] "
+                          << devices[index] << " " << status << "\n";
+                std::cout.flush();
+                lastStatus[index] = status;
+            }
+        }
+
+        std::this_thread::sleep_for(pollDelay);
     }
 }
 
@@ -270,6 +364,23 @@ int main(int argc, char* argv[]) {
         const std::string configPath = std::string(CONFIG_DIR) + "/config.json";
 
         auto config = cfg::ConfigLoader::loadFromFile(configPath);
+
+        if (argc > 1) {
+            const std::string command = argv[1];
+            if (command == "--help" || command == "-h") {
+                printUsage(argv[0]);
+                return 0;
+            }
+
+            if (command == "--rfid-watch") {
+                return runRfidWatch(config);
+            }
+
+            if (command == "--rfid-probe") {
+                return runRfidProbe(config, argc, argv);
+            }
+        }
+
         db::SqliteConnection conn(config.sqlitePath);
         conn.runMigrations(std::filesystem::path(MIGRATIONS_DIR));
 
@@ -291,18 +402,9 @@ int main(int argc, char* argv[]) {
         }
 
         const std::string command = argv[1];
-        if (command == "--help" || command == "-h") {
-            printUsage(argv[0]);
-            return 0;
-        }
-
         if (command == "--diag") {
             printDiagnostics(conn, orderRepo, reelRepo, workflowRepo);
             return 0;
-        }
-
-        if (command == "--rfid-watch") {
-            return runRfidWatch(config);
         }
 
         if (command == "--import-order") {
