@@ -10,6 +10,7 @@ class QLineEdit;
 class QPushButton;
 class QShowEvent;
 class QTextEdit;
+class WorkflowDialogManager;
 
 class WorkerView : public QWidget {
     Q_OBJECT
@@ -54,6 +55,7 @@ private slots:
 
 private:
     WorkerViewModel& viewModel_;
+    WorkflowDialogManager* dialogManager_;
 
     QWidget*        startPage_ = nullptr;
     QWidget*        missingModulePage_ = nullptr;
@@ -89,9 +91,6 @@ private:
     QPushButton*    returnLeftoverButton_ = nullptr;
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
-    bool            modalPopupsReady_ = false;
-    QString         lastStagePopupKey_;
-    QString         lastModuleStatePopupKey_;
 
     void setupUi();
     void connectSignals();
@@ -99,13 +98,6 @@ private:
     void updateVisiblePage();
     void updateScanActionText(const QString& stateKey);
     void updateActionHint(const QString& stateKey);
-    void showStagePopupIfNeeded(const QString& stateKey);
-    static QString stagePopupTitle(const QString& stateKey);
-    void showModuleStatePopupIfNeeded(const QString& stateKey);
-    static QString moduleStatePopupTitle(const QString& stateKey);
-    bool askCartWasAlreadyInWork();
-    void showLargeStageDialog(const QString& title);
-    void showModuleStateDialog(const QString& title, const QString& body);
     void setWorkflowActionsEnabled(bool startFeederLoading,
                                    bool completeFeederLoading,
                                    bool arrivedFeeder,
