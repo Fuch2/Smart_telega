@@ -7,6 +7,7 @@
 #include "application/ports/IStm32Link.hpp"
 #include "application/ports/IWorkflowRepository.hpp"
 #include "application/services/WorkflowService.hpp"
+#include "application/services/SwitchEventHandler.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
@@ -100,6 +101,8 @@ private:
     WorkflowService& workflowSvc_;
     ports::IEventLogger&    eventLogger_;
     Stm32PollingConfig      config_;
+
+    SwitchEventHandler switchEventHandler_;
 
     std::atomic<bool> running_ {false};
     std::thread       thread_;

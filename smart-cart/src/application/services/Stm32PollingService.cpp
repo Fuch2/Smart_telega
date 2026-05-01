@@ -1,4 +1,5 @@
 #include "application/services/Stm32PollingService.hpp"
+#include "application/services/SwitchEventHandler.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 #include "infrastructure/hw/stm32/UartStm32Link.hpp"
 #include "domain/entities/CartWorkflow.hpp"
@@ -88,6 +89,13 @@ Stm32PollingService::Stm32PollingService(
     , workflowSvc_(workflowSvc)
     , eventLogger_(eventLogger)
     , config_(std::move(config))
+    , switchEventHandler_(reelRepo, eventLogger, SwitchEventConfig{
+        config_.moduleId,
+        config_.slotCount,
+        config_.trackedChannels,
+        config_.ignoredChannels,
+        config_.channelToSlotMap
+    })
 {}
 
 Stm32PollingService::~Stm32PollingService() {
@@ -205,16 +213,8 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
             return;
         }
 
-        if (frame.payload.size() < 2) {
-            updateLastEvent("EvtSwitchChanged: короткий payload");
-            logSafe("WARN",
-                    "Stm32EventBadPayload",
-                    "EvtSwitchChanged payload слишком короткий");
-            return;
-        }
-
-        const int channel = static_cast<int>(frame.payload[0]);
-        const bool occupied = frame.payload[1] != 0;
+        const int channel = frame.payload.size() >= 1 ? static_cast<int>(frame.payload[0]) : -1;
+        const bool occupied = frame.payload.size() >= 2 ? (frame.payload[1] != 0) : false;
         const auto slotIndex = slotIndexForChannel(channel);
 
         std::ostringstream evtMsg;
@@ -223,47 +223,26 @@ void Stm32PollingService::handleEventFrame(const stm32::Frame& frame) {
                << " occupied=" << (occupied ? "true" : "false");
         updateLastEvent(evtMsg.str());
 
-        if (channel < 0 || channel >= config_.slotCount) {
-            std::ostringstream msg;
-            msg << "channel=" << channel;
-            logSafe("WARN", "Stm32EventInvalidChannel", msg.str());
-            return;
-        }
-
-        if (!isTrackedChannel(channel) ||
-            isIgnoredChannel(channel) ||
-            !slotIndex.has_value())
-        {
-            return;
-        }
-
-        const auto now = std::chrono::steady_clock::now();
         std::lock_guard lock(stateMtx_);
 
         if (!lastSnapshot_.has_value() ||
             static_cast<int>(lastSnapshot_->size()) != config_.slotCount)
         {
+            const auto now = std::chrono::steady_clock::now();
             lastSnapshot_ = std::vector<bool>(config_.slotCount, false);
             rawSnapshot_ = *lastSnapshot_;
             rawChangedAt_.assign(static_cast<size_t>(config_.slotCount), now);
         }
-        if (!rawSnapshot_.has_value() ||
-            static_cast<int>(rawSnapshot_->size()) != config_.slotCount)
-        {
-            rawSnapshot_ = *lastSnapshot_;
-        }
-        if (rawChangedAt_.size() != static_cast<size_t>(config_.slotCount)) {
-            rawChangedAt_.assign(static_cast<size_t>(config_.slotCount), now);
-        }
 
-        if ((*lastSnapshot_)[channel] == occupied) {
-            return;
-        }
+        switchEventHandler_.handleEvent(frame, *lastSnapshot_, *rawSnapshot_, rawChangedAt_);
 
-        (*lastSnapshot_)[channel] = occupied;
-        (*rawSnapshot_)[channel] = occupied;
-        rawChangedAt_[channel] = now;
-        applyChannelStateLocked(channel, occupied, "event");
+        if (slotIndex.has_value()) {
+            if (occupied) {
+                handleOccupiedSlot(channel, *slotIndex);
+            } else {
+                handleFreedSlot(channel, *slotIndex);
+            }
+        }
     } catch (const std::exception& ex) {
         logSafe("ERROR", "Stm32EventHandleFailed", ex.what());
     } catch (...) {
