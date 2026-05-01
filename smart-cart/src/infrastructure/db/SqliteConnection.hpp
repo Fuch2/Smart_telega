@@ -23,6 +23,11 @@ public:
     // Выполнить SQL без результата.
     void execute(const std::string& sql);
 
+    // Управление транзакциями
+    void beginTransaction();
+    void commit();
+    void rollback();
+
     // Прогон миграций из директории (все *.sql по алфавиту, idempotent)
     void runMigrations(const std::filesystem::path& migrationsDir);
     void runMigrations(const std::string& migrationsDir);

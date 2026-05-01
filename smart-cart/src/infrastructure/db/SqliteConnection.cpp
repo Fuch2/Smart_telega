@@ -137,6 +137,22 @@ SqliteConnection::SqliteConnection(const std::string& sqlitePath) {
         }
         throw std::runtime_error("Не удалось открыть SQLite БД: " + err);
     }
+
+    // Включить WAL mode для concurrent reads
+    char* errMsg = nullptr;
+    sqlite3_exec(db_, "PRAGMA journal_mode=WAL;", nullptr, nullptr, &errMsg);
+    if (errMsg != nullptr) {
+        sqlite3_free(errMsg);
+    }
+
+    // Установить busy timeout (5 секунд) для retry при блокировках
+    sqlite3_busy_timeout(db_, 5000);
+
+    // Нормальный fsync (баланс между скоростью и надёжностью)
+    sqlite3_exec(db_, "PRAGMA synchronous=NORMAL;", nullptr, nullptr, &errMsg);
+    if (errMsg != nullptr) {
+        sqlite3_free(errMsg);
+    }
 }
 
 SqliteConnection::~SqliteConnection() {
@@ -155,6 +171,27 @@ void SqliteConnection::execute(const std::string& sql) {
         throw std::runtime_error("execute: SQLite соединение не инициализировано");
     }
     execSql(db_, sql);
+}
+
+void SqliteConnection::beginTransaction() {
+    if (db_ == nullptr) {
+        throw std::runtime_error("beginTransaction: SQLite соединение не инициализировано");
+    }
+    execSql(db_, "BEGIN IMMEDIATE;");
+}
+
+void SqliteConnection::commit() {
+    if (db_ == nullptr) {
+        throw std::runtime_error("commit: SQLite соединение не инициализировано");
+    }
+    execSql(db_, "COMMIT;");
+}
+
+void SqliteConnection::rollback() {
+    if (db_ == nullptr) {
+        throw std::runtime_error("rollback: SQLite соединение не инициализировано");
+    }
+    execSql(db_, "ROLLBACK;");
 }
 
 void SqliteConnection::runMigrations(const std::filesystem::path& migrationsDir) {
