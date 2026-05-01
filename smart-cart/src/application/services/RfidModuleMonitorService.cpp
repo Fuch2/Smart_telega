@@ -167,6 +167,17 @@ void RfidModuleMonitorService::setModuleOnline(bool online) {
     }
 
     moduleOnline_ = online;
+
+    // Update health status
+    {
+        std::lock_guard lock(statusMtx_);
+        if (online) {
+            lastError_.clear();
+        } else {
+            lastError_ = "RFID module offline (timeout)";
+        }
+    }
+
     if (online) {
         logSafe("INFO",
                 "RfidModuleOnline",
@@ -178,6 +189,19 @@ void RfidModuleMonitorService::setModuleOnline(bool online) {
                 "module_id=" + std::to_string(config_.moduleId) +
                 " uid=" + config_.expectedUid);
     }
+}
+
+std::chrono::system_clock::time_point RfidModuleMonitorService::lastSeen() const {
+    // Convert steady_clock to system_clock (approximate)
+    const auto steadyNow = std::chrono::steady_clock::now();
+    const auto systemNow = std::chrono::system_clock::now();
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(steadyNow - lastSeen_);
+    return systemNow - elapsed;
+}
+
+std::string RfidModuleMonitorService::lastError() const {
+    std::lock_guard lock(statusMtx_);
+    return lastError_;
 }
 
 void RfidModuleMonitorService::logSafe(std::string_view level,

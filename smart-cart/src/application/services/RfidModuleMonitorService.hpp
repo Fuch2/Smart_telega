@@ -38,6 +38,11 @@ public:
     bool isRunning() const noexcept { return running_.load(); }
     void setModuleSwitchCallback(ModuleSwitchCallback cb);
 
+    // Health status
+    bool isOnline() const noexcept { return moduleOnline_; }
+    std::chrono::system_clock::time_point lastSeen() const;
+    std::string lastError() const;
+
 private:
     ports::IRfidProvider& rfidProvider_;
     ports::IModuleRepository& moduleRepo_;
@@ -53,6 +58,8 @@ private:
     std::string notifiedSwitchUid_;
     std::chrono::steady_clock::time_point lastSwitchNotifyAt_{};
     ModuleSwitchCallback switchCb_;
+    mutable std::mutex statusMtx_;
+    std::string lastError_;
 
     void monitorLoop();
     void markOfflineIfExpectedUidTimedOut(

@@ -51,6 +51,11 @@ struct Stm32ConnectionStatus {
     std::string lastEventAt;
     std::string lastSnapshot{"нет snapshot"};
     std::string lastSnapshotAt;
+
+    // Hardware health
+    bool online{false};
+    std::chrono::system_clock::time_point lastSeen{};
+    std::string lastError{};
 };
 
 class Stm32PollingService {

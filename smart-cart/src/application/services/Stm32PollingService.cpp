@@ -128,6 +128,14 @@ void Stm32PollingService::pollOnce() {
         const auto snapshot = requestSnapshot();
         if (!snapshot.has_value()) {
             updateLastSnapshot("snapshot недоступен");
+
+            // Update health status: offline
+            {
+                std::lock_guard lock(statusMtx_);
+                status_.online = false;
+                status_.lastError = "Не удалось получить snapshot";
+            }
+
             logSafe("WARN",
                     "Stm32SnapshotUnavailable",
                     "Не удалось получить snapshot STM32");
@@ -135,12 +143,37 @@ void Stm32PollingService::pollOnce() {
         }
 
         updateLastSnapshot("snapshot получен");
+
+        // Update health status: online
+        {
+            std::lock_guard lock(statusMtx_);
+            status_.online = true;
+            status_.lastSeen = std::chrono::system_clock::now();
+            status_.lastError.clear();
+        }
+
         applySnapshot(*snapshot);
     } catch (const std::exception& ex) {
         updateLastSnapshot(std::string("ошибка snapshot: ") + ex.what());
+
+        // Update health status: error
+        {
+            std::lock_guard lock(statusMtx_);
+            status_.online = false;
+            status_.lastError = ex.what();
+        }
+
         logSafe("ERROR", "Stm32PollingError", ex.what());
     } catch (...) {
         updateLastSnapshot("ошибка snapshot");
+
+        // Update health status: unknown error
+        {
+            std::lock_guard lock(statusMtx_);
+            status_.online = false;
+            status_.lastError = "Неизвестная ошибка polling";
+        }
+
         logSafe("ERROR", "Stm32PollingError", "Неизвестная ошибка polling");
     }
 }
