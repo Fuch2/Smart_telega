@@ -1,5 +1,6 @@
 #include "application/services/Stm32PollingService.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
+#include "infrastructure/hw/stm32/UartStm32Link.hpp"
 #include "domain/entities/CartWorkflow.hpp"
 #include "domain/entities/Operation.hpp"
 #include "domain/entities/Slot.hpp"
@@ -116,6 +117,11 @@ void Stm32PollingService::pollLoop() {
     logSafe("INFO", "Stm32PollingStarted", "Опрос STM32 запущен");
 
     while (running_.load()) {
+        // Try to reconnect if UART is down
+        if (auto* uartLink = dynamic_cast<smartcart::infrastructure::hw::stm32::UartStm32Link*>(&link_)) {
+            uartLink->healthCheck();
+        }
+
         pollOnce();
         std::this_thread::sleep_for(std::chrono::milliseconds(config_.pollMs));
     }

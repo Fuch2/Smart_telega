@@ -89,6 +89,32 @@ void UartStm32Link::close() {
 
 bool UartStm32Link::isOpen() const { return running_.load(); }
 
+void UartStm32Link::healthCheck() {
+    if (isOpen()) {
+        // Already open, reset reconnect state
+        reconnectAttempts_ = 0;
+        return;
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+
+    // Exponential backoff: 5s, 10s, 20s, 40s, max 60s
+    const int backoffMs = std::min(5000 * (1 << reconnectAttempts_), 60000);
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now - lastReconnectAttempt_);
+
+    if (elapsed.count() < backoffMs) {
+        return; // Too soon to retry
+    }
+
+    lastReconnectAttempt_ = now;
+    reconnectAttempts_++;
+
+    if (open()) {
+        reconnectAttempts_ = 0; // Success, reset counter
+    }
+}
+
 void UartStm32Link::setEventCallback(
     application::ports::EventCallback cb)
 {

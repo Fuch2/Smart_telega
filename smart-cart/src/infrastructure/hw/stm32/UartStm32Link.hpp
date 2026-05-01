@@ -27,6 +27,9 @@ public:
     void setEventCallback(application::ports::EventCallback cb) override;
     bool isOpen() const override;
 
+    // Health check and reconnect
+    void healthCheck();
+
 private:
     void rxThreadFunc();
     void handleParsedFrame(Frame frame);
@@ -53,6 +56,10 @@ private:
     uint8_t seqCounter_ {0};
 
     FrameCodec::StreamParser parser_;
+
+    // Reconnect state
+    std::chrono::steady_clock::time_point lastReconnectAttempt_{};
+    int reconnectAttempts_{0};
 };
 
 } // namespace smartcart::infrastructure::hw::stm32
