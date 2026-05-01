@@ -3,3 +3,5 @@ runtime/
 *.db
 *.db-*
 *.log
+.DS_Store
+CMakeLists_fixed.txt
