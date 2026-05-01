@@ -102,4 +102,34 @@ ln -sfnT "${release_dir}" "${SMARTCART_ROOT}/current"
 
 start_runtime_services
 
+log "Проверяю запуск сервисов..."
+sleep 5
+
+# Health check для smartcart-ui.service
+if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
+    if ! systemctl --user is-active --quiet smartcart-ui.service; then
+        log "ERROR: smartcart-ui.service не запустился"
+        log "Откатываю к предыдущему релизу..."
+        "${SMARTCART_SRC}/deploy/rpi/rollback.sh"
+        exit 1
+    fi
+    log "✓ smartcart-ui.service работает"
+fi
+
+# Health check для smartcart-web.service
+if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
+    if ! systemctl --user is-active --quiet smartcart-web.service; then
+        log "WARNING: smartcart-web.service не запустился"
+    else
+        log "✓ smartcart-web.service работает"
+    fi
+fi
+
+# Cleanup старых релизов (оставить последние 5)
+log "Удаляю старые релизы..."
+ls -t "${SMARTCART_ROOT}/releases" | tail -n +6 | while read old_release; do
+    log "Удаляю старый релиз: ${old_release}"
+    rm -rf "${SMARTCART_ROOT}/releases/${old_release}"
+done
+
 log "Готово: ${SMARTCART_ROOT}/current -> ${release_dir}"
