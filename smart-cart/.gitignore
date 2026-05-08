@@ -7,3 +7,4 @@ runtime/
 CMakeLists_fixed.txt
 .claude/worktrees/
 .claude/worktrees/
+.obsidian/
