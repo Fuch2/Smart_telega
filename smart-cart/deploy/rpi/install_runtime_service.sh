@@ -3,9 +3,8 @@ set -euo pipefail
 
 SMARTCART_SRC="${SMARTCART_SRC:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 SMARTCART_ROOT="${SMARTCART_ROOT:-/opt/smartcart}"
-DISPLAY_VALUE="${SMARTCART_DISPLAY:-${DISPLAY:-:0}}"
-XAUTHORITY_VALUE="${XAUTHORITY:-${HOME}/.Xauthority}"
 USER_SYSTEMD_DIR="${HOME}/.config/systemd/user"
+USER_UID="$(id -u)"
 
 if ! command -v systemctl >/dev/null 2>&1; then
     echo "systemctl не найден" >&2
@@ -21,8 +20,7 @@ mkdir -p "${USER_SYSTEMD_DIR}"
 
 sed \
     -e "s#__SMARTCART_ROOT__#${SMARTCART_ROOT}#g" \
-    -e "s#__DISPLAY__#${DISPLAY_VALUE}#g" \
-    -e "s#__XAUTHORITY__#${XAUTHORITY_VALUE}#g" \
+    -e "s#__UID__#${USER_UID}#g" \
     "${SMARTCART_SRC}/deploy/rpi/systemd/smartcart-ui.service.in" \
     > "${USER_SYSTEMD_DIR}/smartcart-ui.service"
 
@@ -35,7 +33,6 @@ sed \
 cp "${SMARTCART_SRC}/deploy/rpi/systemd/smartcart-deploy.timer" \
    "${USER_SYSTEMD_DIR}/smartcart-deploy.timer"
 
-systemctl --user import-environment DISPLAY XAUTHORITY >/dev/null 2>&1 || true
 systemctl --user daemon-reload
 systemctl --user enable smartcart-ui.service
 systemctl --user enable --now smartcart-deploy.timer
@@ -47,5 +44,5 @@ fi
 
 echo "Runtime SmartCart подготовлен."
 echo "Корень:  ${SMARTCART_ROOT}"
-echo "Экран:   ${DISPLAY_VALUE}"
+echo "Wayland: wayland-0 (XDG_RUNTIME_DIR=/run/user/${USER_UID})"
 echo "Автодеплой включён: systemctl --user status smartcart-deploy.timer"
