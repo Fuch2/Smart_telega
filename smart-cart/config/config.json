@@ -2,7 +2,7 @@
   "log_file": "./smartcart.log",
   "sqlite_path": "./smartcart.db",
   "stm32_poll_ms": 500,
-  "stm32_device": "/dev/ttyAMA0",
+  "stm32_device": "/dev/ttyUSB0",
   "rfid_enabled": true,
   "rfid_spi_device": "/dev/spidev0.0",
   "rfid_spi_devices": [

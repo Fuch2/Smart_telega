@@ -19,6 +19,8 @@ public:
                          domain::CartWorkflowState state) override;
     bool clearCurrentOrder(domain::CartWorkflowState state) override;
 
+    bool adoptWorkflowFrom(int fromModuleId) override;
+
 private:
     SqliteConnection& conn_;
     int moduleId_{1};

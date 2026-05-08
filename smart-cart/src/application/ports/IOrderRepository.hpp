@@ -33,6 +33,11 @@ public:
     virtual bool updateItemPlacement(int id,
                                      int currentSlot,
                                      domain::OrderItemStatus status) = 0;
+
+    /// Переносит активный заказ из fromModuleId в текущий модуль.
+    /// Ничего не делает если у текущего модуля уже есть активный заказ.
+    /// Возвращает true если заказ был перенесён или уже был.
+    virtual bool adoptActiveOrderFrom(int fromModuleId) = 0;
 };
 
 } // namespace smartcart::application::ports

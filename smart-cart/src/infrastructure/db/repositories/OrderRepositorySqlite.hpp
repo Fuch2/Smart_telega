@@ -35,6 +35,8 @@ public:
                              int currentSlot,
                              domain::OrderItemStatus status) override;
 
+    bool adoptActiveOrderFrom(int fromModuleId) override;
+
 private:
     SqliteConnection& conn_;
     int moduleId_{1};

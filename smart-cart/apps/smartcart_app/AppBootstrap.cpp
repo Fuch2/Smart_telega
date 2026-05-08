@@ -801,6 +801,8 @@ void AppBootstrap::switchToModuleUid(const std::string& uid) {
                       " from_module_id=" + std::to_string(activeModuleId_) +
                       " to_module_id=" + std::to_string(newModuleId));
 
+    const int oldModuleId = activeModuleId_;
+
     destroyModuleScopedSession(true);
     destroyModuleChannelRuntimes();
     stm32Link_.reset();
@@ -809,6 +811,13 @@ void AppBootstrap::switchToModuleUid(const std::string& uid) {
     syncModuleStatuses();
     buildActiveStm32Link();
     buildModuleScopedSession();
+
+    // Перенести активный заказ и воркфлоу из предыдущего модуля в новый
+    if (oldModuleId > 0 && oldModuleId != newModuleId) {
+        orderRepo_->adoptActiveOrderFrom(oldModuleId);
+        workflowRepo_->adoptWorkflowFrom(oldModuleId);
+    }
+
     buildModuleChannelRuntimes();
     showMainWindow();
 }

@@ -432,4 +432,33 @@ bool OrderRepositorySqlite::updateItemPlacement(
     return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
 }
 
+bool OrderRepositorySqlite::adoptActiveOrderFrom(int fromModuleId) {
+    // Если у текущего модуля уже есть активный заказ — ничего не делаем.
+    if (getActiveOrder().has_value()) {
+        return true;
+    }
+
+    // Переносим активный заказ из fromModuleId в наш moduleId_.
+    const char* sql =
+        "UPDATE orders SET module_id = ? "
+        "WHERE module_id = ? "
+        "  AND status IN ('LOADED', 'IN_PROGRESS') "
+        "  AND id = (SELECT id FROM orders "
+        "            WHERE module_id = ? "
+        "              AND status IN ('LOADED', 'IN_PROGRESS') "
+        "            ORDER BY updated_at DESC LIMIT 1);";
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+    sqlite3_bind_int(stmt, 1, moduleId_);
+    sqlite3_bind_int(stmt, 2, fromModuleId);
+    sqlite3_bind_int(stmt, 3, fromModuleId);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+}
+
 } // namespace smartcart::infrastructure::db

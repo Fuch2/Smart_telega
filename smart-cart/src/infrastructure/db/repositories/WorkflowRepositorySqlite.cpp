@@ -137,4 +137,55 @@ bool WorkflowRepositorySqlite::clearCurrentOrder(domain::CartWorkflowState state
     return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
 }
 
+bool WorkflowRepositorySqlite::adoptWorkflowFrom(int fromModuleId) {
+    // Nothing to adopt if we're already not FREE
+    {
+        auto current = get();
+        if (current.state != domain::CartWorkflowState::Free) {
+            return true;
+        }
+    }
+
+    // Copy state + current_order_id from fromModuleId → moduleId_
+    // then reset fromModuleId back to FREE / NULL
+    const char* sqlCopy =
+        "UPDATE cart_workflow "
+        "SET current_order_id = (SELECT current_order_id FROM cart_workflow WHERE module_id = ?),"
+        "    state             = (SELECT state             FROM cart_workflow WHERE module_id = ?),"
+        "    updated_at        = datetime('now') "
+        "WHERE module_id = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+    throwOnPrepareError(conn_.handle(),
+                        sqlite3_prepare_v2(conn_.handle(), sqlCopy, -1, &stmt, nullptr),
+                        "WorkflowRepositorySqlite::adoptWorkflowFrom copy prepare");
+
+    sqlite3_bind_int(stmt, 1, fromModuleId);
+    sqlite3_bind_int(stmt, 2, fromModuleId);
+    sqlite3_bind_int(stmt, 3, moduleId_);
+
+    const int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    if (rc != SQLITE_DONE) {
+        return false;
+    }
+
+    // Reset the source module to FREE / NULL
+    const char* sqlReset =
+        "UPDATE cart_workflow "
+        "SET current_order_id = NULL, state = 'FREE', updated_at = datetime('now') "
+        "WHERE module_id = ?;";
+
+    sqlite3_stmt* stmt2 = nullptr;
+    throwOnPrepareError(conn_.handle(),
+                        sqlite3_prepare_v2(conn_.handle(), sqlReset, -1, &stmt2, nullptr),
+                        "WorkflowRepositorySqlite::adoptWorkflowFrom reset prepare");
+
+    sqlite3_bind_int(stmt2, 1, fromModuleId);
+
+    const int rc2 = sqlite3_step(stmt2);
+    sqlite3_finalize(stmt2);
+    return rc2 == SQLITE_DONE;
+}
+
 } // namespace smartcart::infrastructure::db
