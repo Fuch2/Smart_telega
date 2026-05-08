@@ -146,12 +146,13 @@ bool WorkflowRepositorySqlite::adoptWorkflowFrom(int fromModuleId) {
         }
     }
 
-    // Copy state + current_order_id from fromModuleId → moduleId_
-    // then reset fromModuleId back to FREE / NULL
+    // Copy only current_order_id from fromModuleId → moduleId_
+    // State stays FREE so the new module starts fresh with just the order reference.
+    // Then reset fromModuleId back to FREE / NULL.
     const char* sqlCopy =
         "UPDATE cart_workflow "
         "SET current_order_id = (SELECT current_order_id FROM cart_workflow WHERE module_id = ?),"
-        "    state             = (SELECT state             FROM cart_workflow WHERE module_id = ?),"
+        "    state             = 'FREE',"
         "    updated_at        = datetime('now') "
         "WHERE module_id = ?;";
 
@@ -161,8 +162,7 @@ bool WorkflowRepositorySqlite::adoptWorkflowFrom(int fromModuleId) {
                         "WorkflowRepositorySqlite::adoptWorkflowFrom copy prepare");
 
     sqlite3_bind_int(stmt, 1, fromModuleId);
-    sqlite3_bind_int(stmt, 2, fromModuleId);
-    sqlite3_bind_int(stmt, 3, moduleId_);
+    sqlite3_bind_int(stmt, 2, moduleId_);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

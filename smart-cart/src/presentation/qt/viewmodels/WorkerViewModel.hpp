@@ -56,6 +56,7 @@ signals:
     void workflowControlsUpdated(QString stateKey);
     void stm32StatusUpdated(QString status);
     void activeModuleUpdated(QString moduleSummary);
+    void activeModuleKindChanged(QString kind);   // "REEL", "FEEDER", "UNKNOWN"
     void activeModuleAvailabilityChanged(bool online);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);

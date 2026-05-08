@@ -540,6 +540,11 @@ void WorkerView::connectSignals() {
             this, &WorkerView::onStm32StatusUpdated);
     connect(&viewModel_, &WorkerViewModel::activeModuleUpdated,
             this, &WorkerView::onActiveModuleUpdated);
+    connect(&viewModel_, &WorkerViewModel::activeModuleKindChanged,
+            this, [this](const QString& kind) {
+                currentModuleKind_ = kind;
+                updateModuleKindScreen(QStringLiteral("_kind_update_"));
+            });
     connect(&viewModel_, &WorkerViewModel::activeModuleAvailabilityChanged,
             this, &WorkerView::onActiveModuleAvailabilityChanged);
     connect(&viewModel_, &WorkerViewModel::errorOccurred,
@@ -647,36 +652,28 @@ void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
     updateVisiblePage();
 }
 
-void WorkerView::updateModuleKindScreen(const QString& stateKey) {
-    const bool isFeeder =
-        stateKey == QStringLiteral("ORDER_LOADED") ||
-        stateKey == QStringLiteral("LOADING_FEEDERS") ||
-        stateKey == QStringLiteral("READY_FOR_FEEDER_PREP") ||
-        stateKey == QStringLiteral("FEEDER_PREP") ||
-        stateKey == QStringLiteral("READY_FOR_LINE");
-
-    const bool isReel =
-        stateKey == QStringLiteral("PICKING_MATERIALS") ||
-        stateKey == QStringLiteral("ISSUING_TO_LINE") ||
-        stateKey == QStringLiteral("ORDER_COMPLETED") ||
-        stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
-        stateKey == QStringLiteral("RETURNING_LEFTOVERS");
+void WorkerView::updateModuleKindScreen(const QString& /*stateKey*/) {
+    // Экран выбирается по ТИПУ МОДУЛЯ (не по состоянию воркфлоу).
+    // Тип модуля хранится в currentModuleKind_ и обновляется сигналом
+    // activeModuleKindChanged из WorkerViewModel::rebuildModuleStatus().
+    const bool feederModule = (currentModuleKind_ == QStringLiteral("FEEDER"));
+    const bool reelModule   = (currentModuleKind_ == QStringLiteral("REEL"));
 
     if (moduleWorkStack_) {
         moduleWorkStack_->setCurrentWidget(
-            isFeeder ? feederWorkPage_ : reelWorkPage_);
+            feederModule ? feederWorkPage_ : reelWorkPage_);
     }
 
     if (!moduleKindBannerLabel_) return;
 
-    if (isFeeder) {
+    if (feederModule) {
         moduleKindBannerLabel_->setText(
             QString::fromUtf8("⚙  ЭКРАН ПИТАТЕЛЕЙ"));
         moduleKindBannerLabel_->setStyleSheet(
             "QLabel { background: #1A2A40; color: #7DC8F0; "
             "border-bottom: 2px solid #3A6A9C; padding: 6px 20px; }"
         );
-    } else if (isReel) {
+    } else if (reelModule) {
         moduleKindBannerLabel_->setText(
             QString::fromUtf8("\U0001F4E6  ЭКРАН КАТУШЕК"));
         moduleKindBannerLabel_->setStyleSheet(

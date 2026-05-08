@@ -662,6 +662,7 @@ void WorkerViewModel::rebuildModuleStatus() {
         emit activeModuleUpdated(
             QString::fromUtf8("Активный модуль: #%1 · запись не найдена")
                 .arg(workflow.moduleId));
+        emit activeModuleKindChanged(QStringLiteral("UNKNOWN"));
         emit activeModuleAvailabilityChanged(false);
         return;
     }
@@ -692,6 +693,16 @@ void WorkerViewModel::rebuildModuleStatus() {
             .arg(moduleKindLabel(module->kind))
             .arg(statusColor)
             .arg(statusText));
+
+    const QString kindKey = [](ModuleKind k) -> QString {
+        switch (k) {
+            case ModuleKind::Reel:   return QStringLiteral("REEL");
+            case ModuleKind::Feeder: return QStringLiteral("FEEDER");
+            default:                  return QStringLiteral("UNKNOWN");
+        }
+    }(module->kind);
+    emit activeModuleKindChanged(kindKey);
+
     emit activeModuleAvailabilityChanged(module->status == ModuleStatus::Online);
 }
 

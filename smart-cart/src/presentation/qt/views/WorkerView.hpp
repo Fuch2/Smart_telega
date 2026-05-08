@@ -98,6 +98,7 @@ private:
 
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
+    QString         currentModuleKind_{QStringLiteral("UNKNOWN")};
 
     void setupUi();
     void connectSignals();
