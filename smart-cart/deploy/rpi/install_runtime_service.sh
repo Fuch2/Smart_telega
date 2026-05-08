@@ -4,7 +4,7 @@ set -euo pipefail
 SMARTCART_SRC="${SMARTCART_SRC:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 SMARTCART_ROOT="${SMARTCART_ROOT:-/opt/smartcart}"
 DISPLAY_VALUE="${SMARTCART_DISPLAY:-${DISPLAY:-:0}}"
-XAUTHORITY_VALUE="${XAUTHORITY:-}"
+XAUTHORITY_VALUE="${XAUTHORITY:-${HOME}/.Xauthority}"
 USER_SYSTEMD_DIR="${HOME}/.config/systemd/user"
 
 if ! command -v systemctl >/dev/null 2>&1; then
