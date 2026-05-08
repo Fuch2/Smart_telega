@@ -13,10 +13,7 @@
     "/dev/spidev0.4",
     "/dev/spidev0.5"
   ],
-  "rfid_module_roles": {
-    "E201FC03": "REEL",
-    "E3906D2D": "FEEDER"
-  },
+  "rfid_module_roles": {},
   "module_channels": [],
   "rfid_read_timeout_ms": 350,
   "rfid_poll_ms": 500,
