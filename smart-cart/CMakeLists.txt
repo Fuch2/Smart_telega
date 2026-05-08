@@ -106,6 +106,13 @@ set_target_properties(smartcart_app_qt PROPERTIES
 
 smartcart_set_warnings(smartcart_app_qt)
 
+# GCC 13 ICE (internal compiler error) in RTL pass:combine on large constructors
+# with C++20 lambdas. Reduce optimization only for AppBootstrap.cpp.
+set_source_files_properties(
+    apps/smartcart_app/AppBootstrap.cpp
+    PROPERTIES COMPILE_FLAGS "-O1"
+)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # smartcart_app — headless CLI smoke-test (CI, без Qt)
 # ══════════════════════════════════════════════════════════════════════════════
