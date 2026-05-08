@@ -15,6 +15,7 @@
 #include <QGridLayout>
 #include <QKeyEvent>
 #include <QSizePolicy>
+#include <QStackedWidget>
 #include <QTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -225,6 +226,19 @@ void WorkerView::setupUi() {
     workPage_->setStyleSheet("QWidget { background: #102217; }");
     auto* workLayout = new QVBoxLayout(workPage_);
     workLayout->setContentsMargins(10, 10, 10, 10);
+    workLayout->setSpacing(0);
+
+    // ── Баннер: показывает текущий активный экран ────────────────────────────
+    moduleKindBannerLabel_ = new QLabel(
+        QString::fromUtf8("SmartCart"), workPage_);
+    moduleKindBannerLabel_->setAlignment(Qt::AlignCenter);
+    moduleKindBannerLabel_->setFont(QFont("Segoe UI", 15, QFont::Bold));
+    moduleKindBannerLabel_->setMinimumHeight(46);
+    moduleKindBannerLabel_->setStyleSheet(
+        "QLabel { background: #1A2B22; color: #8DE4AD; "
+        "border-bottom: 2px solid #2F5C3C; padding: 6px 20px; }"
+    );
+    workLayout->addWidget(moduleKindBannerLabel_);
     workLayout->setSpacing(10);
 
     rootLayout->addWidget(startPage_);
@@ -436,57 +450,63 @@ void WorkerView::setupUi() {
     routeTitle->setFont(QFont("Segoe UI", 15, QFont::Bold));
     routeTitle->setStyleSheet("color: #102217;");
 
-    auto* workflowLayout = new QGridLayout();
-    workflowLayout->setHorizontalSpacing(8);
-    workflowLayout->setVerticalSpacing(8);
-
-    auto makeWorkflowButton = [workflowFrame, secondaryButtonStyle](const QString& text) {
-        auto* button = new QPushButton(text, workflowFrame);
-        button->setFont(QFont("Segoe UI", 10, QFont::Bold));
-        button->setMinimumHeight(38);
-        button->setStyleSheet(secondaryButtonStyle);
-        return button;
+    auto makeBtn = [secondaryButtonStyle](const QString& text, QWidget* parent) {
+        auto* b = new QPushButton(text, parent);
+        b->setFont(QFont("Segoe UI", 10, QFont::Bold));
+        b->setMinimumHeight(40);
+        b->setStyleSheet(secondaryButtonStyle);
+        return b;
     };
 
-    arrivedFeederButton_ =
-        makeWorkflowButton(QString::fromUtf8("Прибыла к питателям"));
-    startFeederLoadingButton_ =
-        makeWorkflowButton(QString::fromUtf8("Загрузка питателей"));
-    completeFeederLoadingButton_ =
-        makeWorkflowButton(QString::fromUtf8("Питатели загружены"));
-    startFeederPrepButton_ =
-        makeWorkflowButton(QString::fromUtf8("Начать подготовку"));
-    feederPrepDoneButton_ =
-        makeWorkflowButton(QString::fromUtf8("Питатели готовы"));
-    arrivedLineButton_ =
-        makeWorkflowButton(QString::fromUtf8("Прибыла на линию"));
-    startIssuingButton_ =
-        makeWorkflowButton(QString::fromUtf8("Начать выдачу"));
-    issueButton_ =
-        makeWorkflowButton(QString::fromUtf8("Выдать штрихкод"));
-    completeIssuingButton_ =
-        makeWorkflowButton(QString::fromUtf8("Завершить выдачу"));
-    inspectLeftoversButton_ =
-        makeWorkflowButton(QString::fromUtf8("Проверить остатки"));
-    startReturnButton_ =
-        makeWorkflowButton(QString::fromUtf8("Начать возврат"));
-    returnLeftoverButton_ =
-        makeWorkflowButton(QString::fromUtf8("Вернуть остаток"));
+    // ── Экран ПИТАТЕЛЕЙ ──────────────────────────────────────────────────────
+    feederWorkPage_ = new QWidget(workflowFrame);
+    auto* feederGrid = new QGridLayout(feederWorkPage_);
+    feederGrid->setHorizontalSpacing(8);
+    feederGrid->setVerticalSpacing(8);
+    feederGrid->setContentsMargins(0, 0, 0, 0);
 
-    workflowLayout->addWidget(startFeederLoadingButton_, 0, 0);
-    workflowLayout->addWidget(completeFeederLoadingButton_, 0, 1);
-    workflowLayout->addWidget(arrivedFeederButton_, 0, 2);
-    workflowLayout->addWidget(startFeederPrepButton_, 1, 0);
-    workflowLayout->addWidget(feederPrepDoneButton_, 1, 1);
-    workflowLayout->addWidget(arrivedLineButton_, 1, 2);
-    workflowLayout->addWidget(startIssuingButton_, 2, 0);
-    workflowLayout->addWidget(issueButton_, 2, 1);
-    workflowLayout->addWidget(completeIssuingButton_, 2, 2);
-    workflowLayout->addWidget(inspectLeftoversButton_, 3, 0);
-    workflowLayout->addWidget(startReturnButton_, 3, 1);
-    workflowLayout->addWidget(returnLeftoverButton_, 3, 2);
+    startFeederLoadingButton_    = makeBtn(QString::fromUtf8("Загрузка питателей"),   feederWorkPage_);
+    completeFeederLoadingButton_ = makeBtn(QString::fromUtf8("Питатели загружены"),   feederWorkPage_);
+    arrivedFeederButton_         = makeBtn(QString::fromUtf8("Прибыла к питателям"),  feederWorkPage_);
+    startFeederPrepButton_       = makeBtn(QString::fromUtf8("Начать подготовку"),    feederWorkPage_);
+    feederPrepDoneButton_        = makeBtn(QString::fromUtf8("Питатели готовы"),      feederWorkPage_);
+    arrivedLineButton_           = makeBtn(QString::fromUtf8("Прибыла на линию"),     feederWorkPage_);
+
+    feederGrid->addWidget(startFeederLoadingButton_,    0, 0);
+    feederGrid->addWidget(completeFeederLoadingButton_, 0, 1);
+    feederGrid->addWidget(arrivedFeederButton_,         1, 0);
+    feederGrid->addWidget(startFeederPrepButton_,       1, 1);
+    feederGrid->addWidget(feederPrepDoneButton_,        2, 0);
+    feederGrid->addWidget(arrivedLineButton_,           2, 1);
+
+    // ── Экран КАТУШЕК ────────────────────────────────────────────────────────
+    reelWorkPage_ = new QWidget(workflowFrame);
+    auto* reelGrid = new QGridLayout(reelWorkPage_);
+    reelGrid->setHorizontalSpacing(8);
+    reelGrid->setVerticalSpacing(8);
+    reelGrid->setContentsMargins(0, 0, 0, 0);
+
+    startIssuingButton_    = makeBtn(QString::fromUtf8("Начать выдачу"),     reelWorkPage_);
+    issueButton_           = makeBtn(QString::fromUtf8("Выдать штрихкод"),   reelWorkPage_);
+    completeIssuingButton_ = makeBtn(QString::fromUtf8("Завершить выдачу"),  reelWorkPage_);
+    inspectLeftoversButton_= makeBtn(QString::fromUtf8("Проверить остатки"), reelWorkPage_);
+    startReturnButton_     = makeBtn(QString::fromUtf8("Начать возврат"),    reelWorkPage_);
+    returnLeftoverButton_  = makeBtn(QString::fromUtf8("Вернуть остаток"),   reelWorkPage_);
+
+    reelGrid->addWidget(startIssuingButton_,     0, 0);
+    reelGrid->addWidget(issueButton_,            0, 1);
+    reelGrid->addWidget(completeIssuingButton_,  0, 2);
+    reelGrid->addWidget(inspectLeftoversButton_, 1, 0);
+    reelGrid->addWidget(startReturnButton_,      1, 1);
+    reelGrid->addWidget(returnLeftoverButton_,   1, 2);
+
+    // ── Стек: переключение между экранами ────────────────────────────────────
+    moduleWorkStack_ = new QStackedWidget(workflowFrame);
+    moduleWorkStack_->addWidget(feederWorkPage_);  // index 0
+    moduleWorkStack_->addWidget(reelWorkPage_);    // index 1
+
     workflowRootLayout->addWidget(routeTitle);
-    workflowRootLayout->addLayout(workflowLayout);
+    workflowRootLayout->addWidget(moduleWorkStack_);
     rightLayout->addWidget(workflowFrame);
     rightLayout->addStretch();
 
@@ -627,7 +647,54 @@ void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
     updateVisiblePage();
 }
 
+void WorkerView::updateModuleKindScreen(const QString& stateKey) {
+    const bool isFeeder =
+        stateKey == QStringLiteral("ORDER_LOADED") ||
+        stateKey == QStringLiteral("LOADING_FEEDERS") ||
+        stateKey == QStringLiteral("READY_FOR_FEEDER_PREP") ||
+        stateKey == QStringLiteral("FEEDER_PREP") ||
+        stateKey == QStringLiteral("READY_FOR_LINE");
+
+    const bool isReel =
+        stateKey == QStringLiteral("PICKING_MATERIALS") ||
+        stateKey == QStringLiteral("ISSUING_TO_LINE") ||
+        stateKey == QStringLiteral("ORDER_COMPLETED") ||
+        stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+        stateKey == QStringLiteral("RETURNING_LEFTOVERS");
+
+    if (moduleWorkStack_) {
+        moduleWorkStack_->setCurrentWidget(
+            isFeeder ? feederWorkPage_ : reelWorkPage_);
+    }
+
+    if (!moduleKindBannerLabel_) return;
+
+    if (isFeeder) {
+        moduleKindBannerLabel_->setText(
+            QString::fromUtf8("⚙  ЭКРАН ПИТАТЕЛЕЙ"));
+        moduleKindBannerLabel_->setStyleSheet(
+            "QLabel { background: #1A2A40; color: #7DC8F0; "
+            "border-bottom: 2px solid #3A6A9C; padding: 6px 20px; }"
+        );
+    } else if (isReel) {
+        moduleKindBannerLabel_->setText(
+            QString::fromUtf8("\U0001F4E6  ЭКРАН КАТУШЕК"));
+        moduleKindBannerLabel_->setStyleSheet(
+            "QLabel { background: #1A3B2A; color: #8DE4AD; "
+            "border-bottom: 2px solid #3E6B4C; padding: 6px 20px; }"
+        );
+    } else {
+        moduleKindBannerLabel_->setText(
+            QString::fromUtf8("SmartCart"));
+        moduleKindBannerLabel_->setStyleSheet(
+            "QLabel { background: #1A2B22; color: #7A9B84; "
+            "border-bottom: 2px solid #2F5C3C; padding: 6px 20px; }"
+        );
+    }
+}
+
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
+    updateModuleKindScreen(stateKey);
     dialogManager_->showStagePopupIfNeeded(stateKey);
     dialogManager_->showModuleStatePopupIfNeeded(stateKey);
 

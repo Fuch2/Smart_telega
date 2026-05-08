@@ -9,6 +9,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QShowEvent;
+class QStackedWidget;
 class QTextEdit;
 class WorkflowDialogManager;
 
@@ -89,6 +90,12 @@ private:
     QPushButton*    inspectLeftoversButton_ = nullptr;
     QPushButton*    startReturnButton_ = nullptr;
     QPushButton*    returnLeftoverButton_ = nullptr;
+    // ── Экраны по типу модуля ────────────────────────────────────────────────
+    QLabel*         moduleKindBannerLabel_ = nullptr;
+    QStackedWidget* moduleWorkStack_       = nullptr;
+    QWidget*        feederWorkPage_        = nullptr;
+    QWidget*        reelWorkPage_          = nullptr;
+
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
 
@@ -96,6 +103,7 @@ private:
     void connectSignals();
     void focusBarcodeInput();
     void updateVisiblePage();
+    void updateModuleKindScreen(const QString& stateKey);
     void updateScanActionText(const QString& stateKey);
     void updateActionHint(const QString& stateKey);
     void setWorkflowActionsEnabled(bool startFeederLoading,
