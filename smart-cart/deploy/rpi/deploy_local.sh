@@ -34,13 +34,6 @@ start_runtime_services() {
     else
         log "Сервис smartcart-ui.service ещё не установлен."
     fi
-
-    if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
-        log "Запускаю smartcart-web.service..."
-        systemctl --user restart smartcart-web.service
-    else
-        log "Сервис smartcart-web.service ещё не установлен."
-    fi
 }
 
 if [ ! -d "${SMARTCART_ROOT}/releases" ] ||
@@ -51,6 +44,13 @@ if [ ! -d "${SMARTCART_ROOT}/releases" ] ||
 fi
 
 cd "${SMARTCART_SRC}"
+
+# Останавливаем таймер чтобы он не перезапустил сервисы во время деплоя.
+# Запустим его обратно в конце (или при откате).
+if systemctl --user cat smartcart-deploy.timer >/dev/null 2>&1; then
+    systemctl --user stop smartcart-deploy.timer 2>/dev/null || true
+fi
+trap 'systemctl --user start smartcart-deploy.timer 2>/dev/null || true' EXIT
 
 log "Проверяю обновления git..."
 git fetch --prune
@@ -92,9 +92,6 @@ cp "${BUILD_DIR}/smartcart_app" "${release_dir}/smartcart_app"
 cp "${BUILD_DIR}/build_qt/smart_cart_ui" "${release_dir}/smart_cart_ui"
 cp -a "${BUILD_DIR}/build_qt/config" "${release_dir}/config"
 cp -a "${BUILD_DIR}/build_qt/migrations" "${release_dir}/migrations"
-mkdir -p "${release_dir}/tools"
-cp "${SMARTCART_SRC}/tools/smartcart_web.py" "${release_dir}/tools/smartcart_web.py"
-chmod +x "${release_dir}/tools/smartcart_web.py"
 printf '%s\n' "${release_id}" > "${release_dir}/VERSION"
 printf '%s\n' "${commit}" > "${release_dir}/COMMIT"
 
@@ -103,26 +100,25 @@ ln -sfnT "${release_dir}" "${SMARTCART_ROOT}/current"
 start_runtime_services
 
 log "Проверяю запуск сервисов..."
-sleep 5
 
-# Health check для smartcart-ui.service
+# Ждём до 15 секунд: Qt-приложение стартует ~3-5 с, даём запас.
+ui_ok=0
 if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
-    if ! systemctl --user is-active --quiet smartcart-ui.service; then
+    for i in 1 2 3; do
+        sleep 5
+        if systemctl --user is-active --quiet smartcart-ui.service; then
+            ui_ok=1
+            break
+        fi
+        log "Ждём smartcart-ui.service (попытка $i/3)..."
+    done
+    if [ "${ui_ok}" -eq 0 ]; then
         log "ERROR: smartcart-ui.service не запустился"
         log "Откатываю к предыдущему релизу..."
         "${SMARTCART_SRC}/deploy/rpi/rollback.sh"
         exit 1
     fi
     log "✓ smartcart-ui.service работает"
-fi
-
-# Health check для smartcart-web.service
-if systemctl --user cat smartcart-web.service >/dev/null 2>&1; then
-    if ! systemctl --user is-active --quiet smartcart-web.service; then
-        log "WARNING: smartcart-web.service не запустился"
-    else
-        log "✓ smartcart-web.service работает"
-    fi
 fi
 
 # Cleanup старых релизов (оставить последние 5)

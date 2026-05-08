@@ -14,16 +14,9 @@ if [ ! -x "${SMARTCART_ROOT}/current/smart_cart_ui" ]; then
     exit 1
 fi
 
-if [ ! -f "${SMARTCART_ROOT}/current/tools/smartcart_web.py" ]; then
-    echo "Web-экран не найден: ${SMARTCART_ROOT}/current/tools/smartcart_web.py" >&2
-    echo "Сначала выполни deploy/rpi/deploy_local.sh" >&2
-    exit 1
-fi
-
 systemctl --user daemon-reload
 systemctl --user start smartcart-ui.service
-systemctl --user start smartcart-web.service
 
-echo "SmartCart UI и web-экран запущены."
+echo "SmartCart UI запущен."
 echo
-systemctl --user --no-pager --full status smartcart-ui.service smartcart-web.service
+systemctl --user --no-pager --full status smartcart-ui.service
