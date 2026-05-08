@@ -70,8 +70,8 @@ fi
 trap 'systemctl --user start smartcart-deploy.timer 2>/dev/null || true' EXIT
 
 log "Проверяю обновления git..."
-git fetch --prune
-git pull --ff-only origin "$(git rev-parse --abbrev-ref HEAD)"
+git fetch --prune origin
+git merge --ff-only "origin/$(git rev-parse --abbrev-ref HEAD)"
 
 commit="$(git rev-parse --short=12 HEAD)"
 current_commit=""
