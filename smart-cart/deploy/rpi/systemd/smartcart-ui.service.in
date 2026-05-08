@@ -6,10 +6,10 @@ Wants=graphical-session.target
 [Service]
 Type=simple
 WorkingDirectory=__SMARTCART_ROOT__/shared
-Environment=WAYLAND_DISPLAY=wayland-0
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/run/user/__UID__/gdm/Xauthority
 Environment=XDG_RUNTIME_DIR=/run/user/__UID__
-Environment=QT_QPA_PLATFORM=wayland
-Environment=QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+Environment=QT_QPA_PLATFORM=xcb
 ExecStart=__SMARTCART_ROOT__/current/smart_cart_ui
 Restart=on-failure
 RestartSec=3
