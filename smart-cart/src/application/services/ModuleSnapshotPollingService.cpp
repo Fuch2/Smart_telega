@@ -1,4 +1,5 @@
 #include "application/services/ModuleSnapshotPollingService.hpp"
+#include "application/services/SnapshotUtil.hpp"
 
 #include "domain/entities/ModuleInfo.hpp"
 #include "domain/entities/Slot.hpp"
@@ -14,26 +15,6 @@ namespace smartcart::application::services {
 
 namespace domain = smartcart::domain;
 namespace stm32 = smartcart::infrastructure::hw::stm32;
-
-namespace {
-
-std::vector<bool> parseSnapshotPayload(const std::vector<uint8_t>& payload,
-                                       int slotCount) {
-    std::vector<bool> result(slotCount, false);
-    if (payload.size() < 3) {
-        return {};
-    }
-
-    for (int channel = 0; channel < slotCount; ++channel) {
-        const int byteIdx = channel / 8;
-        const int bitIdx = channel % 8;
-        result[channel] = ((payload[byteIdx] >> bitIdx) & 0x01) != 0;
-    }
-
-    return result;
-}
-
-} // namespace
 
 ModuleSnapshotPollingService::ModuleSnapshotPollingService(
     ports::IStm32Link& link,
@@ -188,7 +169,7 @@ std::optional<std::vector<bool>> ModuleSnapshotPollingService::requestSnapshot()
             return std::nullopt;
         }
 
-        auto snapshot = parseSnapshotPayload(resp->payload, config_.slotCount);
+        auto snapshot = snapshot_util::parseSnapshotPayload(resp->payload, config_.slotCount);
         if (static_cast<int>(snapshot.size()) != config_.slotCount) {
             return std::nullopt;
         }

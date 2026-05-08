@@ -1,4 +1,5 @@
 #include "application/services/Stm32PollingService.hpp"
+#include "application/services/SnapshotUtil.hpp"
 #include "application/services/SwitchEventHandler.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 #include "infrastructure/hw/stm32/UartStm32Link.hpp"
@@ -21,22 +22,6 @@ namespace domain = smartcart::domain;
 namespace stm32  = smartcart::infrastructure::hw::stm32;
 
 namespace {
-
-std::vector<bool> parseSnapshotPayload(const std::vector<uint8_t>& payload,
-                                       int slotCount) {
-    std::vector<bool> result(slotCount, false);
-    if (payload.size() < 3) {
-        return {};
-    }
-
-    for (int channel = 0; channel < slotCount; ++channel) {
-        const int byteIdx = channel / 8;
-        const int bitIdx  = channel % 8;
-        result[channel] = ((payload[byteIdx] >> bitIdx) & 0x01) != 0;
-    }
-
-    return result;
-}
 
 std::string trimCopy(const std::string& value) {
     auto begin = std::find_if_not(value.begin(), value.end(), [](unsigned char ch) {
@@ -96,6 +81,10 @@ Stm32PollingService::Stm32PollingService(
         config_.ignoredChannels,
         config_.channelToSlotMap
     })
+    , trackedChannelsSet_(config_.trackedChannels.begin(),
+                          config_.trackedChannels.end())
+    , ignoredChannelsSet_(config_.ignoredChannels.begin(),
+                          config_.ignoredChannels.end())
 {}
 
 Stm32PollingService::~Stm32PollingService() {
@@ -355,7 +344,7 @@ std::optional<std::vector<bool>> Stm32PollingService::requestSnapshot() {
             return std::nullopt;
         }
 
-        auto snapshot = parseSnapshotPayload(resp->payload, config_.slotCount);
+        auto snapshot = snapshot_util::parseSnapshotPayload(resp->payload, config_.slotCount);
         if (static_cast<int>(snapshot.size()) != config_.slotCount) {
             return std::nullopt;
         }
@@ -578,31 +567,19 @@ BarcodeScanResult Stm32PollingService::rejectBarcode(
 }
 
 bool Stm32PollingService::isIgnoredChannel(int channel) const {
-    return std::find(config_.ignoredChannels.begin(),
-                     config_.ignoredChannels.end(),
-                     channel) != config_.ignoredChannels.end();
+    // O(1) поиск в hot path вместо линейного std::find по vector.
+    return ignoredChannelsSet_.find(channel) != ignoredChannelsSet_.end();
 }
 
 bool Stm32PollingService::isTrackedChannel(int channel) const {
-    return std::find(config_.trackedChannels.begin(),
-                     config_.trackedChannels.end(),
-                     channel) != config_.trackedChannels.end();
+    // O(1) поиск в hot path вместо линейного std::find по vector.
+    return trackedChannelsSet_.find(channel) != trackedChannelsSet_.end();
 }
 
 std::optional<int> Stm32PollingService::slotIndexForChannel(int channel) const {
-    if (channel < 0 || channel >= config_.slotCount) {
-        return std::nullopt;
-    }
-
-    if (channel < static_cast<int>(config_.channelToSlotMap.size())) {
-        const int slotIndex = config_.channelToSlotMap[channel];
-        if (slotIndex > 0 && slotIndex <= config_.slotCount) {
-            return slotIndex;
-        }
-        return std::nullopt;
-    }
-
-    return channel + 1;
+    // Делегируем общему хелперу, см. SnapshotUtil.hpp.
+    return snapshot_util::slotIndexForChannel(
+        channel, config_.slotCount, config_.channelToSlotMap);
 }
 
 void Stm32PollingService::updateLastEvent(std::string message) {

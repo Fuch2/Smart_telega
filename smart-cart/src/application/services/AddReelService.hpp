@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace smartcart::application::services {
@@ -42,6 +43,10 @@ public:
         ports::IOperationRepository& opRepo,
         AddReelConfig                config
     );
+    ~AddReelService();
+
+    AddReelService(const AddReelService&) = delete;
+    AddReelService& operator=(const AddReelService&) = delete;
 
     void setCompletionCallback(CompletionCallback cb)       { onComplete_ = std::move(cb); }
     void setSlotHighlightCallback(SlotHighlightCallback cb) { onHighlight_ = std::move(cb); }
@@ -63,6 +68,15 @@ private:
     std::atomic<bool> cancelled_   = false;
     int               currentOpId_ = -1;
     int               currentSlot_ = -1;
+
+    // Управляемый рабочий поток: владеет ожиданием физического подтверждения слота.
+    // Поток джойнится в деструкторе и в start() перед запуском новой операции,
+    // чтобы избежать use-after-free через захваченный this.
+    std::thread                              workerThread_;
+    std::shared_ptr<std::mutex>              waitMtx_;
+    std::shared_ptr<std::condition_variable> waitCv_;
+
+    void cancelAndJoinWorker();
 
     int  findFreeSlot();
     void setSlotLed(int slotIndex, uint8_t r, uint8_t g, uint8_t b);

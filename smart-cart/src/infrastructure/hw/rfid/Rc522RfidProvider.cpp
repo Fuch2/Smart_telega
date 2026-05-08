@@ -95,12 +95,18 @@ void Rc522RfidProvider::setRfidCallback(RfidCallback cb) {
 }
 
 void Rc522RfidProvider::start() {
+    // lifecycleMtx_ сериализует start()/stop() из любых потоков.
+    std::lock_guard lifecycleLock(lifecycleMtx_);
+
     if (active_.load()) {
         return;
     }
 
-    if (!openDevice()) {
-        return;
+    {
+        std::lock_guard ioLock(ioMtx_);
+        if (!openDevice()) {
+            return;
+        }
     }
 
     active_.store(true);
@@ -108,14 +114,16 @@ void Rc522RfidProvider::start() {
 }
 
 void Rc522RfidProvider::stop() {
-    if (!active_.exchange(false)) {
-        closeDevice();
-        return;
-    }
+    // Сериализация stop() из любых потоков. Без неё конкурентный двойной stop()
+    // мог попасть на closeDevice() без join, что давало гонку с pollLoop по fd_.
+    std::lock_guard lifecycleLock(lifecycleMtx_);
 
+    active_.store(false);
     if (thread_.joinable()) {
         thread_.join();
     }
+    // После join ни один поток не работает с SPI — безопасно закрывать fd.
+    std::lock_guard ioLock(ioMtx_);
     closeDevice();
 }
 
@@ -309,10 +317,11 @@ std::optional<std::string> Rc522RfidProvider::tryReadUid() {
         return data;
     };
 
-    // Перед каждым чтением жёстко сбрасываем внутреннее состояние MFRC522,
-    // чтобы не тащить "хвост" от предыдущей метки.
-    if (!initializeChip() ||
-        !writeRegister(kCommandReg, kCmdIdle) ||
+    // Сбрасываем рабочее состояние чипа перед каждым чтением, чтобы не тащить
+    // "хвост" от предыдущей метки. Полный initializeChip() (с soft-reset и
+    // 50ms sleep) не нужен на каждой итерации — он выполняется один раз в
+    // openDevice(). Здесь только лёгкий per-read reset рабочих регистров.
+    if (!writeRegister(kCommandReg, kCmdIdle) ||
         !writeRegister(kComIrqReg, 0x7F) ||
         !writeRegister(kFIFOLevelReg, 0x80) ||
         !writeRegister(kBitFramingReg, 0x00) ||

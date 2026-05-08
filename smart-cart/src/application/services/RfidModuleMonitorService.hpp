@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -39,7 +40,7 @@ public:
     void setModuleSwitchCallback(ModuleSwitchCallback cb);
 
     // Health status
-    bool isOnline() const noexcept { return moduleOnline_; }
+    bool isOnline() const noexcept { return moduleOnline_.load(std::memory_order_acquire); }
     std::chrono::system_clock::time_point lastSeen() const;
     std::string lastError() const;
 
@@ -51,15 +52,27 @@ private:
 
     std::atomic<bool> running_{false};
     std::thread thread_;
-    bool moduleOnline_{false};
+
+    // moduleOnline_ — atomic, доступен из monitorLoop и из UI без блокировок.
+    std::atomic<bool> moduleOnline_{false};
+
+    // Поля, доступные одновременно из monitorLoop и из публичных геттеров,
+    // защищены statusMtx_. Поля, видимые только monitorLoop, синхронизации
+    // не требуют (lastUnexpectedUid_, notifiedSwitchUid_, и т.п.).
+    mutable std::mutex statusMtx_;
     std::chrono::steady_clock::time_point lastSeen_{};
+    std::string lastError_;
+
+    // Только monitorLoop, без синхронизации.
     std::string lastUnexpectedUid_;
     std::chrono::steady_clock::time_point lastUnexpectedSeen_{};
     std::string notifiedSwitchUid_;
     std::chrono::steady_clock::time_point lastSwitchNotifyAt_{};
+
+    // switchCb_ может ставиться из UI-потока и читаться из monitorLoop.
+    // Отдельный мьютекс, чтобы не держать statusMtx_ во время вызова callback.
+    mutable std::mutex   switchCbMtx_;
     ModuleSwitchCallback switchCb_;
-    mutable std::mutex statusMtx_;
-    std::string lastError_;
 
     void monitorLoop();
     void markOfflineIfExpectedUidTimedOut(

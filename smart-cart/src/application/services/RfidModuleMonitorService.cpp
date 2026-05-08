@@ -31,15 +31,21 @@ void RfidModuleMonitorService::start() {
         return;
     }
 
-    lastSeen_ = std::chrono::steady_clock::now();
+    {
+        std::lock_guard lock(statusMtx_);
+        lastSeen_ = std::chrono::steady_clock::now();
+    }
+
     const auto module = moduleRepo_.getById(config_.moduleId);
-    moduleOnline_ =
-        module.has_value() &&
-        module->status == domain::ModuleStatus::Online;
+    moduleOnline_.store(
+        module.has_value() && module->status == domain::ModuleStatus::Online,
+        std::memory_order_release);
+
     thread_ = std::thread(&RfidModuleMonitorService::monitorLoop, this);
 }
 
 void RfidModuleMonitorService::setModuleSwitchCallback(ModuleSwitchCallback cb) {
+    std::lock_guard lock(switchCbMtx_);
     switchCb_ = std::move(cb);
 }
 
@@ -54,6 +60,22 @@ void RfidModuleMonitorService::stop() {
 }
 
 void RfidModuleMonitorService::monitorLoop() {
+    // Получаем текущий callback через защищённый геттер.
+    // Локальная переменная — мы не держим switchCbMtx_ во время вызова callback,
+    // чтобы не блокировать setModuleSwitchCallback из UI-потока.
+    auto invokeSwitchCb = [this](const std::string& uid) {
+        ModuleSwitchCallback cb;
+        {
+            std::lock_guard lock(switchCbMtx_);
+            cb = switchCb_;
+        }
+        if (cb) cb(uid);
+    };
+    auto hasSwitchCb = [this]() {
+        std::lock_guard lock(switchCbMtx_);
+        return static_cast<bool>(switchCb_);
+    };
+
     while (running_.load()) {
         const auto uids = rfidProvider_.readAllOnce(config_.readTimeoutMs);
         const auto now = std::chrono::steady_clock::now();
@@ -64,7 +86,7 @@ void RfidModuleMonitorService::monitorLoop() {
                 const auto retryFor =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
                         now - lastSwitchNotifyAt_);
-                if (switchCb_ &&
+                if (hasSwitchCb() &&
                     (uid != notifiedSwitchUid_ || retryFor.count() >= 2500))
                 {
                     notifiedSwitchUid_ = uid;
@@ -72,7 +94,7 @@ void RfidModuleMonitorService::monitorLoop() {
                     logSafe("INFO",
                             "RfidModuleSwitchRequested",
                             "uid=" + uid + " reason=no_active_uid");
-                    switchCb_(uid);
+                    invokeSwitchCb(uid);
                 }
                 std::this_thread::sleep_for(
                     std::chrono::milliseconds(config_.pollMs));
@@ -85,10 +107,13 @@ void RfidModuleMonitorService::monitorLoop() {
                 config_.expectedUid);
 
             if (matchingUid != uids.end()) {
-                lastSeen_ = now;
+                {
+                    std::lock_guard lock(statusMtx_);
+                    lastSeen_ = now;
+                }
                 lastUnexpectedUid_.clear();
                 notifiedSwitchUid_.clear();
-                if (!moduleOnline_) {
+                if (!moduleOnline_.load(std::memory_order_acquire)) {
                     setModuleOnline(true);
                 }
             } else if (const auto& uid = uids.front(); uid != lastUnexpectedUid_) {
@@ -107,7 +132,7 @@ void RfidModuleMonitorService::monitorLoop() {
                 const auto retryFor =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
                         now - lastSwitchNotifyAt_);
-                if (switchCb_ &&
+                if (hasSwitchCb() &&
                     (lastUnexpectedUid_ != notifiedSwitchUid_ ||
                      retryFor.count() >= 2500) &&
                     seenFor.count() >= 800)
@@ -118,7 +143,7 @@ void RfidModuleMonitorService::monitorLoop() {
                             "RfidModuleSwitchRequested",
                             "uid=" + lastUnexpectedUid_ +
                                 " reason=unexpected_uid");
-                    switchCb_(lastUnexpectedUid_);
+                    invokeSwitchCb(lastUnexpectedUid_);
                 }
             }
         } else if (config_.expectedUid.empty()) {
@@ -136,13 +161,21 @@ void RfidModuleMonitorService::monitorLoop() {
 void RfidModuleMonitorService::markOfflineIfExpectedUidTimedOut(
     std::chrono::steady_clock::time_point now)
 {
-    if (!moduleOnline_ || config_.expectedUid.empty()) {
+    if (!moduleOnline_.load(std::memory_order_acquire) ||
+        config_.expectedUid.empty())
+    {
         return;
+    }
+
+    std::chrono::steady_clock::time_point lastSeenCopy;
+    {
+        std::lock_guard lock(statusMtx_);
+        lastSeenCopy = lastSeen_;
     }
 
     const auto offlineFor =
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            now - lastSeen_);
+            now - lastSeenCopy);
     if (offlineFor.count() >= config_.offlineTimeoutMs) {
         setModuleOnline(false);
     }
@@ -157,7 +190,7 @@ void RfidModuleMonitorService::setModuleOnline(bool online) {
     const auto newStatus =
         online ? domain::ModuleStatus::Online : domain::ModuleStatus::Offline;
     if (module->status == newStatus) {
-        moduleOnline_ = online;
+        moduleOnline_.store(online, std::memory_order_release);
         return;
     }
 
@@ -166,7 +199,7 @@ void RfidModuleMonitorService::setModuleOnline(bool online) {
         return;
     }
 
-    moduleOnline_ = online;
+    moduleOnline_.store(online, std::memory_order_release);
 
     // Update health status
     {
@@ -192,10 +225,16 @@ void RfidModuleMonitorService::setModuleOnline(bool online) {
 }
 
 std::chrono::system_clock::time_point RfidModuleMonitorService::lastSeen() const {
-    // Convert steady_clock to system_clock (approximate)
+    // Convert steady_clock to system_clock (approximate).
+    // lastSeen_ читается под statusMtx_, чтобы исключить data race с monitorLoop.
+    std::chrono::steady_clock::time_point lastSeenCopy;
+    {
+        std::lock_guard lock(statusMtx_);
+        lastSeenCopy = lastSeen_;
+    }
     const auto steadyNow = std::chrono::steady_clock::now();
     const auto systemNow = std::chrono::system_clock::now();
-    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(steadyNow - lastSeen_);
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(steadyNow - lastSeenCopy);
     return systemNow - elapsed;
 }
 

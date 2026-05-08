@@ -1,4 +1,5 @@
 #include "application/services/StartupService.hpp"
+#include "application/services/SnapshotUtil.hpp"
 #include "infrastructure/hw/stm32/Protocol.hpp"
 #include "domain/entities/ModuleInfo.hpp"
 
@@ -6,6 +7,7 @@
 #include <condition_variable>
 #include <exception>
 #include <algorithm>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -21,21 +23,6 @@ namespace {
 bool isPositiveReply(const stm32::Frame& frame) {
     return frame.type == stm32::FrameType::Ack ||
            frame.type == stm32::FrameType::Resp;
-}
-
-std::vector<bool> parseSnapshotPayload(const std::vector<uint8_t>& payload,
-                                       int slotCount) {
-    std::vector<bool> result(slotCount, false);
-    if (payload.size() < 3) {
-        return {};
-    }
-
-    for (int channel = 0; channel < slotCount; ++channel) {
-        const int byteIdx = channel / 8;
-        const int bitIdx  = channel % 8;
-        result[channel] = ((payload[byteIdx] >> bitIdx) & 0x01) != 0;
-    }
-    return result;
 }
 
 } // namespace
@@ -119,17 +106,21 @@ bool StartupService::ping() {
 }
 
 bool StartupService::waitReady() {
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool readyEvent = false;
+    // Объекты синхронизации в shared_ptr: callback захватывает их по значению,
+    // поэтому даже если RX-поток UART вызовет callback после возврата waitReady(),
+    // объекты останутся живы до тех пор, пока существует хотя бы одна копия
+    // shared_ptr (в callback или в этой функции).
+    auto mtx        = std::make_shared<std::mutex>();
+    auto cv         = std::make_shared<std::condition_variable>();
+    auto readyEvent = std::make_shared<bool>(false);
 
-    link_.setEventCallback([&mtx, &cv, &readyEvent](const stm32::Frame& evt) {
+    link_.setEventCallback([mtx, cv, readyEvent](const stm32::Frame& evt) {
         if (evt.type == stm32::FrameType::Evt &&
             evt.cmdId == stm32::CommandId::EvtReady)
         {
-            std::lock_guard lock(mtx);
-            readyEvent = true;
-            cv.notify_one();
+            std::lock_guard lock(*mtx);
+            *readyEvent = true;
+            cv->notify_one();
         }
     });
 
@@ -151,10 +142,12 @@ bool StartupService::waitReady() {
         return true;
     }
 
-    std::unique_lock lock(mtx);
-    cv.wait_for(lock,
-                std::chrono::milliseconds(config_.readyTimeoutMs),
-                [&readyEvent] { return readyEvent; });
+    {
+        std::unique_lock lock(*mtx);
+        cv->wait_for(lock,
+                     std::chrono::milliseconds(config_.readyTimeoutMs),
+                     [&readyEvent] { return *readyEvent; });
+    }
     link_.setEventCallback(nullptr);
 
     // Текущая firmware может отвечать NOT_READY и не слать EvtReady,
@@ -176,7 +169,7 @@ std::vector<bool> StartupService::getSnapshot() {
             return {};
         }
 
-        return parseSnapshotPayload(resp->payload, config_.slotCount);
+        return snapshot_util::parseSnapshotPayload(resp->payload, config_.slotCount);
     };
 
     auto snapshot = requestSnapshot(stm32::CommandId::GetSwitchSnapshot);
@@ -256,15 +249,11 @@ std::vector<domain::Slot> StartupService::reconcile(
 }
 
 int StartupService::slotIndexForChannel(int channel) const {
-    if (channel < 0 || channel >= config_.slotCount) {
-        return 0;
-    }
-
-    if (channel < static_cast<int>(config_.channelToSlotMap.size())) {
-        return config_.channelToSlotMap[channel];
-    }
-
-    return channel + 1;
+    // Делегируем общему хелперу, чтобы поведение совпадало с Stm32PollingService.
+    // Возвращаем 0 для невалидных каналов (контракт публичного API сохранён).
+    const auto slot = snapshot_util::slotIndexForChannel(
+        channel, config_.slotCount, config_.channelToSlotMap);
+    return slot.value_or(0);
 }
 
 } // namespace smartcart::application::services

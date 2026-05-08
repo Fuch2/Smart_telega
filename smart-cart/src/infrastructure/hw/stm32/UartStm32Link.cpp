@@ -1,6 +1,7 @@
 // ===== src/infrastructure/hw/stm32/UartStm32Link.cpp =====
 #include "UartStm32Link.hpp"
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <cstring>
@@ -74,8 +75,8 @@ void UartStm32Link::close() {
     if (!running_.load()) return;
     running_.store(false);
 
-    // Сначала разблокировать sendCommand (если он ждёт на CV),
-    // потом join — иначе deadlock
+    // 1. Разблокируем sendCommand если он ждёт ответа на CV.
+    //    Без этого join ниже зависнет — sendCommand держит commandMtx_.
     {
         std::lock_guard<std::mutex> lk(replyMtx_);
         replyReady_   = true;
@@ -83,7 +84,13 @@ void UartStm32Link::close() {
         replyCv_.notify_all();
     }
 
+    // 2. Дожидаемся завершения RX-потока.
     if (rxThread_.joinable()) rxThread_.join();
+
+    // 3. Закрываем fd под commandMtx_ — это гарантирует, что любой
+    //    параллельный sendCommand завершил ::write() прежде, чем мы закроем
+    //    дескриптор. Без этой блокировки возможна гонка close vs ::write.
+    std::lock_guard<std::mutex> commandLock(commandMtx_);
     if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
 }
 
@@ -98,8 +105,14 @@ void UartStm32Link::healthCheck() {
 
     const auto now = std::chrono::steady_clock::now();
 
-    // Exponential backoff: 5s, 10s, 20s, 40s, max 60s
-    const int backoffMs = std::min(5000 * (1 << reconnectAttempts_), 60000);
+    // Exponential backoff: 5s, 10s, 20s, 40s, max 60s.
+    // Сдвиг клиппируется до 13 (5000 * 2^13 = 40 960 000) — это безопасно
+    // для 32-битного int. На большем количестве попыток backoff всё равно
+    // упирается в std::min(..., 60000), но без клиппинга получали бы
+    // переполнение и отрицательный результат → бесконечный flood-reconnect.
+    const int kMaxShift = 13;
+    const int safeShift = std::min(reconnectAttempts_, kMaxShift);
+    const int backoffMs = std::min(5000 * (1 << safeShift), 60000);
     const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         now - lastReconnectAttempt_);
 

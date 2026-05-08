@@ -9,9 +9,13 @@
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace smartcart::application::services {
@@ -37,6 +41,10 @@ public:
         ports::IOperationRepository& opRepo,
         ReplaceReelConfig            config
     );
+    ~ReplaceReelService();
+
+    ReplaceReelService(const ReplaceReelService&) = delete;
+    ReplaceReelService& operator=(const ReplaceReelService&) = delete;
 
     int  start(const std::string& newBarcode);
     void cancel();
@@ -56,6 +64,15 @@ private:
     CompletionCallback    onComplete_;
     SlotHighlightCallback onHighlight_;
     ErrorCallback         onError_;
+
+    // Управляемый рабочий поток. Джойнится в деструкторе, чтобы исключить
+    // обращение к уничтоженным членам объекта (use-after-free через this).
+    std::thread                              workerThread_;
+    std::shared_ptr<std::mutex>              waitMtx_;
+    std::shared_ptr<std::condition_variable> waitCv_;
+    std::shared_ptr<bool>                    waitConfirmed_;
+
+    void cancelAndJoinWorker();
 
     static bool isValidBarcode(const std::string& barcode);
     void        setSlotLed(int slotIndex, uint8_t r, uint8_t g, uint8_t b);

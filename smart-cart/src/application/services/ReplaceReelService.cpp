@@ -24,6 +24,24 @@ ReplaceReelService::ReplaceReelService(
     , config_(std::move(config))
 {}
 
+ReplaceReelService::~ReplaceReelService() {
+    cancelAndJoinWorker();
+}
+
+// Будит и дожидается завершения текущей операции замены.
+// После возврата метода рабочий поток гарантированно не имеет доступа к
+// членам объекта — это корректно для деструктора и для повторного start().
+void ReplaceReelService::cancelAndJoinWorker() {
+    cancelled_.store(true);
+    if (waitCv_ && waitMtx_) {
+        std::lock_guard lk(*waitMtx_);
+        waitCv_->notify_all();
+    }
+    if (workerThread_.joinable()) {
+        workerThread_.join();
+    }
+}
+
 bool ReplaceReelService::isValidBarcode(const std::string& barcode) {
     return !barcode.empty() && barcode.size() <= 64;
 }
@@ -62,12 +80,15 @@ void ReplaceReelService::clearAllLeds() {
     link_.sendCommand(applyCmd);
 }
 
-// ✅ ИСПРАВЛЕНО: mtx/cv/confirmed — shared_ptr, захват по значению в лямбде
+// Ожидание физического события слота. Использует waitMtx_/waitCv_, инициализированные
+// в start(): это позволяет cancel() разбудить ожидание мгновенно (без таймаута).
+// confirmed — локальный для каждой фазы (снять, положить), сбрасывается при каждом вызове.
 bool ReplaceReelService::waitForSlotEvent(int slotIndex,
                                           bool expectedOccupied) {
-    auto mtx       = std::make_shared<std::mutex>();
-    auto cv        = std::make_shared<std::condition_variable>();
+    auto mtx       = waitMtx_;
+    auto cv        = waitCv_;
     auto confirmed = std::make_shared<bool>(false);
+    waitConfirmed_ = confirmed;
 
     link_.setEventCallback([mtx, cv, confirmed, slotIndex, expectedOccupied]
                            (const stm32::Frame& evt) {
@@ -86,19 +107,25 @@ bool ReplaceReelService::waitForSlotEvent(int slotIndex,
         }
     });
 
-    std::unique_lock lock(*mtx);
-    const bool ok = cv->wait_for(
-        lock,
-        std::chrono::milliseconds(config_.stableConfirmMs),
-        [&] { return *confirmed || cancelled_.load(); }
-    );
+    bool ok = false;
+    {
+        std::unique_lock lock(*mtx);
+        ok = cv->wait_for(
+            lock,
+            std::chrono::milliseconds(config_.stableConfirmMs),
+            [&] { return *confirmed || cancelled_.load(); }
+        );
+    }
 
     link_.setEventCallback(nullptr);
-    return ok && !cancelled_;
+    return ok && !cancelled_.load();
 }
 
 int ReplaceReelService::start(const std::string& newBarcode) {
-    cancelled_ = false;
+    // Завершаем предыдущую операцию, если она ещё активна. После join поток
+    // гарантированно не имеет доступа к членам объекта.
+    cancelAndJoinWorker();
+    cancelled_.store(false);
 
     if (!isValidBarcode(newBarcode)) {
         if (onError_) onError_(domain::ErrorCode::InvalidBarcode,
@@ -124,7 +151,12 @@ int ReplaceReelService::start(const std::string& newBarcode) {
 
     const int opId = opRepo_.add(op);
 
-    std::thread([this, opId, slotIndex, newBarcode]() {
+    // Создаём свежие объекты синхронизации для новой операции. Используются
+    // обоими фазами waitForSlotEvent внутри одного запуска и доступны cancel().
+    waitMtx_ = std::make_shared<std::mutex>();
+    waitCv_  = std::make_shared<std::condition_variable>();
+
+    workerThread_ = std::thread([this, opId, slotIndex, newBarcode]() {
 
         setSlotLed(slotIndex, 255, 0, 0);
 
@@ -158,14 +190,18 @@ int ReplaceReelService::start(const std::string& newBarcode) {
         clearAllLeds();
 
         if (onComplete_) onComplete_(opId, domain::OperationStatus::Completed);
-
-    }).detach();
+    });
 
     return opId;
 }
 
 void ReplaceReelService::cancel() {
-    cancelled_ = true;
+    cancelled_.store(true);
+    // Будим ожидающий поток, чтобы он не ждал stableConfirmMs до таймаута.
+    if (waitCv_ && waitMtx_) {
+        std::lock_guard lk(*waitMtx_);
+        waitCv_->notify_all();
+    }
 }
 
 } // namespace smartcart::application::services

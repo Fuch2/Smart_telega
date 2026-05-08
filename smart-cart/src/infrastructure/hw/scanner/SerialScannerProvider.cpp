@@ -2,6 +2,7 @@
 #include "SerialScannerProvider.hpp"
 
 #include <fcntl.h>
+#include <poll.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -36,8 +37,16 @@ void SerialScannerProvider::start() {
     fd_ = ::open(device_.c_str(), O_RDONLY | O_NOCTTY | O_NONBLOCK);
     if (fd_ < 0) return;
 
+    // tcgetattr/tcsetattr могут провалиться, если устройство не TTY или
+    // драйвер не поддерживает запрашиваемые параметры. В этом случае
+    // продолжать с нулевой/мусорной конфигурацией нельзя — данные будут
+    // приходить с неправильной скоростью/чётностью. Закрываем fd и
+    // отказываем в старте.
     termios tty{};
-    tcgetattr(fd_, &tty);
+    if (tcgetattr(fd_, &tty) != 0) {
+        ::close(fd_); fd_ = -1;
+        return;
+    }
     cfsetispeed(&tty, toSpeed(baudRate_));
     cfsetospeed(&tty, toSpeed(baudRate_));
     tty.c_cflag  = (tty.c_cflag & ~CSIZE) | CS8;
@@ -48,7 +57,10 @@ void SerialScannerProvider::start() {
     tty.c_lflag  = 0;
     tty.c_cc[VMIN]  = 0;
     tty.c_cc[VTIME] = 1;
-    tcsetattr(fd_, TCSANOW, &tty);
+    if (tcsetattr(fd_, TCSANOW, &tty) != 0) {
+        ::close(fd_); fd_ = -1;
+        return;
+    }
 
     active_.store(true);
     thread_ = std::thread(&SerialScannerProvider::readLoop, this);
@@ -67,7 +79,19 @@ void SerialScannerProvider::readLoop() {
     std::string buf;
     char        ch;
 
+    // poll() с таймаутом 200 мс: исключаем busy-wait при O_NONBLOCK и
+    // одновременно регулярно проверяем active_ для корректной остановки.
+    constexpr int kPollTimeoutMs = 200;
+
     while (active_.load()) {
+        pollfd pfd{};
+        pfd.fd = fd_;
+        pfd.events = POLLIN;
+
+        const int pr = ::poll(&pfd, 1, kPollTimeoutMs);
+        if (pr <= 0) continue;
+        if ((pfd.revents & POLLIN) == 0) continue;
+
         const ssize_t n = ::read(fd_, &ch, 1);
         if (n <= 0) continue;
         if (ch == '\n' || ch == '\r') {

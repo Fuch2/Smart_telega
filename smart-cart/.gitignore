@@ -5,3 +5,5 @@ runtime/
 *.log
 .DS_Store
 CMakeLists_fixed.txt
+.claude/worktrees/
+.claude/worktrees/

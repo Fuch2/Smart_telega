@@ -17,6 +17,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 namespace smartcart::application::services {
@@ -103,6 +104,12 @@ private:
     Stm32PollingConfig      config_;
 
     SwitchEventHandler switchEventHandler_;
+
+    // Кэшированные множества каналов для O(1) проверок в hot path
+    // (applySnapshot вызывается ~2 раза в секунду на каждый канал).
+    // Заполняются в конструкторе из векторов конфигурации.
+    std::unordered_set<int> trackedChannelsSet_;
+    std::unordered_set<int> ignoredChannelsSet_;
 
     std::atomic<bool> running_ {false};
     std::thread       thread_;

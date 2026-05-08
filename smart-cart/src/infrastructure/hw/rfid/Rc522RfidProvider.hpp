@@ -39,7 +39,8 @@ private:
     RfidCallback      cb_;
     std::atomic<bool> active_{false};
     std::thread       thread_;
-    std::mutex        ioMtx_;
+    std::mutex        ioMtx_;     // защищает SPI-обмен и fd_
+    std::mutex        lifecycleMtx_; // сериализует start()/stop()
     int               fd_{-1};
 };
 

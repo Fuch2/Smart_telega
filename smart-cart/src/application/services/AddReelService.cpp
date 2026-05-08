@@ -24,6 +24,25 @@ AddReelService::AddReelService(
     , config_(std::move(config))
 {}
 
+AddReelService::~AddReelService() {
+    cancelAndJoinWorker();
+}
+
+// Разбудить и дождаться завершения предыдущей операции.
+// Вызывается из деструктора и из start() перед запуском новой операции.
+// После возврата метода рабочий поток гарантированно завершён и не имеет
+// доступа к членам объекта, что исключает use-after-free.
+void AddReelService::cancelAndJoinWorker() {
+    cancelled_.store(true);
+    if (waitCv_ && waitMtx_) {
+        std::lock_guard lk(*waitMtx_);
+        waitCv_->notify_all();
+    }
+    if (workerThread_.joinable()) {
+        workerThread_.join();
+    }
+}
+
 bool AddReelService::isValidBarcode(const std::string& barcode) {
     return !barcode.empty() && barcode.size() <= 64;
 }
@@ -71,7 +90,11 @@ void AddReelService::clearAllLeds() {
 }
 
 int AddReelService::start(const std::string& barcode) {
-    cancelled_ = false;
+    // Если предыдущая операция всё ещё выполняется — отменяем и ждём её завершения.
+    // Это гарантирует, что в любой момент времени активен ровно один рабочий поток
+    // и его ссылки на member-поля валидны.
+    cancelAndJoinWorker();
+    cancelled_.store(false);
 
     if (!isValidBarcode(barcode)) {
         if (onError_) onError_(domain::ErrorCode::InvalidBarcode,
@@ -102,61 +125,74 @@ int AddReelService::start(const std::string& barcode) {
 
     setSlotLed(slotIndex, 0, 255, 0);
 
-    auto mtx       = std::make_shared<std::mutex>();
-    auto cv        = std::make_shared<std::condition_variable>();
+    // Объекты синхронизации хранятся как члены сервиса, чтобы cancel() мог
+    // разбудить ожидающий поток без таймаута. Callback захватывает их по
+    // shared_ptr, поэтому переживёт даже неожиданное переподключение UART.
+    waitMtx_       = std::make_shared<std::mutex>();
+    waitCv_        = std::make_shared<std::condition_variable>();
     auto confirmed = std::make_shared<bool>(false);
 
-    std::thread([this, opId, slotIndex, barcode, mtx, cv, confirmed]() {
+    workerThread_ = std::thread(
+        [this, opId, slotIndex, barcode,
+         mtx = waitMtx_, cv = waitCv_, confirmed]() {
 
-        link_.setEventCallback([mtx, cv, confirmed, slotIndex]
-                               (const stm32::Frame& evt) {
-            if (evt.type  == stm32::FrameType::Evt &&
-                evt.cmdId == stm32::CommandId::EvtSwitchChanged &&
-                evt.payload.size() >= 2)
-            {
-                const int  evtSlot     = evt.payload[0] + 1;
-                const bool evtOccupied = evt.payload[1] == 0x01;
+            link_.setEventCallback([mtx, cv, confirmed, slotIndex]
+                                   (const stm32::Frame& evt) {
+                if (evt.type  == stm32::FrameType::Evt &&
+                    evt.cmdId == stm32::CommandId::EvtSwitchChanged &&
+                    evt.payload.size() >= 2)
+                {
+                    const int  evtSlot     = evt.payload[0] + 1;
+                    const bool evtOccupied = evt.payload[1] == 0x01;
 
-                if (evtSlot == slotIndex && evtOccupied) {
-                    std::lock_guard lock(*mtx);
-                    *confirmed = true;
-                    cv->notify_one();
+                    if (evtSlot == slotIndex && evtOccupied) {
+                        std::lock_guard lock(*mtx);
+                        *confirmed = true;
+                        cv->notify_one();
+                    }
                 }
+            });
+
+            bool ok = false;
+            {
+                std::unique_lock lock(*mtx);
+                ok = cv->wait_for(
+                    lock,
+                    std::chrono::milliseconds(config_.stableConfirmMs),
+                    [&] { return *confirmed || cancelled_.load(); }
+                );
             }
-        });
 
-        std::unique_lock lock(*mtx);
-        const bool ok = cv->wait_for(
-            lock,
-            std::chrono::milliseconds(config_.stableConfirmMs),
-            [&] { return *confirmed || cancelled_.load(); }
-        );
+            link_.setEventCallback(nullptr);
 
-        link_.setEventCallback(nullptr);
+            if (!ok || cancelled_.load()) {
+                reelRepo_.setSlotState(config_.moduleId, slotIndex,
+                                       domain::SlotState::Free);
+                opRepo_.updateStatus(opId, domain::OperationStatus::Cancelled);
+                clearAllLeds();
+                if (onComplete_) onComplete_(opId, domain::OperationStatus::Cancelled);
+                return;
+            }
 
-        if (!ok || cancelled_) {
+            reelRepo_.addRecord(config_.moduleId, slotIndex, barcode);
             reelRepo_.setSlotState(config_.moduleId, slotIndex,
-                                   domain::SlotState::Free);
-            opRepo_.updateStatus(opId, domain::OperationStatus::Cancelled);
+                                   domain::SlotState::Occupied);
+            opRepo_.updateStatus(opId, domain::OperationStatus::Completed);
             clearAllLeds();
-            if (onComplete_) onComplete_(opId, domain::OperationStatus::Cancelled);
-            return;
-        }
 
-        reelRepo_.addRecord(config_.moduleId, slotIndex, barcode);
-        reelRepo_.setSlotState(config_.moduleId, slotIndex,
-                               domain::SlotState::Occupied);
-        opRepo_.updateStatus(opId, domain::OperationStatus::Completed);
-        clearAllLeds();
-
-        if (onComplete_) onComplete_(opId, domain::OperationStatus::Completed);
-    }).detach();
+            if (onComplete_) onComplete_(opId, domain::OperationStatus::Completed);
+        });
 
     return opId;
 }
 
 void AddReelService::cancel() {
-    cancelled_ = true;
+    cancelled_.store(true);
+    // Будим рабочий поток, чтобы он не ждал таймаута stableConfirmMs.
+    if (waitCv_ && waitMtx_) {
+        std::lock_guard lk(*waitMtx_);
+        waitCv_->notify_all();
+    }
 }
 
 } // namespace smartcart::application::services
