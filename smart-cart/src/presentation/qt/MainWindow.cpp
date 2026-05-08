@@ -24,7 +24,6 @@ MainWindow::MainWindow(AdminViewModel*  adminVm,
 {
     buildUi(adminVm, workerVm, mock);
     wireSignals();
-    resize(1280, 720);
 }
 
 void MainWindow::buildUi(AdminViewModel* adminVm, WorkerViewModel* workerVm,

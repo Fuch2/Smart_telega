@@ -731,7 +731,7 @@ void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {
 void AppBootstrap::showMainWindow() {
     if (!mainWindow_) {
         mainWindow_ = new MainWindow(adminVm_.get(), workerVm_.get(), mockLink_);
-        mainWindow_->show();
+        mainWindow_->showFullScreen();
     } else {
         mainWindow_->finishModuleSwitch(adminVm_.get(), workerVm_.get());
     }

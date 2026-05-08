@@ -25,11 +25,28 @@ require_command cmake
 require_command ctest
 require_command systemctl
 
-start_runtime_services() {
+# Запускает сервис только если он не работает — не прерывает работающее приложение.
+ensure_runtime_services() {
     systemctl --user daemon-reload
 
     if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
-        log "Запускаю smartcart-ui.service..."
+        if ! systemctl --user is-active --quiet smartcart-ui.service; then
+            log "Запускаю smartcart-ui.service..."
+            systemctl --user start smartcart-ui.service
+        else
+            log "smartcart-ui.service уже работает, не перезапускаем."
+        fi
+    else
+        log "Сервис smartcart-ui.service ещё не установлен."
+    fi
+}
+
+# Перезапускает сервис — используется только при деплое новой версии.
+restart_runtime_services() {
+    systemctl --user daemon-reload
+
+    if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
+        log "Перезапускаю smartcart-ui.service (новая версия)..."
         systemctl --user restart smartcart-ui.service
     else
         log "Сервис smartcart-ui.service ещё не установлен."
@@ -65,7 +82,7 @@ fi
 if [ "${SMARTCART_FORCE_DEPLOY:-0}" != "1" ] &&
    [ "${current_commit}" = "${commit}" ]; then
     log "Версия ${commit} уже установлена, пересборка не нужна."
-    start_runtime_services
+    ensure_runtime_services
     exit 0
 fi
 
@@ -97,7 +114,7 @@ printf '%s\n' "${commit}" > "${release_dir}/COMMIT"
 
 ln -sfnT "${release_dir}" "${SMARTCART_ROOT}/current"
 
-start_runtime_services
+restart_runtime_services
 
 log "Проверяю запуск сервисов..."
 
