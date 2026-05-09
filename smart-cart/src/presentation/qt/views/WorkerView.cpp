@@ -798,6 +798,19 @@ void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
         return;
     }
 
+    // FREE_WITH_ORDER: заказ есть, но воркфлоу ещё не запущен на этом модуле
+    // (например, после переноса заказа с другого модуля).
+    if (stateKey == QStringLiteral("FREE_WITH_ORDER")) {
+        updateScanActionText(stateKey);
+        updateActionHint(stateKey);
+        // На экране питателей активируем «Загрузка питателей»,
+        // на экране катушек — «Начать выдачу».
+        setWorkflowActionsEnabled(true,  false, false, false, false,
+                                  false, true,  false, false, false, false, false);
+        focusBarcodeInput();
+        return;
+    }
+
     updateScanActionText(stateKey);
     updateActionHint(stateKey);
     setWorkflowActionsEnabled(false, false, false, false, false,
@@ -972,6 +985,17 @@ void WorkerView::updateActionHint(const QString& stateKey) {
     if (stateKey == QStringLiteral("FREE")) {
         actionHintLabel_->setText(
             QString::fromUtf8("Загрузите JSON заказа, чтобы начать подбор"));
+        return;
+    }
+
+    if (stateKey == QStringLiteral("FREE_WITH_ORDER")) {
+        if (currentModuleKind_ == QStringLiteral("FEEDER")) {
+            actionHintLabel_->setText(
+                QString::fromUtf8("Заказ загружен. Нажмите «Загрузка питателей» для начала работы"));
+        } else {
+            actionHintLabel_->setText(
+                QString::fromUtf8("Заказ загружен. Нажмите «Начать выдачу» для начала работы"));
+        }
         return;
     }
 

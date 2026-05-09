@@ -622,8 +622,14 @@ void WorkerViewModel::rebuildWorkflowSummary() {
                          checklistText,
                          progressText,
                          showStartPage);
-    emit workflowControlsUpdated(
-        QString::fromStdString(std::string(toString(workflow.state))));
+
+    // If state is FREE but an order is attached (adopted from another module),
+    // emit a virtual key so the View can show a useful hint and enable correct buttons.
+    const QString stateKey =
+        (workflow.state == CartWorkflowState::Free && workflow.currentOrderId.has_value())
+            ? QStringLiteral("FREE_WITH_ORDER")
+            : QString::fromStdString(std::string(toString(workflow.state)));
+    emit workflowControlsUpdated(stateKey);
 }
 
 void WorkerViewModel::rebuildStm32Status() {

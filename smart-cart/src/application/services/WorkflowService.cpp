@@ -123,6 +123,14 @@ WorkflowActionResult WorkflowService::notifyMaterialPlaced() {
 }
 
 WorkflowActionResult WorkflowService::startFeederLoading() {
+    const auto workflow = workflowRepo_.get();
+    // Allow also FREE+order (order adopted from another module, no workflow started yet).
+    if (workflow.state == domain::CartWorkflowState::Free &&
+        workflow.currentOrderId.has_value())
+    {
+        workflowRepo_.setState(domain::CartWorkflowState::OrderLoaded);
+    }
+
     if (auto guard = requireState(domain::CartWorkflowState::OrderLoaded,
                                   "startFeederLoading");
         !guard)
@@ -216,6 +224,14 @@ WorkflowActionResult WorkflowService::markCartArrivedToLine() {
 }
 
 WorkflowActionResult WorkflowService::startIssuingToLine() {
+    const auto workflow = workflowRepo_.get();
+    // Allow also FREE+order (REEL module with adopted order, skipping feeder stages).
+    if (workflow.state == domain::CartWorkflowState::Free &&
+        workflow.currentOrderId.has_value())
+    {
+        workflowRepo_.setState(domain::CartWorkflowState::ReadyForLine);
+    }
+
     if (auto guard = requireState(domain::CartWorkflowState::ReadyForLine,
                                   "startIssuingToLine");
         !guard)
