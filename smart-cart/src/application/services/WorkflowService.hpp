@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application/ports/IEventLogger.hpp"
+#include "application/ports/IOrderExporter.hpp"
 #include "application/ports/IOrderRepository.hpp"
 #include "application/ports/IReelRepository.hpp"
 #include "application/ports/IWorkflowRepository.hpp"
@@ -28,6 +29,11 @@ public:
                     ports::IEventLogger& eventLogger,
                     int moduleId = 1);
 
+    /// Опционально: сервис экспорта завершённых заказов.
+    /// Если установлен, вызывается в конце completeIssuing().
+    void setOrderExporter(ports::IOrderExporter* exporter) noexcept;
+
+
     WorkflowActionResult notifyMaterialPlaced();
 
     WorkflowActionResult startFeederLoading();
@@ -53,6 +59,7 @@ private:
     ports::IWorkflowRepository& workflowRepo_;
     ports::IReelRepository& reelRepo_;
     ports::IEventLogger& eventLogger_;
+    ports::IOrderExporter* orderExporter_{nullptr}; // nullable — опционально
     int moduleId_{1};
 
     std::optional<int> currentOrderId() const;

@@ -609,6 +609,12 @@ void AppBootstrap::buildModuleScopedSession() {
     workflowSvc_ = std::make_unique<WorkflowService>(
         *orderRepo_, *workflowRepo_, *reelRepo_, *eventLogger_, activeModuleId_);
 
+    if (!cfg_.completedOrdersDir.empty()) {
+        orderExportSvc_ = std::make_unique<OrderExportService>(
+            *orderRepo_, *eventLogger_, cfg_.completedOrdersDir);
+        workflowSvc_->setOrderExporter(orderExportSvc_.get());
+    }
+
     Stm32PollingConfig pollingCfg;
     pollingCfg.moduleId = activeModuleId_;
     pollingCfg.slotCount = activeSlotCount;
@@ -717,6 +723,7 @@ void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {
     adminDiagnosticsSvc_.reset();
     bomOrderImportSvc_.reset();
     orderImportSvc_.reset();
+    orderExportSvc_.reset();
     workflowSvc_.reset();
     pollingSvc_.reset();
     rfidMonitorSvc_.reset();

@@ -321,6 +321,8 @@ json buildOrderJson(const fs::path& bomPath) {
     order["title"] = stem;
     order["priority"] = "normal";
     order["duration_minutes"] = 0;
+    order["deadline"] = "";   // no deadline by default; set manually if needed
+    order["route"] = "";      // logistics route, optional
     order["items"] = json::array();
 
     int targetSlot = 1;

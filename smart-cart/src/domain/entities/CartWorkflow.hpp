@@ -117,6 +117,8 @@ struct OrderInfo {
     std::string title;
     std::string priority;
     int durationMinutes{0};
+    std::string deadline;  // ISO-8601 datetime, e.g. "2026-05-12T14:00:00"; empty = no deadline
+    std::string route;     // Sequence of logistics steps, e.g. "склад → линия A → выдача"
     OrderStatus status{OrderStatus::Loaded};
     std::string createdAt;
     std::string updatedAt;

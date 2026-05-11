@@ -22,8 +22,9 @@ struct ModuleChannelConfig {
 };
 
 struct AppConfig {
-    std::string logFile;            // путь к лог-файлу
-    std::string sqlitePath;         // путь к БД
+    std::string logFile;               // путь к лог-файлу
+    std::string sqlitePath;            // путь к БД
+    std::string completedOrdersDir;    // куда записывать JSON выполненных заказов (пусто = не писать)
     std::string stm32Device{"/dev/ttyAMA0"};
     std::string rfidSpiDevice{"/dev/spidev0.0"};
     std::vector<std::string> rfidSpiDevices;

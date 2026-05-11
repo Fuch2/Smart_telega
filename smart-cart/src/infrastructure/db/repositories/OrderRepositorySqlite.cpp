@@ -13,7 +13,7 @@ namespace {
 
 const char* kOrderColumns =
     "SELECT id, module_id, external_order_id, title, priority, duration_minutes,"
-    "       status, created_at, updated_at "
+    "       deadline, route, status, created_at, updated_at "
     "FROM orders";
 
 const char* kItemColumns =
@@ -85,6 +85,8 @@ void OrderRepositorySqlite::ensureSchema() {
         "  title             TEXT    NOT NULL DEFAULT '',"
         "  priority          TEXT    NOT NULL DEFAULT '',"
         "  duration_minutes  INTEGER NOT NULL DEFAULT 0,"
+        "  deadline          TEXT    NOT NULL DEFAULT '',"
+        "  route             TEXT    NOT NULL DEFAULT '',"
         "  status            TEXT    NOT NULL DEFAULT 'LOADED',"
         "  created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
         "  updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
@@ -111,6 +113,11 @@ void OrderRepositorySqlite::ensureSchema() {
         ");"
     );
 
+    // Migrations: add columns that may be missing from older DB files
+    addColumnIfMissing(conn_, "orders", "deadline",
+                       "TEXT NOT NULL DEFAULT ''");
+    addColumnIfMissing(conn_, "orders", "route",
+                       "TEXT NOT NULL DEFAULT ''");
     addColumnIfMissing(conn_, "order_items", "part_number",
                        "TEXT NOT NULL DEFAULT ''");
     addColumnIfMissing(conn_, "order_items", "required_quantity",
@@ -139,12 +146,21 @@ domain::OrderInfo OrderRepositorySqlite::rowToOrder(sqlite3_stmt* stmt) {
     order.priority =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
     order.durationMinutes = sqlite3_column_int(stmt, 5);
+    // col 6 = deadline, col 7 = route (added in schema migration)
+    if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) {
+        order.deadline =
+            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+    }
+    if (sqlite3_column_type(stmt, 7) != SQLITE_NULL) {
+        order.route =
+            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+    }
     order.status = domain::orderStatusFromString(
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
     order.createdAt =
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
     order.updatedAt =
-        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
     return order;
 }
 
@@ -174,8 +190,8 @@ domain::OrderItem OrderRepositorySqlite::rowToItem(sqlite3_stmt* stmt) {
 int OrderRepositorySqlite::addOrder(const domain::OrderInfo& order) {
     const char* sql =
         "INSERT INTO orders(module_id, external_order_id, title, priority,"
-        "                   duration_minutes, status) "
-        "VALUES(?, ?, ?, ?, ?, ?);";
+        "                   duration_minutes, deadline, route, status) "
+        "VALUES(?, ?, ?, ?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
     throwOnPrepareError(conn_.handle(),
@@ -188,7 +204,9 @@ int OrderRepositorySqlite::addOrder(const domain::OrderInfo& order) {
     sqlite3_bind_text(stmt, 3, order.title.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, order.priority.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 5, order.durationMinutes);
-    sqlite3_bind_text(stmt, 6, status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, order.deadline.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 7, order.route.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 8, status.c_str(), -1, SQLITE_TRANSIENT);
 
     const int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

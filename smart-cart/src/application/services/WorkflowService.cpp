@@ -90,6 +90,10 @@ WorkflowService::WorkflowService(ports::IOrderRepository& orderRepo,
     , moduleId_(moduleId)
 {}
 
+void WorkflowService::setOrderExporter(ports::IOrderExporter* exporter) noexcept {
+    orderExporter_ = exporter;
+}
+
 WorkflowActionResult WorkflowService::notifyMaterialPlaced() {
     const auto orderId = currentOrderId();
     if (!orderId.has_value()) {
@@ -325,6 +329,11 @@ WorkflowActionResult WorkflowService::completeIssuing() {
 
     orderRepo_.updateOrderStatus(*orderId, domain::OrderStatus::Completed);
     logSafe("INFO", "OrderCompleted", "Заказ завершён");
+
+    // Экспорт результата в JSON-файл (если сервис подключён)
+    if (orderExporter_) {
+        orderExporter_->exportOrder(*orderId);
+    }
 
     if (active.empty()) {
         workflowRepo_.clearCurrentOrder(domain::CartWorkflowState::Free);

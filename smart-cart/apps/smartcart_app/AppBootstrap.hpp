@@ -26,6 +26,7 @@
 #include "application/services/ModuleSnapshotPollingService.hpp"
 #include "application/services/OrderImportService.hpp"
 #include "application/services/BomOrderImportService.hpp"
+#include "application/services/OrderExportService.hpp"
 #include "application/services/WorkflowService.hpp"
 #include "application/services/AdminDiagnosticsService.hpp"
 #include "application/state/AppStateMachine.hpp"
@@ -79,6 +80,7 @@ private:
     std::unique_ptr<smartcart::application::services::Stm32PollingService>    pollingSvc_;
     std::unique_ptr<smartcart::application::services::OrderImportService>     orderImportSvc_;
     std::unique_ptr<smartcart::application::services::BomOrderImportService>  bomOrderImportSvc_;
+    std::unique_ptr<smartcart::application::services::OrderExportService>     orderExportSvc_;
     std::unique_ptr<smartcart::application::services::WorkflowService>        workflowSvc_;
     std::unique_ptr<smartcart::application::services::AdminDiagnosticsService> adminDiagnosticsSvc_;
 

@@ -63,6 +63,7 @@ add_library(smartcart_infra OBJECT
     src/application/services/RfidModuleMonitorService.cpp
     src/application/services/OrderImportService.cpp
     src/application/services/BomOrderImportService.cpp
+    src/application/services/OrderExportService.cpp
     src/application/services/WorkflowService.cpp
     src/application/services/AdminDiagnosticsService.cpp
 )

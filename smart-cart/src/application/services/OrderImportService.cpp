@@ -70,6 +70,8 @@ domain::OrderInfo parseOrder(const json& j) {
     order.title = readString(j, "title");
     order.priority = readString(j, "priority", "normal");
     order.durationMinutes = readInt(j, "duration_minutes", 0);
+    order.deadline = readString(j, "deadline");   // ISO-8601, optional
+    order.route    = readString(j, "route");       // logistics route, optional
     order.status = domain::OrderStatus::Loaded;
 
     if (order.externalOrderId.empty()) {
