@@ -10,7 +10,7 @@ DROP_IN_DIR="${USER_SYSTEMD_DIR}/smartcart-ui.service.d"
 DROP_IN="${DROP_IN_DIR}/headless.conf"
 USER_UID="$(id -u)"
 
-WEB_SERVICES=(smartcart-xvfb smartcart-openbox smartcart-x11vnc smartcart-novnc)
+WEB_SERVICES=(smartcart-xvfb smartcart-x11vnc smartcart-novnc)
 
 # ── Выбор режима ─────────────────────────────────────────────────────────────
 if [[ $# -ge 1 ]]; then

@@ -1,16 +1,14 @@
 # Headless override: переключает smartcart-ui на виртуальный дисплей Xvfb
 [Unit]
-# Сбросить зависимость от физического сеанса
 After=
 Wants=
-After=smartcart-xvfb.service smartcart-openbox.service
-Wants=smartcart-xvfb.service smartcart-openbox.service
+After=smartcart-xvfb.service
+Wants=smartcart-xvfb.service
 
 [Service]
-# Сбросить переменные физического дисплея
 UnsetEnvironment=XAUTHORITY
 Environment=DISPLAY=:99
 Environment=XDG_RUNTIME_DIR=/run/user/__UID__
 Environment=QT_QPA_PLATFORM=xcb
-# После запуска — принудительно развернуть окно на весь виртуальный дисплей
+# Принудительно растягиваем окно на весь виртуальный дисплей после запуска
 ExecStartPost=-/bin/bash -c 'sleep 3; DISPLAY=:99 xdotool search --name "SmartCart" windowmove 0 0 windowsize 1920 1080'
