@@ -1,0 +1,15 @@
+[Unit]
+Description=SmartCart Openbox WM (headless)
+After=smartcart-xvfb.service
+Requires=smartcart-xvfb.service
+Before=smartcart-ui.service
+
+[Service]
+Environment=DISPLAY=:99
+ExecStartPre=/bin/bash -c 'until [ -e /tmp/.X99-lock ]; do sleep 0.2; done'
+ExecStart=/usr/bin/openbox --display :99
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
