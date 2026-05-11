@@ -45,6 +45,9 @@ struct AppConfig {
     std::string moduleProfilePath{"config/module_profiles/tray24.json"};
 
     std::vector<int> slotToLedMap;
+    // LED-индексы статусной RGB-подсветки тележки (ТЗ п.5.2).
+    // Пустой список = подсветка отключена.
+    std::vector<int> cartStatusLeds;
     std::vector<int> switchTrackedChannels{1, 3};
     std::vector<int> switchIgnoredChannels{11};
     std::vector<int> switchChannelToSlotMap;

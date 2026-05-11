@@ -120,6 +120,12 @@ void Stm32PollingService::pollLoop() {
         }
 
         pollOnce();
+
+        // Обновляем RGB-подсветку тележки (раз в tick)
+        if (cartLighting_) {
+            cartLighting_->tick();
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(config_.pollMs));
     }
 

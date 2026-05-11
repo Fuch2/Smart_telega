@@ -70,7 +70,8 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "rfid_offline_timeout_ms", cfg.rfidOfflineTimeoutMs);
     readOptional(j, "led_mapping_path",    cfg.ledMappingPath);
     readOptional(j, "module_profile_path", cfg.moduleProfilePath);
-    readOptional(j, "slot_to_led_map",     cfg.slotToLedMap);
+    readOptional(j, "slot_to_led_map",      cfg.slotToLedMap);
+    readOptional(j, "cart_status_leds",     cfg.cartStatusLeds);
     readOptional(j, "switch_tracked_channels", cfg.switchTrackedChannels);
     readOptional(j, "switch_ignored_channels", cfg.switchIgnoredChannels);
     readOptional(j, "switch_channel_to_slot_map", cfg.switchChannelToSlotMap);

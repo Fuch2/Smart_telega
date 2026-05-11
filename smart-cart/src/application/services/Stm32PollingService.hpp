@@ -8,6 +8,7 @@
 #include "application/ports/IWorkflowRepository.hpp"
 #include "application/services/WorkflowService.hpp"
 #include "application/services/SwitchEventHandler.hpp"
+#include "application/services/CartLightingService.hpp"
 #include "domain/errors/ErrorCode.hpp"
 
 #include <atomic>
@@ -80,6 +81,10 @@ public:
     void start();
     void stop();
     void pollOnce();
+
+    /// Установить сервис RGB-подсветки. Будет вызываться из pollLoop().
+    /// Вызывать до start(). Nullable — если nullptr, подсветка не обновляется.
+    void setCartLighting(CartLightingService* svc) noexcept { cartLighting_ = svc; }
     bool isRunning() const noexcept { return running_.load(); }
     void handleEventFrame(const smartcart::infrastructure::hw::stm32::Frame& frame);
     Stm32ConnectionStatus connectionStatus() const;
@@ -103,6 +108,7 @@ private:
     ports::IEventLogger&    eventLogger_;
     Stm32PollingConfig      config_;
 
+    CartLightingService* cartLighting_{nullptr}; // nullable — опционально
     SwitchEventHandler switchEventHandler_;
 
     // Кэшированные множества каналов для O(1) проверок в hot path

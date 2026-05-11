@@ -615,6 +615,18 @@ void AppBootstrap::buildModuleScopedSession() {
         workflowSvc_->setOrderExporter(orderExportSvc_.get());
     }
 
+    if (!cfg_.cartStatusLeds.empty() && stm32Link_) {
+        CartLightingConfig lightingCfg;
+        lightingCfg.moduleId         = activeModuleId_;
+        lightingCfg.statusLedIndices = cfg_.cartStatusLeds;
+        cartLightingSvc_ = std::make_unique<CartLightingService>(
+            *stm32Link_, *workflowRepo_, *orderRepo_, std::move(lightingCfg));
+        // Подключаем к polling-потоку (вызывается каждые pollMs)
+        if (pollingSvc_) {
+            pollingSvc_->setCartLighting(cartLightingSvc_.get());
+        }
+    }
+
     Stm32PollingConfig pollingCfg;
     pollingCfg.moduleId = activeModuleId_;
     pollingCfg.slotCount = activeSlotCount;
@@ -634,6 +646,8 @@ void AppBootstrap::buildModuleScopedSession() {
         *workflowSvc_,
         *eventLogger_,
         pollingCfg);
+    // CartLightingService будет создан ниже и подключён после
+
 
     OrderImportConfig orderImportCfg;
     orderImportCfg.moduleId = activeModuleId_;
@@ -724,6 +738,7 @@ void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {
     bomOrderImportSvc_.reset();
     orderImportSvc_.reset();
     orderExportSvc_.reset();
+    cartLightingSvc_.reset();
     workflowSvc_.reset();
     pollingSvc_.reset();
     rfidMonitorSvc_.reset();
