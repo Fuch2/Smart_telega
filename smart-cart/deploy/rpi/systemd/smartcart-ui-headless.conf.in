@@ -1,0 +1,14 @@
+# Headless override: переключает smartcart-ui на виртуальный дисплей Xvfb
+[Unit]
+# Сбросить зависимость от физического сеанса
+After=
+Wants=
+After=smartcart-xvfb.service
+Requires=smartcart-xvfb.service
+
+[Service]
+# Сбросить переменные физического дисплея
+UnsetEnvironment=XAUTHORITY
+Environment=DISPLAY=:99
+Environment=XDG_RUNTIME_DIR=/run/user/__UID__
+Environment=QT_QPA_PLATFORM=xcb

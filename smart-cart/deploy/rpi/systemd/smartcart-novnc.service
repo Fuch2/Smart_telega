@@ -1,0 +1,13 @@
+[Unit]
+Description=SmartCart noVNC Web Proxy (порт 6080)
+After=smartcart-x11vnc.service
+Requires=smartcart-x11vnc.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/websockify --web /usr/share/novnc 6080 localhost:5900
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
