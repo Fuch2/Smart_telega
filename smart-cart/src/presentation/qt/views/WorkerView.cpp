@@ -432,9 +432,12 @@ void WorkerView::setupUi() {
     orderLabel_->setTextFormat(Qt::RichText);
 
     progressLabel_ = new QLabel(QString::fromUtf8("Материалы: 0/0"), orderFrame);
-    progressLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
+    progressLabel_->setFont(QFont("Segoe UI", 17, QFont::Bold));
     progressLabel_->setWordWrap(true);
-    progressLabel_->setStyleSheet("color: #31533D;");
+    progressLabel_->setAlignment(Qt::AlignCenter);
+    progressLabel_->setStyleSheet(
+        "QLabel { color: #8DE4AD; background: #1A3B2A; "
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 10px 14px; }");
 
     checklistText_ = new QTextEdit(orderFrame);
     checklistText_->setReadOnly(true);
@@ -532,8 +535,11 @@ void WorkerView::setupUi() {
     rightScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     rightScroll->setWidget(rightColumn);
 
-    bodyLayout->addWidget(slotFrame, 7);
-    bodyLayout->addWidget(rightScroll, 5);
+    // Сетка слотов скрыта: оператор ориентируется по физическим LED на тележке.
+    // Виджет slotGrid_ остаётся живым и обновляется сигналами — откат: раскомментировать строку ниже.
+    // bodyLayout->addWidget(slotFrame, 7);
+    Q_UNUSED(slotFrame)
+    bodyLayout->addWidget(rightScroll, 12);
     workLayout->addLayout(bodyLayout, 1);
 
     setLayout(rootLayout);
