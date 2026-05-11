@@ -65,6 +65,7 @@ private:
     QLabel*         stateLabel_   = nullptr;
     QLabel*         messageLabel_ = nullptr;
     QLabel*         stm32StatusLabel_ = nullptr;
+    QLabel*         batteryLabel_     = nullptr;
     QLabel*         activeModuleLabel_ = nullptr;
     QLabel*         workflowLabel_ = nullptr;
     QLabel*         workflowPillLabel_ = nullptr;

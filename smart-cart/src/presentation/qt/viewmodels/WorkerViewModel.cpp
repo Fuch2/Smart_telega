@@ -7,7 +7,9 @@
 #include "WorkerViewModel.hpp"
 
 #include <QDateTime>
+#include <QFile>
 #include <QStringList>
+#include <QTextStream>
 #include <algorithm>
 #include <optional>
 #include <string>
@@ -865,4 +867,23 @@ QString WorkerViewModel::orderTimeText(const OrderInfo& order) {
     return QString::fromUtf8("выделено: %1 мин, просрочено на %2 мин")
         .arg(order.durationMinutes)
         .arg(-remainingMinutes);
+}
+
+void WorkerViewModel::updateBattery()
+{
+    if (batterySysfsPath_.isEmpty()) {
+        emit batteryLevelChanged(-1);
+        return;
+    }
+
+    QFile f(batterySysfsPath_);
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        emit batteryLevelChanged(-1);
+        return;
+    }
+
+    QTextStream ts(&f);
+    bool ok = false;
+    const int level = ts.readLine().trimmed().toInt(&ok);
+    emit batteryLevelChanged(ok ? qBound(0, level, 100) : -1);
 }

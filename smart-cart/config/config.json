@@ -3,6 +3,7 @@
   "sqlite_path": "./smartcart.db",
   "completed_orders_dir": "./completed_orders",
   "orders_dir": "./orders",
+  "battery_sysfs_path": "/sys/class/power_supply/BAT0/capacity",
   "cart_status_leds": [],
   "stm32_poll_ms": 500,
   "stm32_device": "/dev/ttyUSB0",

@@ -714,6 +714,10 @@ void AppBootstrap::buildModuleScopedSession() {
     if (!cfg_.ordersDir.empty()) {
         workerVm_->setOrdersDir(QString::fromStdString(cfg_.ordersDir));
     }
+    if (!cfg_.batterySysfsPath.empty()) {
+        workerVm_->setBatterySysfsPath(
+            QString::fromStdString(cfg_.batterySysfsPath));
+    }
 }
 
 void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {

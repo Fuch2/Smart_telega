@@ -50,6 +50,7 @@ void DiagnosticsView::setUartStatus(const QString& v)    { statusPanel_->setUart
 void DiagnosticsView::setScannerStatus(const QString& v) { statusPanel_->setScannerStatus(v); }
 void DiagnosticsView::setRfidStatus(const QString& v)    { statusPanel_->setRfidStatus(v);    }
 void DiagnosticsView::setModuleSerial(const QString& v)  { statusPanel_->setModuleSerial(v);  }
+void DiagnosticsView::setBatteryLevel(int level)         { statusPanel_->setBatteryLevel(level); }
 
 void DiagnosticsView::appendLog(const QString& line) {
     logText_ += line + "\n";

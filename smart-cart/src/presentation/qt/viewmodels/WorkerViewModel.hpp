@@ -47,6 +47,13 @@ public:
     void    setOrdersDir(const QString& dir) { ordersDir_ = dir; }
     QString ordersDir() const               { return ordersDir_; }
 
+    /// Путь к sysfs-файлу заряда батареи (напр. /sys/class/power_supply/BAT0/capacity).
+    void    setBatterySysfsPath(const QString& path) { batterySysfsPath_ = path; }
+
+    /// Прочитать текущий уровень заряда и сгенерировать сигнал batteryLevelChanged.
+    /// Вызывается периодически из WorkerView (QTimer).
+    Q_INVOKABLE void updateBattery();
+
     smartcart::application::AppStateMachine& stateMachineRef() noexcept {
         return stateMachine_;
     }
@@ -65,6 +72,8 @@ signals:
     void activeModuleAvailabilityChanged(bool online);
     void operationStateChanged(QString state, QString message);
     void errorOccurred(QString message);
+    /// Уровень заряда батареи: 0–100%, или -1 = недоступно
+    void batteryLevelChanged(int level);
 
 public Q_SLOTS:
     void submitBarcode(const QString& barcode);
@@ -107,7 +116,8 @@ private:
     smartcart::application::services::WorkflowService& workflowSvc_;
     smartcart::application::AppStateMachine&             stateMachine_;
 
-    QString               ordersDir_;       // конфигурируется из AppBootstrap
+    QString               ordersDir_;           // конфигурируется из AppBootstrap
+    QString               batterySysfsPath_;    // путь к sysfs-файлу заряда
     QVector<SlotCellData> slots_;
 
     SlotCellData*  findSlot(int slotIndex);

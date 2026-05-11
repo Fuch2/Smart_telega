@@ -16,6 +16,7 @@ public:
     void setScannerStatus(const QString& v);
     void setRfidStatus(const QString& v);
     void setModuleSerial(const QString& v);
+    void setBatteryLevel(int level);
     void appendLog(const QString& line);
 
 private:

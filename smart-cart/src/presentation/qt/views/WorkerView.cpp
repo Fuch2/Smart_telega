@@ -303,6 +303,13 @@ void WorkerView::setupUi() {
         "border: 1px solid #3E6B4C; border-radius: 8px; padding: 8px 10px; }"
     );
 
+    batteryLabel_ = new QLabel(QString::fromUtf8("🔋 АКБ: N/A"), statusFrame);
+    batteryLabel_->setFont(QFont("Segoe UI", 10));
+    batteryLabel_->setStyleSheet(
+        "QLabel { background: #183928; color: #DDEBE1; "
+        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 6px 10px; }"
+    );
+
     errorLabel_ = new QLabel("", statusFrame);
     errorLabel_->setFont(QFont("Segoe UI", 11, QFont::Bold));
     errorLabel_->setWordWrap(true);
@@ -320,7 +327,15 @@ void WorkerView::setupUi() {
     statusTextLayout->addWidget(errorLabel_);
 
     statusLayout->addLayout(statusTextLayout, 1);
-    statusLayout->addWidget(stm32StatusLabel_);
+
+    // Правая колонка: STM32 статус + уровень батареи
+    auto* rightStatusLayout = new QVBoxLayout;
+    rightStatusLayout->setSpacing(6);
+    rightStatusLayout->addWidget(stm32StatusLabel_);
+    rightStatusLayout->addWidget(batteryLabel_);
+    rightStatusLayout->addStretch();
+    statusLayout->addLayout(rightStatusLayout);
+
     workLayout->addWidget(statusFrame);
 
     auto* bodyLayout = new QHBoxLayout();
@@ -609,6 +624,40 @@ void WorkerView::connectSignals() {
     connect(reloadTimer, &QTimer::timeout,
             &viewModel_, &WorkerViewModel::reload);
     reloadTimer->start(1000);
+
+    // Обновление индикатора батареи каждые 30 секунд
+    connect(&viewModel_, &WorkerViewModel::batteryLevelChanged,
+            this, [this](int level) {
+                if (!batteryLabel_) return;
+                if (level < 0) {
+                    batteryLabel_->setText(QString::fromUtf8("🔋 АКБ: N/A"));
+                    batteryLabel_->setStyleSheet(
+                        "QLabel { background: #183928; color: #888; "
+                        "border: 1px solid #3E6B4C; border-radius: 8px; padding: 6px 10px; }"
+                    );
+                } else {
+                    const QString icon =
+                        level >= 75 ? QString::fromUtf8("🔋") :
+                        level >= 40 ? QString::fromUtf8("🪫") :
+                                      QString::fromUtf8("⚠️");
+                    batteryLabel_->setText(
+                        QString::fromUtf8("%1 АКБ: %2%").arg(icon).arg(level));
+                    const QString color =
+                        level >= 50 ? "#a6e3a1" :
+                        level >= 20 ? "#f9e2af" : "#f38ba8";
+                    batteryLabel_->setStyleSheet(
+                        QString("QLabel { background: #183928; color: %1; "
+                                "border: 1px solid #3E6B4C; border-radius: 8px; "
+                                "padding: 6px 10px; }").arg(color));
+                }
+            });
+
+    auto* batteryTimer = new QTimer(this);
+    connect(batteryTimer, &QTimer::timeout,
+            &viewModel_, &WorkerViewModel::updateBattery);
+    batteryTimer->start(30000); // каждые 30 секунд
+    viewModel_.updateBattery(); // сразу при старте
+
     onWorkflowControlsUpdated(QStringLiteral("FREE"));
 }
 
