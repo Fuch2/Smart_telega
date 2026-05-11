@@ -55,6 +55,7 @@ AppConfig ConfigLoader::loadFromFile(const std::string& path) {
     readOptional(j, "log_file",              cfg.logFile);
     readOptional(j, "sqlite_path",           cfg.sqlitePath);
     readOptional(j, "completed_orders_dir",  cfg.completedOrdersDir);
+    readOptional(j, "orders_dir",            cfg.ordersDir);
     readOptional(j, "stm32_device",          cfg.stm32Device);
     readOptional(j, "rfid_spi_device",     cfg.rfidSpiDevice);
     readOptional(j, "rfid_spi_devices",    cfg.rfidSpiDevices);

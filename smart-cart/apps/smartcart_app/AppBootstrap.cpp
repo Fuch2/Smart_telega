@@ -710,6 +710,10 @@ void AppBootstrap::buildModuleScopedSession() {
         *bomOrderImportSvc_,
         *workflowSvc_,
         *stateMachine_);
+
+    if (!cfg_.ordersDir.empty()) {
+        workerVm_->setOrdersDir(QString::fromStdString(cfg_.ordersDir));
+    }
 }
 
 void AppBootstrap::destroyModuleScopedSession(bool keepWindow) {

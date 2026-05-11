@@ -42,6 +42,11 @@ public:
     QString                      stateLabel() const;
     QString                      moduleStateTextForStage(const QString& stateKey);
 
+    /// Директория, в которой лежат JSON/BOM заказы (для экрана выбора).
+    /// Пустая строка → показывать только FileDialog.
+    void    setOrdersDir(const QString& dir) { ordersDir_ = dir; }
+    QString ordersDir() const               { return ordersDir_; }
+
     smartcart::application::AppStateMachine& stateMachineRef() noexcept {
         return stateMachine_;
     }
@@ -102,6 +107,7 @@ private:
     smartcart::application::services::WorkflowService& workflowSvc_;
     smartcart::application::AppStateMachine&             stateMachine_;
 
+    QString               ordersDir_;       // конфигурируется из AppBootstrap
     QVector<SlotCellData> slots_;
 
     SlotCellData*  findSlot(int slotIndex);

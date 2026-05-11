@@ -22,6 +22,8 @@ add_executable(smart_cart_ui
     # ── presentation: views ───────────────────────────────────────────────────
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkerView.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkerView.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/views/OrderSelectionDialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/views/OrderSelectionDialog.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkflowDialogManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/WorkflowDialogManager.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/views/AdminView.cpp

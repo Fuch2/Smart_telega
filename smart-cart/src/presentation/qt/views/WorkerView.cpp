@@ -5,6 +5,7 @@
 //   - onOperationStateChanged: убрано хрупкое сравнение строк
 #include "WorkerView.hpp"
 #include "WorkflowDialogManager.hpp"
+#include "OrderSelectionDialog.hpp"
 
 #include <QApplication>
 #include <QDialog>
@@ -824,12 +825,25 @@ void WorkerView::onErrorOccurred(const QString& message) {
 }
 
 void WorkerView::onImportOrderClicked() {
-    const QString path = QFileDialog::getOpenFileName(
-        this,
-        QString::fromUtf8("Выберите заказ или BOM"),
-        QString(),
-        QString::fromUtf8("Заказ или BOM (*.json *.xlsx *.xls);;JSON (*.json);;Excel BOM (*.xlsx *.xls);;Все файлы (*)")
-    );
+    QString path;
+
+    if (!viewModel_.ordersDir().isEmpty()) {
+        // Новый экран выбора заказа из директории
+        OrderSelectionDialog dlg(viewModel_.ordersDir(), this);
+        if (dlg.exec() != QDialog::Accepted) {
+            return;
+        }
+        path = dlg.selectedPath();
+    } else {
+        // Резервный вариант — стандартный диалог выбора файла
+        path = QFileDialog::getOpenFileName(
+            this,
+            QString::fromUtf8("Выберите заказ или BOM"),
+            QString(),
+            QString::fromUtf8("Заказ или BOM (*.json *.xlsx *.xls);;JSON (*.json);;Excel BOM (*.xlsx *.xls);;Все файлы (*)")
+        );
+    }
+
     if (path.isEmpty()) {
         return;
     }
