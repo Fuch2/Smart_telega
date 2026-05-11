@@ -3,8 +3,8 @@
 # Сбросить зависимость от физического сеанса
 After=
 Wants=
-After=smartcart-xvfb.service
-Requires=smartcart-xvfb.service
+After=smartcart-openbox.service
+Requires=smartcart-xvfb.service smartcart-openbox.service
 
 [Service]
 # Сбросить переменные физического дисплея
@@ -12,3 +12,6 @@ UnsetEnvironment=XAUTHORITY
 Environment=DISPLAY=:99
 Environment=XDG_RUNTIME_DIR=/run/user/__UID__
 Environment=QT_QPA_PLATFORM=xcb
+# После запуска — принудительно развернуть окно на весь виртуальный дисплей
+# Ждём 2 сек, затем принудительно растягиваем окно на весь виртуальный дисплей
+ExecStartPost=-/bin/bash -c 'sleep 2; read W H < <(DISPLAY=:99 xdotool getdisplaygeometry); DISPLAY=:99 xdotool search --name "SmartCart" windowmove 0 0 windowsize "$W" "$H"'
