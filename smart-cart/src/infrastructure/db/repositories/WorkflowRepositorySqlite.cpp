@@ -138,12 +138,8 @@ bool WorkflowRepositorySqlite::clearCurrentOrder(domain::CartWorkflowState state
 }
 
 bool WorkflowRepositorySqlite::adoptWorkflowFrom(int fromModuleId) {
-    // Nothing to adopt if we're already not FREE
-    {
-        auto current = get();
-        if (current.state != domain::CartWorkflowState::Free) {
-            return true;
-        }
+    if (fromModuleId == moduleId_) {
+        return true;
     }
 
     // Copy current_order_id AND state from fromModuleId → moduleId_.

@@ -165,3 +165,73 @@ TEST(OrderWorkflowRepositoryTest, OrderAndWorkflowAreScopedByModuleId) {
     EXPECT_EQ(active1->title, "Module 1 order");
     EXPECT_EQ(active2->title, "Module 2 order");
 }
+
+TEST(OrderWorkflowRepositoryTest, ModuleSwitchAdoptsLatestOrderOverStaleDestinationOrder) {
+    infrastructure::db::SqliteConnection conn(":memory:");
+    conn.runMigrations(std::string{MIGRATIONS_DIR});
+
+    infrastructure::db::OrderRepositorySqlite reelOrderRepo(conn, 1);
+    infrastructure::db::OrderRepositorySqlite feederOrderRepo(conn, 2);
+    infrastructure::db::WorkflowRepositorySqlite reelWorkflowRepo(conn, 1);
+    infrastructure::db::WorkflowRepositorySqlite feederWorkflowRepo(conn, 2);
+
+    domain::OrderInfo staleOrder;
+    staleOrder.externalOrderId = "ORDER-OLD-FEEDER";
+    staleOrder.title = "Old feeder order";
+    staleOrder.priority = "normal";
+    const int staleOrderId = feederOrderRepo.addOrder(staleOrder);
+    ASSERT_TRUE(feederWorkflowRepo.setCurrentOrder(
+        staleOrderId,
+        domain::CartWorkflowState::LoadingFeeders));
+
+    domain::OrderInfo duplicateOrder;
+    duplicateOrder.externalOrderId = "ORDER-LOADED-NOW";
+    duplicateOrder.title = "Old duplicate feeder order";
+    duplicateOrder.priority = "normal";
+    const int duplicateOrderId = feederOrderRepo.addOrder(duplicateOrder);
+
+    domain::OrderInfo loadedOrder;
+    loadedOrder.externalOrderId = "ORDER-LOADED-NOW";
+    loadedOrder.title = "Loaded now";
+    loadedOrder.priority = "high";
+    const int loadedOrderId = reelOrderRepo.addOrder(loadedOrder);
+
+    domain::OrderItem item;
+    item.orderId = loadedOrderId;
+    item.barcode = "PN-LOADED";
+    item.partNumber = "PN-LOADED";
+    item.targetSlot = 3;
+    reelOrderRepo.addItem(item);
+
+    ASSERT_TRUE(reelWorkflowRepo.setCurrentOrder(
+        loadedOrderId,
+        domain::CartWorkflowState::OrderLoaded));
+
+    ASSERT_TRUE(feederOrderRepo.adoptActiveOrderFrom(1));
+    ASSERT_TRUE(feederWorkflowRepo.adoptWorkflowFrom(1));
+
+    const auto feederWorkflow = feederWorkflowRepo.get();
+    ASSERT_TRUE(feederWorkflow.currentOrderId.has_value());
+    EXPECT_EQ(*feederWorkflow.currentOrderId, loadedOrderId);
+    EXPECT_EQ(feederWorkflow.state, domain::CartWorkflowState::OrderLoaded);
+
+    const auto adoptedOrder = feederOrderRepo.getOrderById(loadedOrderId);
+    ASSERT_TRUE(adoptedOrder.has_value());
+    EXPECT_EQ(adoptedOrder->externalOrderId, "ORDER-LOADED-NOW");
+    EXPECT_EQ(adoptedOrder->title, "Loaded now");
+
+    const auto activeFeederOrder = feederOrderRepo.getActiveOrder();
+    ASSERT_TRUE(activeFeederOrder.has_value());
+    EXPECT_EQ(activeFeederOrder->id, loadedOrderId);
+    EXPECT_EQ(activeFeederOrder->externalOrderId, "ORDER-LOADED-NOW");
+
+    const auto staleAfterSwitch = feederOrderRepo.getOrderById(staleOrderId);
+    ASSERT_TRUE(staleAfterSwitch.has_value());
+    EXPECT_EQ(staleAfterSwitch->status, domain::OrderStatus::Cancelled);
+
+    EXPECT_FALSE(feederOrderRepo.getOrderById(duplicateOrderId).has_value());
+
+    const auto reelWorkflow = reelWorkflowRepo.get();
+    EXPECT_FALSE(reelWorkflow.currentOrderId.has_value());
+    EXPECT_EQ(reelWorkflow.state, domain::CartWorkflowState::Free);
+}

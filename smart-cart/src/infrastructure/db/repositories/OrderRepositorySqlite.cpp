@@ -451,32 +451,134 @@ bool OrderRepositorySqlite::updateItemPlacement(
 }
 
 bool OrderRepositorySqlite::adoptActiveOrderFrom(int fromModuleId) {
-    // Если у текущего модуля уже есть активный заказ — ничего не делаем.
-    if (getActiveOrder().has_value()) {
+    if (fromModuleId == moduleId_) {
         return true;
     }
 
-    // Переносим активный заказ из fromModuleId в наш moduleId_.
-    const char* sql =
-        "UPDATE orders SET module_id = ? "
-        "WHERE module_id = ? "
-        "  AND status IN ('LOADED', 'IN_PROGRESS') "
-        "  AND id = (SELECT id FROM orders "
-        "            WHERE module_id = ? "
-        "              AND status IN ('LOADED', 'IN_PROGRESS') "
-        "            ORDER BY updated_at DESC LIMIT 1);";
+    int sourceOrderId = 0;
+    std::string sourceExternalOrderId;
+    {
+        const char* sql =
+            "SELECT id, external_order_id FROM orders "
+            "WHERE module_id = ? "
+            "  AND status IN ('LOADED', 'IN_PROGRESS') "
+            "ORDER BY updated_at DESC, id DESC LIMIT 1;";
 
-    sqlite3_stmt* stmt = nullptr;
-    if (sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        return false;
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            return false;
+        }
+        sqlite3_bind_int(stmt, 1, fromModuleId);
+
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            sourceOrderId = sqlite3_column_int(stmt, 0);
+            sourceExternalOrderId =
+                reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        }
+        sqlite3_finalize(stmt);
     }
-    sqlite3_bind_int(stmt, 1, moduleId_);
-    sqlite3_bind_int(stmt, 2, fromModuleId);
-    sqlite3_bind_int(stmt, 3, fromModuleId);
 
-    const int rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+    if (sourceOrderId <= 0) {
+        return true;
+    }
+
+    conn_.beginTransaction();
+    try {
+        {
+            const char* sql =
+                "DELETE FROM order_items "
+                "WHERE order_id IN ("
+                "  SELECT id FROM orders "
+                "  WHERE module_id = ? AND external_order_id = ? AND id <> ?"
+                ");";
+
+            sqlite3_stmt* stmt = nullptr;
+            throwOnPrepareError(conn_.handle(),
+                                sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
+                                "OrderRepositorySqlite::adoptActiveOrderFrom delete items prepare");
+            sqlite3_bind_int(stmt, 1, moduleId_);
+            sqlite3_bind_text(stmt, 2, sourceExternalOrderId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(stmt, 3, sourceOrderId);
+
+            const int rc = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+            if (rc != SQLITE_DONE) {
+                throw std::runtime_error(
+                    "OrderRepositorySqlite::adoptActiveOrderFrom delete items failed");
+            }
+        }
+
+        {
+            const char* sql =
+                "DELETE FROM orders "
+                "WHERE module_id = ? AND external_order_id = ? AND id <> ?;";
+
+            sqlite3_stmt* stmt = nullptr;
+            throwOnPrepareError(conn_.handle(),
+                                sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
+                                "OrderRepositorySqlite::adoptActiveOrderFrom delete duplicate prepare");
+            sqlite3_bind_int(stmt, 1, moduleId_);
+            sqlite3_bind_text(stmt, 2, sourceExternalOrderId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(stmt, 3, sourceOrderId);
+
+            const int rc = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+            if (rc != SQLITE_DONE) {
+                throw std::runtime_error(
+                    "OrderRepositorySqlite::adoptActiveOrderFrom delete duplicate failed");
+            }
+        }
+
+        {
+            const char* sql =
+                "UPDATE orders SET status = 'CANCELLED', updated_at = datetime('now') "
+                "WHERE module_id = ? "
+                "  AND status IN ('LOADED', 'IN_PROGRESS') "
+                "  AND id <> ?;";
+
+            sqlite3_stmt* stmt = nullptr;
+            throwOnPrepareError(conn_.handle(),
+                                sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
+                                "OrderRepositorySqlite::adoptActiveOrderFrom cancel stale prepare");
+            sqlite3_bind_int(stmt, 1, moduleId_);
+            sqlite3_bind_int(stmt, 2, sourceOrderId);
+
+            const int rc = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+            if (rc != SQLITE_DONE) {
+                throw std::runtime_error(
+                    "OrderRepositorySqlite::adoptActiveOrderFrom cancel stale failed");
+            }
+        }
+
+        {
+            const char* sql =
+                "UPDATE orders SET module_id = ?, updated_at = datetime('now') "
+                "WHERE id = ? AND module_id = ?;";
+
+            sqlite3_stmt* stmt = nullptr;
+            throwOnPrepareError(conn_.handle(),
+                                sqlite3_prepare_v2(conn_.handle(), sql, -1, &stmt, nullptr),
+                                "OrderRepositorySqlite::adoptActiveOrderFrom move prepare");
+            sqlite3_bind_int(stmt, 1, moduleId_);
+            sqlite3_bind_int(stmt, 2, sourceOrderId);
+            sqlite3_bind_int(stmt, 3, fromModuleId);
+
+            const int rc = sqlite3_step(stmt);
+            const bool moved = rc == SQLITE_DONE && sqlite3_changes(conn_.handle()) > 0;
+            sqlite3_finalize(stmt);
+            if (!moved) {
+                throw std::runtime_error(
+                    "OrderRepositorySqlite::adoptActiveOrderFrom move failed");
+            }
+        }
+
+        conn_.commit();
+        return true;
+    } catch (...) {
+        conn_.rollback();
+        throw;
+    }
 }
 
 } // namespace smartcart::infrastructure::db

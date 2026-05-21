@@ -15,8 +15,8 @@ public:
     virtual bool clearCurrentOrder(domain::CartWorkflowState state) = 0;
 
     /// Переносит состояние воркфлоу (этап + заказ) из fromModuleId в текущий
-    /// модуль и сбрасывает fromModuleId в FREE.
-    /// Ничего не делает если текущий модуль уже не FREE.
+    /// модуль, перезаписывая старое состояние текущего модуля, и сбрасывает
+    /// fromModuleId в FREE.
     virtual bool adoptWorkflowFrom(int fromModuleId) = 0;
 };
 
