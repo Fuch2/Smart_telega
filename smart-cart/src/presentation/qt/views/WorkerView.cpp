@@ -565,7 +565,7 @@ void WorkerView::connectSignals() {
     connect(&viewModel_, &WorkerViewModel::activeModuleKindChanged,
             this, [this](const QString& kind) {
                 currentModuleKind_ = kind;
-                updateModuleKindScreen(QStringLiteral("_kind_update_"));
+                updateModuleKindScreen(currentWorkflowStateKey_);
             });
     connect(&viewModel_, &WorkerViewModel::activeModuleAvailabilityChanged,
             this, &WorkerView::onActiveModuleAvailabilityChanged);
@@ -708,12 +708,26 @@ void WorkerView::onActiveModuleAvailabilityChanged(bool online) {
     updateVisiblePage();
 }
 
-void WorkerView::updateModuleKindScreen(const QString& /*stateKey*/) {
-    // Экран выбирается по ТИПУ МОДУЛЯ (не по состоянию воркфлоу).
-    // Тип модуля хранится в currentModuleKind_ и обновляется сигналом
-    // activeModuleKindChanged из WorkerViewModel::rebuildModuleStatus().
-    const bool feederModule = (currentModuleKind_ == QStringLiteral("FEEDER"));
-    const bool reelModule   = (currentModuleKind_ == QStringLiteral("REEL"));
+void WorkerView::updateModuleKindScreen(const QString& stateKey) {
+    const bool feederStage =
+        stateKey == QStringLiteral("ORDER_LOADED") ||
+        stateKey == QStringLiteral("LOADING_FEEDERS") ||
+        stateKey == QStringLiteral("READY_FOR_FEEDER_PREP") ||
+        stateKey == QStringLiteral("FEEDER_PREP") ||
+        stateKey == QStringLiteral("READY_FOR_LINE");
+    const bool reelStage =
+        stateKey == QStringLiteral("PICKING_MATERIALS") ||
+        stateKey == QStringLiteral("ISSUING_TO_LINE") ||
+        stateKey == QStringLiteral("ORDER_COMPLETED") ||
+        stateKey == QStringLiteral("LEFTOVERS_DETECTED") ||
+        stateKey == QStringLiteral("RETURNING_LEFTOVERS");
+
+    const bool feederModule =
+        feederStage ||
+        (!reelStage && currentModuleKind_ == QStringLiteral("FEEDER"));
+    const bool reelModule =
+        reelStage ||
+        (!feederStage && currentModuleKind_ == QStringLiteral("REEL"));
 
     if (moduleWorkStack_) {
         moduleWorkStack_->setCurrentWidget(
@@ -747,6 +761,7 @@ void WorkerView::updateModuleKindScreen(const QString& /*stateKey*/) {
 }
 
 void WorkerView::onWorkflowControlsUpdated(const QString& stateKey) {
+    currentWorkflowStateKey_ = stateKey;
     updateModuleKindScreen(stateKey);
     dialogManager_->showStagePopupIfNeeded(stateKey);
     dialogManager_->showModuleStatePopupIfNeeded(stateKey);

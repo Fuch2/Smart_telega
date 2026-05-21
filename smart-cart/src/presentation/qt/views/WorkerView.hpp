@@ -100,6 +100,7 @@ private:
     bool            moduleOnline_ = true;
     bool            showStartPage_ = false;
     QString         currentModuleKind_{QStringLiteral("UNKNOWN")};
+    QString         currentWorkflowStateKey_{QStringLiteral("FREE")};
 
     void setupUi();
     void connectSignals();
