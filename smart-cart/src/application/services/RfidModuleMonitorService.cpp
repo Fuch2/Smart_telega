@@ -10,6 +10,12 @@ namespace smartcart::application::services {
 
 namespace domain = smartcart::domain;
 
+namespace {
+
+constexpr int kOfflineMissesBeforeStatusChange = 3;
+
+} // namespace
+
 RfidModuleMonitorService::RfidModuleMonitorService(
     ports::IRfidProvider& rfidProvider,
     ports::IModuleRepository& moduleRepo,
@@ -111,12 +117,14 @@ void RfidModuleMonitorService::monitorLoop() {
                     std::lock_guard lock(statusMtx_);
                     lastSeen_ = now;
                 }
+                consecutiveExpectedMisses_ = 0;
                 lastUnexpectedUid_.clear();
                 notifiedSwitchUid_.clear();
                 if (!moduleOnline_.load(std::memory_order_acquire)) {
                     setModuleOnline(true);
                 }
             } else if (const auto& uid = uids.front(); uid != lastUnexpectedUid_) {
+                ++consecutiveExpectedMisses_;
                 markOfflineIfExpectedUidTimedOut(now);
                 lastUnexpectedUid_ = uid;
                 lastUnexpectedSeen_ = now;
@@ -125,6 +133,7 @@ void RfidModuleMonitorService::monitorLoop() {
                         "Обнаружена чужая RFID-метка: uid=" + uid +
                         ", ожидается uid=" + config_.expectedUid);
             } else {
+                ++consecutiveExpectedMisses_;
                 markOfflineIfExpectedUidTimedOut(now);
                 const auto seenFor =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -150,6 +159,7 @@ void RfidModuleMonitorService::monitorLoop() {
             notifiedSwitchUid_.clear();
             lastUnexpectedUid_.clear();
         } else {
+            ++consecutiveExpectedMisses_;
             markOfflineIfExpectedUidTimedOut(now);
         }
 
@@ -162,7 +172,8 @@ void RfidModuleMonitorService::markOfflineIfExpectedUidTimedOut(
     std::chrono::steady_clock::time_point now)
 {
     if (!moduleOnline_.load(std::memory_order_acquire) ||
-        config_.expectedUid.empty())
+        config_.expectedUid.empty() ||
+        consecutiveExpectedMisses_ < kOfflineMissesBeforeStatusChange)
     {
         return;
     }

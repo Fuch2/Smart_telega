@@ -68,6 +68,7 @@ private:
     std::chrono::steady_clock::time_point lastUnexpectedSeen_{};
     std::string notifiedSwitchUid_;
     std::chrono::steady_clock::time_point lastSwitchNotifyAt_{};
+    int consecutiveExpectedMisses_{0};
 
     // switchCb_ может ставиться из UI-потока и читаться из monitorLoop.
     // Отдельный мьютекс, чтобы не держать statusMtx_ во время вызова callback.

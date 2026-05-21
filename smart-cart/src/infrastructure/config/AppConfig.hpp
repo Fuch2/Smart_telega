@@ -37,9 +37,9 @@ struct AppConfig {
     std::uint32_t stm32PollMs{500};
     std::uint32_t debounceMs{50};
     std::uint32_t stableConfirmMs{1000};
-    std::uint32_t rfidReadTimeoutMs{3000};
+    std::uint32_t rfidReadTimeoutMs{700};
     std::uint32_t rfidPollMs{500};
-    std::uint32_t rfidOfflineTimeoutMs{3000};
+    std::uint32_t rfidOfflineTimeoutMs{8000};
 
     std::string ledMappingPath{"config/led_mapping.default.json"};
     std::string moduleProfilePath{"config/module_profiles/tray24.json"};
