@@ -823,7 +823,7 @@ Qt `QMainWindow` — контейнер для всего UI. Содержит �
 {
   "log_file": "/opt/smartcart/shared/smartcart.log",
   "sqlite_path": "/opt/smartcart/shared/smartcart.db",
-  "stm32_device": "/dev/ttyAMA0",
+  "stm32_device": "/dev/ttyUSB0",
   "stm32_poll_ms": 500,
   "rfid_enabled": true,
   "rfid_spi_devices": ["/dev/spidev0.0", ...],
@@ -838,43 +838,12 @@ Qt `QMainWindow` — контейнер для всего UI. Содержит �
 ```
 
 Ключевые параметры:
-- `stm32_device: /dev/ttyAMA0` — это Linux-путь к GPIO UART на Raspberry Pi. `ttyAMA0` — стандартное имя первого последовательного порта.
+- `stm32_device` — Linux-путь к UART STM32. В текущем конфиге используется `/dev/ttyUSB0`; для GPIO UART на Raspberry Pi часто используется `/dev/ttyAMA0`.
 - `stm32_poll_ms: 500` — опрашивать STM32 каждые 500 миллисекунд
 - `rfid_spi_devices` — список SPI-устройств. На RPi доступно до 6 SPI CS-пинов.
 - `rfid_module_roles` — UID RFID-метки → тип модуля. Система узнаёт "это катушечный модуль" по UID.
 - `debounce_ms: 50` — игнорировать изменения переключателя короче 50мс (дребезг контактов)
 - `slot_to_led_map` — слот №1 → LED №0, слот №2 → LED №2, и т.д.
-
----
-
-### `tools/smartcart_web.py` — Веб-интерфейс
-
-Python-скрипт, который поднимает небольшой HTTP-сервер для браузера технолога.
-
-Используемые библиотеки:
-- **`http.server`** (стандартная библиотека Python) — простой HTTP-сервер без сторонних зависимостей
-- **`sqlite3`** (стандартная библиотека Python) — прямое чтение БД SmartCart
-- **`json`** — формирование JSON-ответов
-
-API-эндпоинт `/api/state` возвращает полный снапшот:
-```json
-{
-  "workflow": { "state": "PICKING_MATERIALS", "order_id": 42 },
-  "modules": [...],
-  "order_items": [...],
-  "slots": [...],
-  "reels": [...],
-  "events": [...]
-}
-```
-
-Встроенный HTML/CSS/JS рендерит страницу с:
-- Панелью статуса системы
-- Сеткой слотов с цветами
-- Списком материалов заказа
-- Последними событиями
-
-Страница **автообновляется каждые 1.5 секунды**. Доступна с любого устройства в той же сети: `http://192.168.1.X:8080`.
 
 ---
 
@@ -952,7 +921,7 @@ TEST(WorkflowService, notifyMaterialPlaced_allPlaced_transitionsState) {
 
 5. **Физическое размещение**:
    - STM32 через UART отправляет `EvtSwitchChanged` (channel=4, occupied=true)
-   - `UartStm32Link.rxThread_` читает байты из `/dev/ttyAMA0`
+   - `UartStm32Link.rxThread_` читает байты из UART-устройства, заданного в `config.json`
    - `StreamParser` собирает фрейм, проверяет CRC
    - `handleParsedFrame()` вызывает `eventCb_`
    - Callback попадает в `Stm32PollingService.handleEventFrame()`
@@ -974,9 +943,8 @@ TEST(WorkflowService, notifyMaterialPlaced_allPlaced_transitionsState) {
 
 ## Развёртывание на Raspberry Pi
 
-Программа разворачивается на Raspberry Pi как **два systemd-сервиса**:
+Программа разворачивается на Raspberry Pi как основной systemd-сервис:
 - `smartcart-ui.service` — Qt GUI (запускается при включении, показывает экран)
-- `smartcart-web.service` — Python веб-сервер (доступен с телефона/планшета технолога)
 
 Структура на диске:
 ```
@@ -988,7 +956,6 @@ TEST(WorkflowService, notifyMaterialPlaced_allPlaced_transitionsState) {
       smartcart_app                             ← CLI бинарник
       config/                                   ← конфигурация
       migrations/                               ← SQL-миграции
-      tools/smartcart_web.py                    ← веб-сервер
   shared/
     smartcart.db                                ← база данных (между обновлениями)
     smartcart.log                               ← логи (между обновлениями)
@@ -1043,6 +1010,5 @@ TEST(WorkflowService, notifyMaterialPlaced_allPlaced_transitionsState) {
 | `SlotGridWidget` | Виджет с сеткой слотов |
 | `StatusPanelWidget` | Панель статуса |
 | `WorkflowDialogManager` | Диалоги этапов workflow |
-| `smartcart_web.py` | Веб-интерфейс для мониторинга |
 | `config.json` | Конфигурация системы |
 | `CMakeLists.txt` | Как собирать проект |

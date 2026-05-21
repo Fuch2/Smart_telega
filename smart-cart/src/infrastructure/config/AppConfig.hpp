@@ -1,5 +1,3 @@
-// ===== src/infrastructure/config/AppConfig.hpp =====
-// Исправлено: убрано несуществующее поле logFilePath — используется logFile
 #pragma once
 
 #include <cstdint>
@@ -33,7 +31,7 @@ struct AppConfig {
     std::unordered_map<std::string, std::string> rfidModuleKinds;
     std::vector<ModuleChannelConfig> moduleChannels;
 
-    bool demoMode{true};
+    bool demoMode{false};
     bool rfidEnabled{false};
 
     std::uint32_t stm32PollMs{500};

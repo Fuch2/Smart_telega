@@ -154,7 +154,7 @@ SmartCart — система управления умной тележкой д
 ### Hardware
 
 **STM32 (UART):**
-- `UartStm32Link` — реальная связь через `/dev/ttyAMA0`
+- `UartStm32Link` — реальная связь через UART-устройство из `config.json`
 - `MockStm32Link` — mock для тестов
 - `FrameCodec` — кодирование/декодирование фреймов протокола
 
@@ -205,13 +205,6 @@ SmartCart — система управления умной тележкой д
 - `WorkerViewModel` — бизнес-логика для WorkerView
 - `AdminViewModel` — бизнес-логика для AdminView
 
-### Web API
-
-**smartcart_web.py:**
-- Flask REST API
-- Просмотр заказов, операций, логов
-- Управление workflow (для удалённого мониторинга)
-
 ## Паттерны и принципы
 
 ### Dependency Inversion
@@ -253,7 +246,7 @@ Application слой зависит от портов (интерфейсов), 
 **config.json:**
 ```json
 {
-  "stm32_device": "/dev/ttyAMA0",
+  "stm32_device": "/dev/ttyUSB0",
   "stm32_poll_ms": 500,
   "rfid_enabled": true,
   "rfid_spi_devices": ["/dev/spidev0.0", "/dev/spidev0.1", ...],
@@ -280,7 +273,6 @@ Application слой зависит от портов (интерфейсов), 
       smartcart_app
       config/
       migrations/
-      tools/smartcart_web.py
   shared/
     smartcart.db
     smartcart.log
@@ -288,7 +280,6 @@ Application слой зависит от портов (интерфейсов), 
 
 **Systemd services:**
 - `smartcart-ui.service` — Qt UI
-- `smartcart-web.service` — Flask web API
 
 ## Тестирование
 

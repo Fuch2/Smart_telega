@@ -25,8 +25,28 @@ require_command cmake
 require_command ctest
 require_command systemctl
 
+disable_obsolete_web_services() {
+    local services=(
+        smartcart-web
+        smartcart-xvfb
+        smartcart-openbox
+        smartcart-x11vnc
+        smartcart-novnc
+    )
+
+    for svc in "${services[@]}"; do
+        systemctl --user stop "${svc}.service" 2>/dev/null || true
+        systemctl --user disable "${svc}.service" 2>/dev/null || true
+    done
+
+    rm -f "${HOME}/.config/systemd/user/smartcart-ui.service.d/headless.conf"
+    rmdir "${HOME}/.config/systemd/user/smartcart-ui.service.d" 2>/dev/null || true
+}
+
 # Запускает сервис только если он не работает — не прерывает работающее приложение.
 ensure_runtime_services() {
+    systemctl --user daemon-reload
+    disable_obsolete_web_services
     systemctl --user daemon-reload
 
     if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then
@@ -43,6 +63,8 @@ ensure_runtime_services() {
 
 # Перезапускает сервис — используется только при деплое новой версии.
 restart_runtime_services() {
+    systemctl --user daemon-reload
+    disable_obsolete_web_services
     systemctl --user daemon-reload
 
     if systemctl --user cat smartcart-ui.service >/dev/null 2>&1; then

@@ -5,6 +5,7 @@ runtime/
 *.log
 .DS_Store
 CMakeLists_fixed.txt
-.claude/worktrees/
+.lazyweb/
+CLAUDE.md
 .claude/worktrees/
 .obsidian/

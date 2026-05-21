@@ -11,12 +11,31 @@ if ! command -v systemctl >/dev/null 2>&1; then
     exit 1
 fi
 
+disable_obsolete_web_services() {
+    local services=(
+        smartcart-web
+        smartcart-xvfb
+        smartcart-openbox
+        smartcart-x11vnc
+        smartcart-novnc
+    )
+
+    for svc in "${services[@]}"; do
+        systemctl --user stop "${svc}.service" 2>/dev/null || true
+        systemctl --user disable "${svc}.service" 2>/dev/null || true
+    done
+
+    rm -f "${USER_SYSTEMD_DIR}/smartcart-ui.service.d/headless.conf"
+    rmdir "${USER_SYSTEMD_DIR}/smartcart-ui.service.d" 2>/dev/null || true
+}
+
 sudo mkdir -p \
     "${SMARTCART_ROOT}/releases" \
     "${SMARTCART_ROOT}/shared"
 sudo chown -R "${USER}:$(id -gn)" "${SMARTCART_ROOT}"
 
 mkdir -p "${USER_SYSTEMD_DIR}"
+disable_obsolete_web_services
 
 sed \
     -e "s#__SMARTCART_ROOT__#${SMARTCART_ROOT}#g" \

@@ -1,5 +1,3 @@
-// ===== src/infrastructure/config/ConfigLoader.cpp =====
-// Исправлено: убраны backward-compat поля
 #include "ConfigLoader.hpp"
 #include <fstream>
 #include <stdexcept>

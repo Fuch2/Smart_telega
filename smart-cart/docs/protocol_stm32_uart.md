@@ -7,7 +7,7 @@
 **Параметры UART:**
 - Скорость: 115200 baud (по умолчанию)
 - Формат: 8N1 (8 бит данных, без паритета, 1 стоп-бит)
-- Устройство: `/dev/ttyAMA0` (Raspberry Pi)
+- Устройство: задаётся параметром `stm32_device` в `config.json` (сейчас `/dev/ttyUSB0`; для GPIO UART на Raspberry Pi часто `/dev/ttyAMA0`)
 
 ## Формат фрейма
 
@@ -251,7 +251,7 @@ if (resp && resp->type == FrameType::Resp) {
 ### Отправка команды
 
 ```cpp
-auto link = std::make_unique<UartStm32Link>("/dev/ttyAMA0", 115200, 1000);
+auto link = std::make_unique<UartStm32Link>("/dev/ttyUSB0", 115200, 1000);
 link->open();
 
 Frame cmd;
