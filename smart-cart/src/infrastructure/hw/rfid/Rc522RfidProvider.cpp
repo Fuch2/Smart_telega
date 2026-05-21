@@ -163,7 +163,7 @@ std::optional<std::string> Rc522RfidProvider::readOnce(int timeoutMs) {
             previousUid.clear();
             stableReads = 0;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 
     return std::nullopt;

@@ -11,16 +11,12 @@
   "rfid_spi_device": "/dev/spidev0.0",
   "rfid_spi_devices": [
     "/dev/spidev0.0",
-    "/dev/spidev0.1",
-    "/dev/spidev0.2",
-    "/dev/spidev0.3",
-    "/dev/spidev0.4",
-    "/dev/spidev0.5"
+    "/dev/spidev0.1"
   ],
   "rfid_module_roles": {},
   "module_channels": [],
-  "rfid_read_timeout_ms": 700,
-  "rfid_poll_ms": 500,
+  "rfid_read_timeout_ms": 180,
+  "rfid_poll_ms": 150,
   "rfid_offline_timeout_ms": 8000,
   "debounce_ms": 50,
   "stable_confirm_ms": 10000,
