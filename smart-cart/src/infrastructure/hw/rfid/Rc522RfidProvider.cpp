@@ -145,11 +145,25 @@ std::optional<std::string> Rc522RfidProvider::readOnce(int timeoutMs) {
         std::chrono::steady_clock::now() +
         std::chrono::milliseconds(timeoutMs);
 
+    std::string previousUid;
+    int stableReads = 0;
     while (std::chrono::steady_clock::now() < deadline) {
-        if (auto uid = tryReadUid()) {
-            return uid;
+        if (auto uid = tryReadUid(); uid.has_value() && !uid->empty()) {
+            if (*uid == previousUid) {
+                ++stableReads;
+            } else {
+                previousUid = *uid;
+                stableReads = 1;
+            }
+
+            if (stableReads >= 2) {
+                return uid;
+            }
+        } else {
+            previousUid.clear();
+            stableReads = 0;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     return std::nullopt;
@@ -157,6 +171,8 @@ std::optional<std::string> Rc522RfidProvider::readOnce(int timeoutMs) {
 
 void Rc522RfidProvider::pollLoop() {
     std::string lastUid;
+    std::string pendingUid;
+    int stableReads = 0;
 
     while (active_.load()) {
         std::optional<std::string> uid;
@@ -165,11 +181,24 @@ void Rc522RfidProvider::pollLoop() {
             uid = tryReadUid();
         }
 
-        if (uid.has_value() && *uid != lastUid) {
-            lastUid = *uid;
-            if (cb_) {
-                cb_(*uid);
+        if (uid.has_value() && !uid->empty()) {
+            if (*uid == pendingUid) {
+                ++stableReads;
+            } else {
+                pendingUid = *uid;
+                stableReads = 1;
             }
+
+            if (stableReads >= 2 && *uid != lastUid) {
+                lastUid = *uid;
+                if (cb_) {
+                    cb_(*uid);
+                }
+            }
+        } else {
+            pendingUid.clear();
+            stableReads = 0;
+            lastUid.clear();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
